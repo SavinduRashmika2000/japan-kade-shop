@@ -19,3 +19,10 @@ public abstract class BaseAuditEntity {
     private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
