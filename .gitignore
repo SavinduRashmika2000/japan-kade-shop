@@ -1,0 +1,22 @@
+node_modules/
+**/node_modules/
+target/
+**/target/
+dist/
+**/dist/
+*.class
+**/*.class
+*.log
+**/*.log
+backend_log.txt
+live_backend.log
+compile_errors.txt
+build_output.txt
+.idea/
+**/ .idea/
+.vscode/
+**/ .vscode/
+japan_kade/generate_commits.js
+japan_kade/fix.py
+japan_kade/scratch_diff.txt
+generate_incremental_commits.js
