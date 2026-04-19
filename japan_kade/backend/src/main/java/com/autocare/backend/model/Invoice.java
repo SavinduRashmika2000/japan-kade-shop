@@ -13,4 +13,12 @@ public class Invoice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne
+    @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
+    private ServiceOrder serviceOrder;
+
+    @Column(nullable = false)
+    private BigDecimal totalAmount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
