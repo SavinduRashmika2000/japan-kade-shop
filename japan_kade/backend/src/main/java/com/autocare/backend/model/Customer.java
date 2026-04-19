@@ -14,3 +14,11 @@ public class Customer {
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
+
+    @Column(unique = true, nullable = false)
+    private String idNo;
+
+    private String firstName;
+    private String lastName;
+    private String phone;
+    private String address;
