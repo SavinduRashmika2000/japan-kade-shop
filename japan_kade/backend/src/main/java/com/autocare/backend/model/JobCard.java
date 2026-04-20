@@ -29,4 +29,20 @@ public class JobCard extends BaseAuditEntity {
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
-    @Column(nullable = false)
+    @Column(nullable = false)
+    private LocalDateTime startTime;
+
+    @Column
+    private LocalDateTime endTime;
+
+    @Column(nullable = false)
+    private BigDecimal totalAmount = BigDecimal.ZERO;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private JobStatus status = JobStatus.WAITING;
+
+    @OneToMany(mappedBy = "jobCard", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<JobService> services = new HashSet<>();
+
+    @OneToMany(mappedBy = "jobCard", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
