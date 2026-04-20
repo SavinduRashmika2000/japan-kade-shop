@@ -9,4 +9,16 @@ import java.math.BigDecimal;
 
 @Data
 @Entity
-@Table(name = "job_items", indexes = {
+@Table(name = "job_items", indexes = {
+    @Index(name = "idx_job_item_stock_batch_id", columnList = "stock_batch_id")
+})
+public class JobItem {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "job_card_id", nullable = false)
+    @JsonIgnore
+    @lombok.EqualsAndHashCode.Exclude
+    private JobCard jobCard;
