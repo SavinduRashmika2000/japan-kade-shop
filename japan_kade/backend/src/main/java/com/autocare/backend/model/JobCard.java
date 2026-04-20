@@ -61,4 +61,18 @@ public class JobCard extends BaseAuditEntity {
     public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
     public LocalDateTime getEndTime() { return endTime; }
     public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
-    public BigDecimal getTotalAmount() { return totalAmount; }
+    public BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+    public JobStatus getStatus() { return status; }
+    public void setStatus(JobStatus status) { this.status = status; }
+    public Set<JobService> getServices() { return services; }
+    public void setServices(Set<JobService> services) { this.services = services; }
+    public Set<JobItem> getItems() { return items; }
+    public void setItems(Set<JobItem> items) { this.items = items; }
+    public boolean isStockRestored() { return stockRestored; }
+    public void setStockRestored(boolean stockRestored) { this.stockRestored = stockRestored; }
+
+    public enum JobStatus {
+        WAITING, PAID, CANCELLED
+    }
+}
