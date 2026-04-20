@@ -21,4 +21,16 @@ public class JobItem {
     @JoinColumn(name = "job_card_id", nullable = false)
     @JsonIgnore
     @lombok.EqualsAndHashCode.Exclude
-    private JobCard jobCard;
+    private JobCard jobCard;
+
+    @ManyToOne
+    @JoinColumn(name = "stock_item_id", nullable = false)
+    @NotNull(message = "Stock item is required")
+    private StockItem stockItem;
+
+    @Column(nullable = false)
+    @NotNull(message = "Quantity is required")
+    @Positive(message = "Quantity must be positive")
+    private Integer quantity;
+
+    private BigDecimal priceAtTime; // Snapshotted unit price
