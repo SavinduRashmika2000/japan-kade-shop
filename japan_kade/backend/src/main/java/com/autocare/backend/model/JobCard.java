@@ -13,4 +13,20 @@ import java.util.Set;
 
 @Data
 @lombok.EqualsAndHashCode(callSuper = true)
-@Entity
+@Entity
+@Table(name = "job_cards")
+@SQLDelete(sql = "UPDATE job_cards SET is_deleted = true WHERE id = ?")
+@Where(clause = "is_deleted = false")
+public class JobCard extends BaseAuditEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String vehicleNumber;
+
+    @ManyToOne
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    @Column(nullable = false)
