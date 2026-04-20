@@ -45,4 +45,20 @@ public class JobCard extends BaseAuditEntity {
     @OneToMany(mappedBy = "jobCard", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<JobService> services = new HashSet<>();
 
-    @OneToMany(mappedBy = "jobCard", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "jobCard", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<JobItem> items = new HashSet<>();
+
+    @Column(name = "stock_restored", nullable = false, columnDefinition = "boolean default false")
+    private boolean stockRestored = false;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getVehicleNumber() { return vehicleNumber; }
+    public void setVehicleNumber(String vehicleNumber) { this.vehicleNumber = vehicleNumber; }
+    public Customer getCustomer() { return customer; }
+    public void setCustomer(Customer customer) { this.customer = customer; }
+    public LocalDateTime getStartTime() { return startTime; }
+    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+    public LocalDateTime getEndTime() { return endTime; }
+    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+    public BigDecimal getTotalAmount() { return totalAmount; }
