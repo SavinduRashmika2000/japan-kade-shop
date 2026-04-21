@@ -13,4 +13,12 @@ public class JobLog {
     private Long id;
 
     private Long jobId;
-    private String vehicleNumber;
+    private String vehicleNumber;
+    private String customerName;
+    private String action; // e.g., CREATED, STATUS_CHANGED, DELETED
+    private String details;
+    private String performedBy;
+    private LocalDateTime timestamp = LocalDateTime.now();
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
