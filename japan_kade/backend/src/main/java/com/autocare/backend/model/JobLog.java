@@ -5,4 +5,12 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@Entity
+@Entity
+@Table(name = "job_logs")
+public class JobLog {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private Long jobId;
+    private String vehicleNumber;
