@@ -33,4 +33,16 @@ public class JobItem {
     @Positive(message = "Quantity must be positive")
     private Integer quantity;
 
-    private BigDecimal priceAtTime; // Snapshotted unit price
+    private BigDecimal priceAtTime; // Snapshotted unit price
+    private BigDecimal subtotal; // Snapshotted subtotal
+    private String itemName; // Snapshotted name
+
+    @Column(name = "stock_batch_id")
+    private Long stockBatchId; // Tracks exact batch consumed — used for precise restoration on cancel
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public JobCard getJobCard() { return jobCard; }
+    public void setJobCard(JobCard jobCard) { this.jobCard = jobCard; }
+    public StockItem getStockItem() { return stockItem; }
+    public void setStockItem(StockItem stockItem) { this.stockItem = stockItem; }
