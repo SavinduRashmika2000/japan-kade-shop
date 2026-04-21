@@ -29,4 +29,11 @@ public class JobLog {
     public String getCustomerName() { return customerName; }
     public void setCustomerName(String customerName) { this.customerName = customerName; }
     public String getAction() { return action; }
-    public void setAction(String action) { this.action = action; }
+    public void setAction(String action) { this.action = action; }
+    public String getDetails() { return details; }
+    public void setDetails(String details) { this.details = details; }
+    public String getPerformedBy() { return performedBy; }
+    public void setPerformedBy(String performedBy) { this.performedBy = performedBy; }
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+}
