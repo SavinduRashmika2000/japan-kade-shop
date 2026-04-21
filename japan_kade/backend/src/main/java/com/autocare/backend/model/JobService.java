@@ -14,4 +14,12 @@ public class JobService {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "job_card_id", nullable = false)
+    @JoinColumn(name = "job_card_id", nullable = false)
+    @JsonIgnore
+    @lombok.EqualsAndHashCode.Exclude
+    private JobCard jobCard;
+
+    @ManyToOne
+    @JoinColumn(name = "service_type_id", nullable = false)
+    private ServiceType serviceType;
+
