@@ -6,4 +6,12 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-@Entity
+@Entity
+@Table(name = "job_services")
+public class JobService {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "job_card_id", nullable = false)
