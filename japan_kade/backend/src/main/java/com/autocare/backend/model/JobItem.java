@@ -45,4 +45,15 @@ public class JobItem {
     public JobCard getJobCard() { return jobCard; }
     public void setJobCard(JobCard jobCard) { this.jobCard = jobCard; }
     public StockItem getStockItem() { return stockItem; }
-    public void setStockItem(StockItem stockItem) { this.stockItem = stockItem; }
+    public void setStockItem(StockItem stockItem) { this.stockItem = stockItem; }
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public BigDecimal getPriceAtTime() { return priceAtTime; }
+    public void setPriceAtTime(BigDecimal priceAtTime) { this.priceAtTime = priceAtTime; }
+    public BigDecimal getSubtotal() { return subtotal; }
+    public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
+    public String getItemName() { return itemName; }
+    public void setItemName(String itemName) { this.itemName = itemName; }
+    public Long getStockBatchId() { return stockBatchId; }
+    public void setStockBatchId(Long stockBatchId) { this.stockBatchId = stockBatchId; }
+}
