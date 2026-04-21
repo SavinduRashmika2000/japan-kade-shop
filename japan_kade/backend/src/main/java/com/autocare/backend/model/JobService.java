@@ -30,4 +30,11 @@ public class JobService {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public JobCard getJobCard() { return jobCard; }
-    public void setJobCard(JobCard jobCard) { this.jobCard = jobCard; }
+    public void setJobCard(JobCard jobCard) { this.jobCard = jobCard; }
+    public ServiceType getServiceType() { return serviceType; }
+    public void setServiceType(ServiceType serviceType) { this.serviceType = serviceType; }
+    public BigDecimal getPriceAtTime() { return priceAtTime; }
+    public void setPriceAtTime(BigDecimal priceAtTime) { this.priceAtTime = priceAtTime; }
+    public String getServiceName() { return serviceName; }
+    public void setServiceName(String serviceName) { this.serviceName = serviceName; }
+}
