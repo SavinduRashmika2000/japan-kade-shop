@@ -22,3 +22,11 @@ public class Payment {
 
     @Column(nullable = false)
     private LocalDateTime paymentDate;
+
+    private String paymentMethod;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Invoice getInvoice() { return invoice; }
+    public void setInvoice(Invoice invoice) { this.invoice = invoice; }
+    public BigDecimal getAmountPaid() { return amountPaid; }
