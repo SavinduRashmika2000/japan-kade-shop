@@ -19,4 +19,14 @@ public class ServiceOrder {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_type_id", nullable = false)
-    private ServiceType serviceType;
+    private ServiceType serviceType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "staff_id")
+    private Staff staff;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ServiceStatus status = ServiceStatus.PENDING;
+
+    private String notes;
