@@ -14,3 +14,11 @@ public class Payment {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "invoice_id", nullable = false)
+    private Invoice invoice;
+
+    @Column(nullable = false)
+    private BigDecimal amountPaid;
+
+    @Column(nullable = false)
+    private LocalDateTime paymentDate;
