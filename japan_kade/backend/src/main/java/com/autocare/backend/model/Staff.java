@@ -32,3 +32,10 @@ public class Staff {
     public String getLastName() { return lastName; }
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+    public String getIdNo() { return idNo; }
+    public void setIdNo(String idNo) { this.idNo = idNo; }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+    public String getSpecialization() { return specialization; }
+    public void setSpecialization(String specialization) { this.specialization = specialization; }
+}
