@@ -14,3 +14,13 @@ public class Staff {
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
+
+    private String firstName;
+    private String lastName;
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    private String phone;
+    private String idNo;
+    private String address;
+    private String specialization;
+
+    public Long getId() { return id; }
