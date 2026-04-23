@@ -29,4 +29,11 @@ public class ServiceType {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public void setDescription(String description) { this.description = description; }
+    public BigDecimal getBasePrice() { return basePrice; }
+    public void setBasePrice(BigDecimal basePrice) { this.basePrice = basePrice; }
+    public Integer getDuration() { return duration; }
+    public void setDuration(Integer duration) { this.duration = duration; }
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+}
