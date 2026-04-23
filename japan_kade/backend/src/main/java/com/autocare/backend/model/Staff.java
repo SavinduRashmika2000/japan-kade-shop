@@ -7,3 +7,10 @@ import lombok.Data;
 @Table(name = "staff")
 @Data
 public class Staff {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
