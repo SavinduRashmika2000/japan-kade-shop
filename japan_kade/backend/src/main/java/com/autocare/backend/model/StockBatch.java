@@ -28,3 +28,18 @@ public class StockBatch extends BaseAuditEntity {
 
     @Column(nullable = false)
     private Integer currentQuantity;
+
+    @Column(nullable = false)
+    private BigDecimal unitPrice;
+
+    private BigDecimal unitCostForeign;
+    private BigDecimal exchangeRate;
+    private String currencyType;
+    private BigDecimal freightCost;
+    private BigDecimal shippingCost;
+    private BigDecimal bankCharges;
+    private BigDecimal clearanceFees;
+    private BigDecimal dutyFees;
+    private BigDecimal additionalExpenses;
+    private BigDecimal landedCost;
+    private BigDecimal sellingPrice;
