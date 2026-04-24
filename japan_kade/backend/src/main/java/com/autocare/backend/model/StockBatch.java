@@ -14,3 +14,17 @@ import java.time.LocalDateTime;
 @lombok.EqualsAndHashCode(callSuper = true)
 public class StockBatch extends BaseAuditEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "stock_item_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"batches", "category", "supplier"})
+    @lombok.EqualsAndHashCode.Exclude
+    private StockItem stockItem;
+
+    @Column(nullable = false)
+    private Integer initialQuantity;
+
+    @Column(nullable = false)
+    private Integer currentQuantity;
