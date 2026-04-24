@@ -59,3 +59,18 @@ public class StockBatch extends BaseAuditEntity {
     public void setInitialQuantity(Integer initialQuantity) { this.initialQuantity = initialQuantity; }
     public Integer getCurrentQuantity() { return currentQuantity; }
     public void setCurrentQuantity(Integer currentQuantity) { this.currentQuantity = currentQuantity; }
+    public BigDecimal getUnitPrice() { return unitPrice; }
+    public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
+    public BigDecimal getUnitCostForeign() { return unitCostForeign; }
+    public void setUnitCostForeign(BigDecimal unitCostForeign) { this.unitCostForeign = unitCostForeign; }
+    public BigDecimal getExchangeRate() { return exchangeRate; }
+    public void setExchangeRate(BigDecimal exchangeRate) { this.exchangeRate = exchangeRate; }
+    public String getCurrencyType() { return currencyType; }
+    public void setCurrencyType(String currencyType) { this.currencyType = currencyType; }
+    public BigDecimal getFreightCost() { return freightCost; }
+    public void setFreightCost(BigDecimal freightCost) { this.freightCost = freightCost; }
+    public BigDecimal getShippingCost() { return shippingCost; }
+    public void setShippingCost(BigDecimal shippingCost) { this.shippingCost = shippingCost; }
+    public BigDecimal getBankCharges() { return bankCharges; }
+    public void setBankCharges(BigDecimal bankCharges) { this.bankCharges = bankCharges; }
+    public BigDecimal getClearanceFees() { return clearanceFees; }
