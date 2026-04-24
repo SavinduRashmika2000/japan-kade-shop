@@ -26,4 +26,19 @@ public class StockItem extends BaseAuditEntity {
 
     private String hsCode;
 
-    @Column(nullable = false)
+    @Column(nullable = false)
+    private Integer quantity;
+
+    @Column(nullable = false)
+    private BigDecimal unitPrice;
+
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private Integer reservedQuantity = 0; // Tracks stock assigned to active jobs
+
+    private Integer fifoQuantity; // Quantity of the oldest available batch for UI display
+
+    private Integer lowStockThreshold;
+
+    @ManyToOne
+    @JoinColumn(name = "supplier_id")
+    private Supplier supplier;
