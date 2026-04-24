@@ -55,4 +55,19 @@ public class StockItem extends BaseAuditEntity {
     private java.time.LocalDateTime lastRestockedAt;
 
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public void setId(Long id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getPartNumber() { return partNumber; }
+    public void setPartNumber(String partNumber) { this.partNumber = partNumber; }
+    public String getHsCode() { return hsCode; }
+    public void setHsCode(String hsCode) { this.hsCode = hsCode; }
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public BigDecimal getUnitPrice() { return unitPrice; }
+    public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
+    public Integer getReservedQuantity() { return reservedQuantity; }
+    public void setReservedQuantity(Integer reservedQuantity) { this.reservedQuantity = reservedQuantity; }
+    public Integer getAvailableQuantity() { return quantity != null ? quantity : 0; }
+    public Integer getFifoQuantity() { return fifoQuantity; }
+    public void setFifoQuantity(Integer fifoQuantity) { this.fifoQuantity = fifoQuantity; }
