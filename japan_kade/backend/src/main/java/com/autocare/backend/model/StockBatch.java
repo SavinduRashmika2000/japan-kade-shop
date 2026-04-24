@@ -43,3 +43,19 @@ public class StockBatch extends BaseAuditEntity {
     private BigDecimal additionalExpenses;
     private BigDecimal landedCost;
     private BigDecimal sellingPrice;
+
+    @ManyToOne
+    @JoinColumn(name = "supplier_id")
+    private Supplier supplier;
+
+    @Column(nullable = false)
+    private Boolean isRestored = false;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public StockItem getStockItem() { return stockItem; }
+    public void setStockItem(StockItem stockItem) { this.stockItem = stockItem; }
+    public Integer getInitialQuantity() { return initialQuantity; }
+    public void setInitialQuantity(Integer initialQuantity) { this.initialQuantity = initialQuantity; }
+    public Integer getCurrentQuantity() { return currentQuantity; }
+    public void setCurrentQuantity(Integer currentQuantity) { this.currentQuantity = currentQuantity; }
