@@ -41,4 +41,18 @@ public class StockItem extends BaseAuditEntity {
 
     @ManyToOne
     @JoinColumn(name = "supplier_id")
-    private Supplier supplier;
+    private Supplier supplier;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    @OneToMany(mappedBy = "stockItem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private java.util.List<StockBatch> batches;
+
+    private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
+    private java.time.LocalDateTime lastRestockedAt;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
