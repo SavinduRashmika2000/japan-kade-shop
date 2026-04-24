@@ -70,4 +70,17 @@ public class StockItem extends BaseAuditEntity {
     public void setReservedQuantity(Integer reservedQuantity) { this.reservedQuantity = reservedQuantity; }
     public Integer getAvailableQuantity() { return quantity != null ? quantity : 0; }
     public Integer getFifoQuantity() { return fifoQuantity; }
-    public void setFifoQuantity(Integer fifoQuantity) { this.fifoQuantity = fifoQuantity; }
+    public void setFifoQuantity(Integer fifoQuantity) { this.fifoQuantity = fifoQuantity; }
+    public Integer getLowStockThreshold() { return lowStockThreshold; }
+    public void setLowStockThreshold(Integer lowStockThreshold) { this.lowStockThreshold = lowStockThreshold; }
+    public Supplier getSupplier() { return supplier; }
+    public void setSupplier(Supplier supplier) { this.supplier = supplier; }
+    public Category getCategory() { return category; }
+    public void setCategory(Category category) { this.category = category; }
+    public java.util.List<StockBatch> getBatches() { return batches; }
+    public void setBatches(java.util.List<StockBatch> batches) { this.batches = batches; }
+    public java.time.LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public java.time.LocalDateTime getLastRestockedAt() { return lastRestockedAt; }
+    public void setLastRestockedAt(java.time.LocalDateTime lastRestockedAt) { this.lastRestockedAt = lastRestockedAt; }
+}
