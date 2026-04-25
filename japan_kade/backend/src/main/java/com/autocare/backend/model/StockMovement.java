@@ -13,4 +13,19 @@ import java.time.LocalDateTime;
     uniqueConstraints = {
         @UniqueConstraint(columnNames = {"reference_id", "stock_batch_id", "type"})
     }
-)
+)
+@Data
+@lombok.EqualsAndHashCode(callSuper = true)
+public class StockMovement extends BaseAuditEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stock_item_id", nullable = false)
+    @lombok.EqualsAndHashCode.Exclude
+    private StockItem stockItem;
+
+    @Column(name = "stock_batch_id")
+    private Long stockBatchId;
+
