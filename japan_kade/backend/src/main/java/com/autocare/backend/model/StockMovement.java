@@ -28,4 +28,19 @@ public class StockMovement extends BaseAuditEntity {
 
     @Column(name = "stock_batch_id")
     private Long stockBatchId;
-
+
+    @Column(nullable = false)
+    private Integer quantity;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MovementType type;
+
+    @Column(name = "reference_id")
+    private Long referenceId; // jobId
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public StockItem getStockItem() { return stockItem; }
+    public void setStockItem(StockItem stockItem) { this.stockItem = stockItem; }
+    public Long getStockBatchId() { return stockBatchId; }
