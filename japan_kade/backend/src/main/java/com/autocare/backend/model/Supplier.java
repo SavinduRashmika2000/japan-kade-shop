@@ -21,3 +21,15 @@ public class Supplier {
     private String email;
 
     @Column(nullable = false)
+    private String phone;
+
+    private String address;
+
+    @Column(nullable = false)
+    private boolean active = true;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getCompanyName() { return companyName; }
+    public void setCompanyName(String companyName) { this.companyName = companyName; }
+    public String getContactPerson() { return contactPerson; }
