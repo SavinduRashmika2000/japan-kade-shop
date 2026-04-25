@@ -46,4 +46,19 @@ public class StockTransaction {
     public StockItem getStockItem() { return stockItem; }
     public void setStockItem(StockItem stockItem) { this.stockItem = stockItem; }
     public Supplier getSupplier() { return supplier; }
-    public void setSupplier(Supplier supplier) { this.supplier = supplier; }
+    public void setSupplier(Supplier supplier) { this.supplier = supplier; }
+    public String getTransactionType() { return transactionType; }
+    public void setTransactionType(String transactionType) { this.transactionType = transactionType; }
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public BigDecimal getUnitPrice() { return unitPrice; }
+    public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
+    public BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
+    public Long getJobId() { return jobId; }
+    public void setJobId(Long jobId) { this.jobId = jobId; }
+}
