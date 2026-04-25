@@ -43,4 +43,18 @@ public class StockMovement extends BaseAuditEntity {
     public void setId(Long id) { this.id = id; }
     public StockItem getStockItem() { return stockItem; }
     public void setStockItem(StockItem stockItem) { this.stockItem = stockItem; }
-    public Long getStockBatchId() { return stockBatchId; }
+    public Long getStockBatchId() { return stockBatchId; }
+    public void setStockBatchId(Long stockBatchId) { this.stockBatchId = stockBatchId; }
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public MovementType getType() { return type; }
+    public void setType(MovementType type) { this.type = type; }
+    public Long getReferenceId() { return referenceId; }
+    public void setReferenceId(Long referenceId) { this.referenceId = referenceId; }
+
+    public enum MovementType {
+        RESERVE,
+        CONSUME,
+        RESTORE
+    }
+}
