@@ -30,4 +30,20 @@ public class StockTransaction {
 
     @Column(nullable = false)
     private BigDecimal unitPrice; // Price at the time of transaction
-
+
+    @Column(nullable = false)
+    private BigDecimal totalAmount;
+
+    @Column(nullable = false)
+    private LocalDateTime timestamp = LocalDateTime.now();
+
+    private String note;
+
+    private Long jobId;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public StockItem getStockItem() { return stockItem; }
+    public void setStockItem(StockItem stockItem) { this.stockItem = stockItem; }
+    public Supplier getSupplier() { return supplier; }
+    public void setSupplier(Supplier supplier) { this.supplier = supplier; }
