@@ -16,4 +16,14 @@ public class Vehicle {
     private Customer customer;
 
     private String make;
-    private String model;
+    private String model;
+    private Integer year;
+    
+    @Column(unique = true)
+    private String licensePlate;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Customer getCustomer() { return customer; }
+    public void setCustomer(Customer customer) { this.customer = customer; }
+    public String getMake() { return make; }
