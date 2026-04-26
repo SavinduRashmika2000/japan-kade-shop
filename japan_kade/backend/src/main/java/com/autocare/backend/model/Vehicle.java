@@ -7,4 +7,13 @@ import lombok.Data;
 @Table(name = "vehicles")
 @Data
 public class Vehicle {
-    @Id
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    private String make;
+    private String model;
