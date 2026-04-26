@@ -15,3 +15,19 @@ public class User {
     private Long id;
 
     @Column(unique = true)
+    private String username;
+
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(unique = true)
+    private String email;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RoleType role;
+
+    @Column(nullable = false)
+    private boolean enabled = true;
