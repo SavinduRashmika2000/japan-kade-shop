@@ -31,3 +31,20 @@ public class User {
 
     @Column(nullable = false)
     private boolean enabled = true;
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    @Column(length = 1000)
+    private String currentToken;
+
+    private String name;
+
+    @jakarta.validation.constraints.Size(min = 10, max = 10)
+    @Column(unique = true)
+    private String phone;
