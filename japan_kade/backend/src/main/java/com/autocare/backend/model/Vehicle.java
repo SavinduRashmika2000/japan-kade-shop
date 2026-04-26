@@ -26,4 +26,12 @@ public class Vehicle {
     public void setId(Long id) { this.id = id; }
     public Customer getCustomer() { return customer; }
     public void setCustomer(Customer customer) { this.customer = customer; }
-    public String getMake() { return make; }
+    public String getMake() { return make; }
+    public void setMake(String make) { this.make = make; }
+    public String getModel() { return model; }
+    public void setModel(String model) { this.model = model; }
+    public Integer getYear() { return year; }
+    public void setYear(Integer year) { this.year = year; }
+    public String getLicensePlate() { return licensePlate; }
+    public void setLicensePlate(String licensePlate) { this.licensePlate = licensePlate; }
+}
