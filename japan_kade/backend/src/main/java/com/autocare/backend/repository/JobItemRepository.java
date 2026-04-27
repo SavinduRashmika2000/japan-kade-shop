@@ -12,3 +12,8 @@ import java.util.List;
 @Repository
 public interface JobItemRepository extends JpaRepository<JobItem, Long> {
     List<JobItem> findByStockItemAndJobCardStatusAndJobCardEndTimeAfter(
+        StockItem item, JobCard.JobStatus status, LocalDateTime dateTime);
+        
+    List<JobItem> findByJobCardStatusAndJobCardEndTimeAfter(
+        JobCard.JobStatus status, LocalDateTime dateTime);
+}
