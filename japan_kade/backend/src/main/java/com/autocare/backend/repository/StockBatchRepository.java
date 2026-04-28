@@ -22,3 +22,11 @@ public interface StockBatchRepository extends JpaRepository<StockBatch, Long> {
     List<StockBatch> findAvailableBatchesForUpdate(@Param("stockItem") StockItem stockItem);
     
     List<StockBatch> findByStockItemAndCurrentQuantityGreaterThanOrderByCreatedAtAsc(StockItem stockItem, Integer currentQuantity);
+
+    // Non-locking read for simulation/preview purposes only
+    @Query("SELECT b FROM StockBatch b WHERE b.stockItem = :stockItem AND b.currentQuantity > 0 ORDER BY b.createdAt ASC")
+    List<StockBatch> findAvailableBatchesReadOnly(@Param("stockItem") StockItem stockItem);
+    List<StockBatch> findByStockItemOrderByIsRestoredDescCreatedAtAsc(StockItem stockItem);
+    
+    List<StockBatch> findByCurrentQuantityGreaterThan(Integer currentQuantity);
+}
