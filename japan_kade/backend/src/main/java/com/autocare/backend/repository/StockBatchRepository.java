@@ -15,3 +15,10 @@ import java.util.List;
 @Repository
 public interface StockBatchRepository extends JpaRepository<StockBatch, Long> {
     List<StockBatch> findByStockItemOrderByCreatedAtAsc(StockItem stockItem);
+    
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000")})
+    @Query("SELECT b FROM StockBatch b WHERE b.stockItem = :stockItem AND b.currentQuantity > 0 ORDER BY b.createdAt ASC")
+    List<StockBatch> findAvailableBatchesForUpdate(@Param("stockItem") StockItem stockItem);
+    
+    List<StockBatch> findByStockItemAndCurrentQuantityGreaterThanOrderByCreatedAtAsc(StockItem stockItem, Integer currentQuantity);
