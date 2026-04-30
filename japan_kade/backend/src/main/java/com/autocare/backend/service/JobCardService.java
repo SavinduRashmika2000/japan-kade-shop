@@ -80,4 +80,87 @@ public class JobCardService {
                     String lName = c.getLastName() != null ? c.getLastName() : "";
                     String fullName = (fName + " " + lName).trim();
                     if (!fullName.isEmpty()) {
-                        customerName = fullName;
+                        customerName = fullName;
+                    }
+                }
+            }
+            log.setCustomerName(customerName);
+            
+            log.setAction(action);
+            log.setDetails(details);
+            log.setPerformedBy(getCurrentUserFullName());
+            jobLogRepository.save(log);
+        } catch (Exception e) {
+            System.err.println("Failed to create job log: " + e.getMessage());
+        }
+    }
+
+    private void validateStatusTransition(JobCard.JobStatus oldStatus, JobCard.JobStatus newStatus) {
+        if (oldStatus == JobCard.JobStatus.PAID || oldStatus == JobCard.JobStatus.CANCELLED) {
+            throw new InvalidJobStateException("Cannot change status of a " + oldStatus + " job.");
+        }
+
+        boolean valid = false;
+        if (oldStatus == JobCard.JobStatus.WAITING) {
+            if (newStatus == JobCard.JobStatus.PAID || newStatus == JobCard.JobStatus.CANCELLED) {
+                valid = true;
+            }
+        }
+
+        if (!valid) {
+            throw new InvalidJobStateException("Invalid transition from " + oldStatus + " to " + newStatus);
+        }
+    }
+
+    public List<JobCard> getAllJobs() {
+        return jobCardRepository.findAllWithDetails();
+    }
+
+    public List<JobCard> getMyJobs() {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+                String username = auth.getName();
+                User user = userRepository.findByUsername(username).orElse(null);
+                if (user != null) {
+                    Customer customer = customerRepository.findByUser(user).orElse(null);
+                    if (customer != null) {
+                        return jobCardRepository.findByCustomerIdWithDetails(customer.getId());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to get customer jobs", e);
+        }
+        return new ArrayList<>();
+    }
+
+    public JobCard getJobById(Long id) {
+        return jobCardRepository.findByIdWithDetails(id).orElseThrow(() -> new RuntimeException("Job not found"));
+    }
+
+    @Transactional
+    public JobCard saveJob(JobCard jobCard) {
+        JobCard entityToSave;
+        java.util.Set<JobItem> oldItems = new java.util.HashSet<>();
+        JobCard.JobStatus oldStatus = null;
+        
+        if (jobCard.getId() != null) {
+            // UPDATE FLOW
+            entityToSave = jobCardRepository.findById(jobCard.getId())
+                    .orElseThrow(() -> new RuntimeException("Job card not found with ID: " + jobCard.getId()));
+            
+            oldStatus = entityToSave.getStatus();
+            // Clone old items for stock restoration logic before we clear the collection
+            oldItems = new java.util.HashSet<>(entityToSave.getItems());
+            
+            // Restore stock for ANY active job being re-evaluated (reservation logic)
+            if (oldStatus != JobCard.JobStatus.CANCELLED) {
+                System.out.println("DEBUG: Restoring stock for " + oldItems.size() + " old items from Job #" + entityToSave.getId());
+                restoreStockForItems(entityToSave, oldItems, "Job #" + entityToSave.getId() + " Update (Re-evaluating)");
+            }
+
+            entityToSave.setVehicleNumber(jobCard.getVehicleNumber());
+            entityToSave.setStartTime(jobCard.getStartTime());
+            entityToSave.setEndTime(jobCard.getEndTime());
+            entityToSave.setStatus(jobCard.getStatus());
