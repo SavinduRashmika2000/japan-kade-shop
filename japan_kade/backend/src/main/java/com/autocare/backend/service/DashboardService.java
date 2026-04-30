@@ -152,4 +152,55 @@ public class DashboardService {
                         Collectors.mapping(j -> j, Collectors.toList())))
                 .entrySet().stream()
                 .map(e -> {
-                    DashboardStatsDTO.TopCustomerDTO dto = new DashboardStatsDTO.TopCustomerDTO();
+                    DashboardStatsDTO.TopCustomerDTO dto = new DashboardStatsDTO.TopCustomerDTO();
+                    dto.setName(e.getKey());
+                    dto.setTotal(e.getValue().stream().map(JobCard::getTotalAmount).reduce(BigDecimal.ZERO, BigDecimal::add));
+                    dto.setJobs(e.getValue().size());
+                    return dto;
+                })
+                .sorted((c1, c2) -> c2.getTotal().compareTo(c1.getTotal()))
+                .limit(4)
+                .collect(Collectors.toList()));
+
+        // Time-based stats (Monthly)
+        java.time.LocalDateTime lastMonth = java.time.LocalDateTime.now().minusDays(30);
+        java.util.List<JobCard> monthlyJobs = allJobs.stream()
+            .filter(j -> j.getStatus() == JobCard.JobStatus.PAID && j.getEndTime() != null && j.getEndTime().isAfter(lastMonth))
+            .collect(Collectors.toList());
+
+        stats.setMonthlyRevenue(monthlyJobs.stream()
+            .map(JobCard::getTotalAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add));
+
+        // Monthly Inventory Profit & Intelligence
+        BigDecimal monthlyProfit = BigDecimal.ZERO;
+        BigDecimal totalStockValue = BigDecimal.ZERO; // Remaining Qty * Landed Cost
+        BigDecimal totalSellingValue = BigDecimal.ZERO; // Remaining Qty * Selling Price
+        BigDecimal totalFutureProfit = BigDecimal.ZERO; // Remaining Qty * GP
+        
+        BigDecimal totalFreight = BigDecimal.ZERO;
+        BigDecimal totalShipping = BigDecimal.ZERO;
+        BigDecimal totalBank = BigDecimal.ZERO;
+        BigDecimal totalClearance = BigDecimal.ZERO;
+        BigDecimal totalDuty = BigDecimal.ZERO;
+        BigDecimal totalAddtl = BigDecimal.ZERO;
+
+        // 1. Calculate Monthly Profit from PAID jobs (Optimized: fetch all relevant batches in one go)
+        java.util.Set<Long> batchIdsToFetch = monthlyJobs.stream()
+            .flatMap(j -> j.getItems().stream())
+            .map(com.autocare.backend.model.JobItem::getStockBatchId)
+            .filter(java.util.Objects::nonNull)
+            .collect(Collectors.toSet());
+            
+        java.util.Map<Long, com.autocare.backend.model.StockBatch> batchMap = stockBatchRepository.findAllById(batchIdsToFetch).stream()
+            .collect(Collectors.toMap(com.autocare.backend.model.StockBatch::getId, b -> b));
+
+        for (JobCard job : monthlyJobs) {
+            for (JobItem item : job.getItems()) {
+                if (item.getStockBatchId() != null) {
+                    com.autocare.backend.model.StockBatch batch = batchMap.get(item.getStockBatchId());
+                    if (batch != null) {
+                        BigDecimal landedCost = batch.getLandedCost() != null ? batch.getLandedCost() : (batch.getUnitPrice() != null ? batch.getUnitPrice() : BigDecimal.ZERO);
+                        BigDecimal sellingPrice = batch.getSellingPrice() != null ? batch.getSellingPrice() : (item.getPriceAtTime() != null ? item.getPriceAtTime() : landedCost);
+                        BigDecimal profitPerUnit = sellingPrice.subtract(landedCost);
+                        monthlyProfit = monthlyProfit.add(profitPerUnit.multiply(new BigDecimal(item.getQuantity() != null ? item.getQuantity() : 0)));
