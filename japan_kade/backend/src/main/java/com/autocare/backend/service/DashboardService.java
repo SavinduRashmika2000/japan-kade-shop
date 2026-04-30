@@ -203,4 +203,54 @@ public class DashboardService {
                         BigDecimal landedCost = batch.getLandedCost() != null ? batch.getLandedCost() : (batch.getUnitPrice() != null ? batch.getUnitPrice() : BigDecimal.ZERO);
                         BigDecimal sellingPrice = batch.getSellingPrice() != null ? batch.getSellingPrice() : (item.getPriceAtTime() != null ? item.getPriceAtTime() : landedCost);
                         BigDecimal profitPerUnit = sellingPrice.subtract(landedCost);
-                        monthlyProfit = monthlyProfit.add(profitPerUnit.multiply(new BigDecimal(item.getQuantity() != null ? item.getQuantity() : 0)));
+                        monthlyProfit = monthlyProfit.add(profitPerUnit.multiply(new BigDecimal(item.getQuantity() != null ? item.getQuantity() : 0)));
+                    }
+                }
+            }
+        }
+        stats.setMonthlyInventoryProfit(monthlyProfit.setScale(2, RoundingMode.HALF_UP));
+
+        // 2. Inventory Valuation & Intelligence (Per Batch accuracy)
+        java.util.List<com.autocare.backend.model.StockBatch> activeBatches = stockBatchRepository.findByCurrentQuantityGreaterThan(0);
+        for (com.autocare.backend.model.StockBatch b : activeBatches) {
+            BigDecimal qty = new BigDecimal(b.getCurrentQuantity() != null ? b.getCurrentQuantity() : 0);
+            BigDecimal landed = b.getLandedCost() != null ? b.getLandedCost() : (b.getUnitPrice() != null ? b.getUnitPrice() : BigDecimal.ZERO);
+            BigDecimal selling = b.getSellingPrice() != null ? b.getSellingPrice() : (b.getUnitPrice() != null ? b.getUnitPrice() : BigDecimal.ZERO);
+            
+            totalStockValue = totalStockValue.add(landed.multiply(qty));
+            totalSellingValue = totalSellingValue.add(selling.multiply(qty));
+            totalFutureProfit = totalFutureProfit.add(selling.subtract(landed).multiply(qty));
+
+            totalFreight = totalFreight.add(b.getFreightCost() != null ? b.getFreightCost() : BigDecimal.ZERO);
+            totalShipping = totalShipping.add(b.getShippingCost() != null ? b.getShippingCost() : BigDecimal.ZERO);
+            totalBank = totalBank.add(b.getBankCharges() != null ? b.getBankCharges() : BigDecimal.ZERO);
+            totalClearance = totalClearance.add(b.getClearanceFees() != null ? b.getClearanceFees() : BigDecimal.ZERO);
+            totalDuty = totalDuty.add(b.getDutyFees() != null ? b.getDutyFees() : BigDecimal.ZERO);
+            totalAddtl = totalAddtl.add(b.getAdditionalExpenses() != null ? b.getAdditionalExpenses() : BigDecimal.ZERO);
+        }
+
+        stats.setTotalInventoryValue(totalStockValue.setScale(2, RoundingMode.HALF_UP));
+        stats.setRemainingStockValue(totalStockValue.setScale(2, RoundingMode.HALF_UP));
+        stats.setEstimatedSellingValue(totalSellingValue.setScale(2, RoundingMode.HALF_UP));
+        stats.setEstimatedFutureProfit(totalFutureProfit.setScale(2, RoundingMode.HALF_UP));
+
+        stats.setTotalFreightCost(totalFreight.setScale(2, RoundingMode.HALF_UP));
+        stats.setTotalShippingCost(totalShipping.setScale(2, RoundingMode.HALF_UP));
+        stats.setTotalBankCharges(totalBank.setScale(2, RoundingMode.HALF_UP));
+        stats.setTotalClearanceFees(totalClearance.setScale(2, RoundingMode.HALF_UP));
+        stats.setTotalDutyFees(totalDuty.setScale(2, RoundingMode.HALF_UP));
+        stats.setTotalAdditionalExpenses(totalAddtl.setScale(2, RoundingMode.HALF_UP));
+
+        // Inventory Alerts
+        java.util.List<com.autocare.backend.model.StockItem> allStock = stockItemRepository.findAll();
+        stats.setLowStockCount(allStock.stream()
+            .filter(s -> s.getLowStockThreshold() != null && s.getQuantity() != null
+                && s.getQuantity() > 0 && s.getQuantity() <= s.getLowStockThreshold())
+            .count());
+        stats.setOutOfStockCount(allStock.stream()
+            .filter(s -> s.getQuantity() != null && s.getQuantity() == 0)
+            .count());
+
+        return stats;
+    }
+}
