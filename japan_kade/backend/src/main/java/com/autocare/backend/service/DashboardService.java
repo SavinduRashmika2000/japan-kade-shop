@@ -49,4 +49,55 @@ public class DashboardService {
         // Basic Counts
         stats.setTotalCustomers(customerRepository.count());
         stats.setTotalStaff(userRepository.countByRoleIn(List.of(
-                com.autocare.backend.model.RoleType.ROLE_ADMIN,
+                com.autocare.backend.model.RoleType.ROLE_ADMIN,
+                com.autocare.backend.model.RoleType.ROLE_STAFF
+        )));
+        stats.setTotalServices(serviceTypeRepository.count());
+        
+        List<JobCard> allJobs = jobCardRepository.findAllWithDetails(); 
+
+        stats.setActiveJobs(allJobs.stream()
+                .filter(j -> j.getStatus() != JobCard.JobStatus.PAID && j.getStatus() != JobCard.JobStatus.CANCELLED)
+                .count());
+
+        stats.setTodayRevenue(allJobs.stream()
+                .filter(j -> j.getStatus() == JobCard.JobStatus.PAID && j.getStartTime().isAfter(startOfToday) && j.getStartTime().isBefore(endOfToday))
+                .map(JobCard::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+
+        stats.setTotalRevenue(allJobs.stream()
+                .filter(j -> j.getStatus() == JobCard.JobStatus.PAID)
+                .map(JobCard::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+
+        // Last 7 Days Chart Data
+        List<DashboardStatsDTO.ChartDataDTO> chartData = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd");
+        for (int i = 6; i >= 0; i--) {
+            LocalDate date = today.minusDays(i);
+            LocalDateTime start = date.atStartOfDay();
+            LocalDateTime end = date.atTime(LocalTime.MAX);
+
+            DashboardStatsDTO.ChartDataDTO data = new DashboardStatsDTO.ChartDataDTO();
+            data.setDate(date.toString());
+            
+            data.setRevenue(allJobs.stream()
+                    .filter(j -> j.getStatus() == JobCard.JobStatus.PAID && j.getStartTime().isAfter(start) && j.getStartTime().isBefore(end))
+                    .map(JobCard::getTotalAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add));
+            
+            data.setJobs(allJobs.stream()
+                    .filter(j -> j.getStartTime().isAfter(start) && j.getStartTime().isBefore(end))
+                    .count());
+            
+            chartData.add(data);
+        }
+        stats.setChartData(chartData);
+
+        // Recent Activity (Last 5 jobs)
+        stats.setRecentActivity(allJobs.stream()
+                .sorted((j1, j2) -> j2.getStartTime().compareTo(j1.getStartTime()))
+                .limit(5)
+                .map(j -> {
+                    DashboardStatsDTO.RecentActivityDTO dto = new DashboardStatsDTO.RecentActivityDTO();
+                    dto.setId(j.getId());
