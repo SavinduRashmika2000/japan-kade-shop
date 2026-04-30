@@ -100,4 +100,56 @@ public class DashboardService {
                 .limit(5)
                 .map(j -> {
                     DashboardStatsDTO.RecentActivityDTO dto = new DashboardStatsDTO.RecentActivityDTO();
-                    dto.setId(j.getId());
+                    dto.setId(j.getId());
+                    dto.setVehicleNumber(j.getVehicleNumber());
+                    String customerName = "Walk-in";
+                    if (j.getCustomer() != null) {
+                        customerName = j.getCustomer().getFirstName() + " " + (j.getCustomer().getLastName() != null ? j.getCustomer().getLastName() : "");
+                    }
+                    dto.setCustomerName(customerName);
+                    dto.setStatus(j.getStatus().toString());
+                    return dto;
+                })
+                .collect(Collectors.toList()));
+
+        // Top Services & Items calculation
+        // Top 5 Services
+        stats.setTopServices(allJobs.stream()
+                .filter(j -> j.getStatus() == JobCard.JobStatus.PAID)
+                .flatMap(j -> j.getServices().stream())
+                .collect(Collectors.groupingBy(com.autocare.backend.model.JobService::getServiceName, Collectors.counting()))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(5)
+                .map(e -> {
+                    DashboardStatsDTO.TopServiceDTO dto = new DashboardStatsDTO.TopServiceDTO();
+                    dto.setName(e.getKey());
+                    dto.setCount(e.getValue());
+                    return dto;
+                })
+                .collect(Collectors.toList()));
+
+        // Top 5 Items
+        stats.setTopItems(allJobs.stream()
+                .filter(j -> j.getStatus() == JobCard.JobStatus.PAID)
+                .flatMap(j -> j.getItems().stream())
+                .collect(Collectors.groupingBy(com.autocare.backend.model.JobItem::getItemName, Collectors.summingLong(com.autocare.backend.model.JobItem::getQuantity)))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(5)
+                .map(e -> {
+                    DashboardStatsDTO.TopItemDTO dto = new DashboardStatsDTO.TopItemDTO();
+                    dto.setName(e.getKey());
+                    dto.setQty(e.getValue());
+                    return dto;
+                })
+                .collect(Collectors.toList()));
+
+        // Top 4 Customers (by revenue)
+        stats.setTopCustomers(allJobs.stream()
+                .filter(j -> j.getStatus() == JobCard.JobStatus.PAID && j.getCustomer() != null)
+                .collect(Collectors.groupingBy(j -> j.getCustomer().getFirstName() + " " + (j.getCustomer().getLastName() != null ? j.getCustomer().getLastName() : ""),
+                        Collectors.mapping(j -> j, Collectors.toList())))
+                .entrySet().stream()
+                .map(e -> {
+                    DashboardStatsDTO.TopCustomerDTO dto = new DashboardStatsDTO.TopCustomerDTO();
