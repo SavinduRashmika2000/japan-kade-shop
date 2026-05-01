@@ -7,4 +7,14 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class ServiceOrderService {
+public class ServiceOrderService {
+    @Autowired
+    private ServiceOrderRepository serviceOrderRepository;
+
+    public List<ServiceOrder> getAllServiceOrders() {
+        return serviceOrderRepository.findAll();
+    }
+
+    public ServiceOrder getServiceOrderById(Long id) {
+        return serviceOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("Service order not found"));
+    }
