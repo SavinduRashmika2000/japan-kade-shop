@@ -163,4 +163,87 @@ public class JobCardService {
             entityToSave.setVehicleNumber(jobCard.getVehicleNumber());
             entityToSave.setStartTime(jobCard.getStartTime());
             entityToSave.setEndTime(jobCard.getEndTime());
-            entityToSave.setStatus(jobCard.getStatus());
+            entityToSave.setStatus(jobCard.getStatus());
+            
+            if (jobCard.getCustomer() != null && jobCard.getCustomer().getId() != null) {
+                Customer customer = customerRepository.findById(jobCard.getCustomer().getId())
+                        .orElseThrow(() -> new RuntimeException("Customer not found"));
+                entityToSave.setCustomer(customer);
+            }
+            
+            entityToSave.getServices().clear();
+            if (jobCard.getServices() != null) {
+                for (JobService js : jobCard.getServices()) {
+                    js.setJobCard(entityToSave);
+                    entityToSave.getServices().add(js);
+                }
+            }
+            
+            entityToSave.getItems().clear();
+            if (jobCard.getItems() != null) {
+                for (JobItem ji : jobCard.getItems()) {
+                    ji.setJobCard(entityToSave);
+                    entityToSave.getItems().add(ji);
+                }
+            }
+        } else {
+            // CREATE FLOW
+            entityToSave = jobCard;
+            if (entityToSave.getServices() != null) {
+                entityToSave.getServices().forEach(s -> s.setJobCard(entityToSave));
+            }
+            if (entityToSave.getItems() != null) {
+                entityToSave.getItems().forEach(i -> i.setJobCard(entityToSave));
+            }
+        }
+
+        // Calculate totals
+        BigDecimal total = BigDecimal.ZERO;
+        if (entityToSave.getServices() != null) {
+            for (JobService js : entityToSave.getServices()) {
+                if (js.getPriceAtTime() != null) total = total.add(js.getPriceAtTime());
+            }
+        }
+        if (entityToSave.getItems() != null) {
+            for (JobItem ji : entityToSave.getItems()) {
+                if (ji.getPriceAtTime() != null && ji.getQuantity() != null) {
+                    total = total.add(ji.getPriceAtTime().multiply(new BigDecimal(ji.getQuantity())));
+                }
+            }
+        }
+        entityToSave.setTotalAmount(total);
+        
+        JobCard saved = jobCardRepository.save(entityToSave);
+        JobCard.JobStatus newStatus = saved.getStatus();
+
+        // Reserve stock immediately for any non-cancelled job
+        if (newStatus != JobCard.JobStatus.CANCELLED) {
+            System.out.println("DEBUG: Reserving stock for Job #" + saved.getId());
+            reduceStockForItems(saved, "Job #" + saved.getId() + (jobCard.getId() == null ? " Created" : " Updated"));
+            
+            // Recalculate total after stock reduction (multi-batch pricing update)
+            BigDecimal finalTotal = BigDecimal.ZERO;
+            if (saved.getServices() != null) {
+                for (JobService js : saved.getServices()) {
+                    if (js.getPriceAtTime() != null) finalTotal = finalTotal.add(js.getPriceAtTime());
+                }
+            }
+            if (saved.getItems() != null) {
+                for (JobItem ji : saved.getItems()) {
+                    if (ji.getSubtotal() != null) {
+                        finalTotal = finalTotal.add(ji.getSubtotal());
+                    } else if (ji.getPriceAtTime() != null && ji.getQuantity() != null) {
+                        finalTotal = finalTotal.add(ji.getPriceAtTime().multiply(new BigDecimal(ji.getQuantity())));
+                    }
+                }
+            }
+            saved.setTotalAmount(finalTotal);
+            saved = jobCardRepository.save(saved);
+
+            // If saved as PAID immediately, release the reservation since it is fully consumed
+            if (newStatus == JobCard.JobStatus.PAID) {
+                for (JobItem ji : saved.getItems()) {
+                    if (ji.getStockItem() != null && ji.getStockItem().getId() != null && ji.getQuantity() != null && ji.getQuantity() > 0) {
+                        stockService.releaseReservation(ji.getStockItem().getId(), ji.getQuantity(), saved.getId());
+                    }
+                }
