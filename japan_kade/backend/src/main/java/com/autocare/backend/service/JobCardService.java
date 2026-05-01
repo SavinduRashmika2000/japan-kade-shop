@@ -329,4 +329,86 @@ public class JobCardService {
         
         // Silenced to keep activity feed clean as items are already listed in JOB_UPDATED/JOB_FINISHED
     }
-
+
+    @Transactional
+    public JobCard updateStatus(Long id, JobCard.JobStatus status) {
+        JobCard job = getJobById(id);
+        JobCard.JobStatus oldStatus = job.getStatus();
+        
+        if (oldStatus == status) return job;
+
+        // Enforce strict state machine transitions
+        validateStatusTransition(oldStatus, status);
+        
+        System.out.println("DEBUG: Status Transition for Job #" + id + ": " + oldStatus + " -> " + status);
+
+        // Transition logic for immediate stock reservation (reverted to original robust logic)
+        if (status == JobCard.JobStatus.CANCELLED && oldStatus != JobCard.JobStatus.CANCELLED) {
+            if (!job.isStockRestored()) {
+                System.out.println("DEBUG: Restoring stock for Job #" + id + " (Cancellation)");
+                restoreStockForItems(job, job.getItems(), "Job #" + id + " Cancelled");
+                // Clean up: delete all stock transaction audit rows tied to this job
+                stockService.deleteTransactionsByJobId(job.getId());
+                // Also remove ALL previous work log entries for this job so the activity feed only shows the cancellation
+                jobLogRepository.deleteByJobId(job.getId());
+                job.setStockRestored(true);
+            }
+        }
+        
+        if (status != JobCard.JobStatus.CANCELLED && oldStatus == JobCard.JobStatus.CANCELLED) {
+            System.out.println("DEBUG: Reserving stock for Job #" + id + " (Restoration)");
+            reduceStockForItems(job, "Job #" + id + " Restored");
+        }
+
+        // Trigger 'STOCK_OUT' log specifically when moving from WAITING to PAID
+        if (status == JobCard.JobStatus.PAID && oldStatus == JobCard.JobStatus.WAITING) {
+            logStockOutActivity(job);
+        }
+
+        // AUTO-TIMESTAMP LOGIC
+        
+        if (status == JobCard.JobStatus.PAID && oldStatus != JobCard.JobStatus.PAID) {
+            // Update End Time to 'Now' when work is completed
+            job.setEndTime(java.time.LocalDateTime.now());
+        }
+        
+        // Release reservations if the job is now PAID
+        if (status == JobCard.JobStatus.PAID && oldStatus != JobCard.JobStatus.PAID && oldStatus != JobCard.JobStatus.CANCELLED) {
+            for (JobItem ji : job.getItems()) {
+                if (ji.getStockItem() != null && ji.getStockItem().getId() != null && ji.getQuantity() != null && ji.getQuantity() > 0) {
+                    stockService.releaseReservation(ji.getStockItem().getId(), ji.getQuantity(), job.getId());
+                }
+            }
+        }
+        
+        job.setStatus(status);
+        JobCard saved = jobCardRepository.save(job);
+
+        // Only log major milestones to keep the feed clean
+        if (status == JobCard.JobStatus.PAID) {
+            String services = (saved.getServices() != null) ? saved.getServices().stream().map(JobService::getServiceName).collect(java.util.stream.Collectors.joining(", ")) : "None";
+            createLog(saved, "JOB_PAID", "Service completed. Total: Rs. " + saved.getTotalAmount() + " | Services: " + services);
+        } else if (status == JobCard.JobStatus.CANCELLED) {
+            createLog(saved, "JOB_CANCELLED", "Job cancelled by " + getCurrentUserFullName() + ". Inventory restored.");
+        } else if (oldStatus != status) {
+            createLog(saved, "STATUS_CHANGED", "Vehicle moved from " + oldStatus + " to " + status);
+        }
+        return saved;
+    }
+
+    @Transactional
+    public void deleteJob(Long id) {
+        JobCard job = getJobById(id);
+        // If deleting an active job, restore the reserved stock
+        if (job.getStatus() != JobCard.JobStatus.CANCELLED) {
+            System.out.println("DEBUG: Restoring reserved stock for Job #" + id + " due to deletion.");
+            restoreStockForItems(job, job.getItems(), "Job #" + id + " Deleted");
+            // Clean up stock transaction audit rows - inventory restored so consumption records invalid
+            stockService.deleteTransactionsByJobId(job.getId());
+            // Also remove any STOCK_OUT work log entry so the activity feed stays clean
+            jobLogRepository.deleteByJobIdAndAction(job.getId(), "STOCK_OUT");
+        }
+        createLog(job, "DELETED", "Job Card #" + id + " was deleted.");
+        jobCardRepository.deleteById(id);
+    }
+}
