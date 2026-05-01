@@ -246,4 +246,87 @@ public class JobCardService {
                     if (ji.getStockItem() != null && ji.getStockItem().getId() != null && ji.getQuantity() != null && ji.getQuantity() > 0) {
                         stockService.releaseReservation(ji.getStockItem().getId(), ji.getQuantity(), saved.getId());
                     }
-                }
+                }
+            }
+        }
+
+        // Audit Logging
+        if (newStatus == JobCard.JobStatus.CANCELLED) {
+            // Remove ALL prior logs for this job — only the cancellation record should remain.
+            // clearAutomatically=true on the repo method evicts JPA cache after delete.
+            jobLogRepository.deleteByJobId(saved.getId());
+            // Mark stock as restored so updateStatus cannot double-restore
+            saved.setStockRestored(true);
+            saved = jobCardRepository.save(saved);
+        }
+
+        String detail = (newStatus == JobCard.JobStatus.CANCELLED)
+            ? "Job cancelled. Inventory restored."
+            : "Status: " + newStatus + " | Total: Rs. " + saved.getTotalAmount();
+
+        String logAction = (jobCard.getId() == null) ? "JOB_CREATED" : (newStatus == JobCard.JobStatus.CANCELLED ? "JOB_CANCELLED" : "JOB_UPDATED");
+        createLog(saved, logAction, detail);
+
+        return saved;
+    }
+
+    private void reduceStockForItems(JobCard job, String reason) {
+        if (job.getItems() == null || job.getItems().isEmpty()) return;
+        
+        // Use a temporary list to avoid concurrent modification or Set identity issues during mutation
+        java.util.List<JobItem> currentItems = new java.util.ArrayList<>(job.getItems());
+        java.util.List<JobItem> finalizedItems = new java.util.ArrayList<>();
+        
+        for (JobItem ji : currentItems) {
+            if (ji.getStockItem() != null && ji.getStockItem().getId() != null && ji.getQuantity() != null && ji.getQuantity() > 0) {
+                log.info("FIFO: Processing allocation for '{}' (Qty: {})", ji.getItemName(), ji.getQuantity());
+                StockItemService.ReductionResult result = stockRetryService.retryableReduceStock(ji.getStockItem().getId(), ji.getQuantity(), reason, job.getId());
+                
+                List<StockItemService.BatchConsumption> allocations = result.allocations;
+                if (!allocations.isEmpty()) {
+                    // Split the requested item into multiple records based on actual batch consumption
+                    for (StockItemService.BatchConsumption allocation : allocations) {
+                        JobItem record = new JobItem();
+                        record.setJobCard(job);
+                        record.setStockItem(ji.getStockItem());
+                        record.setItemName(ji.getItemName());
+                        record.setQuantity(allocation.qty);
+                        record.setPriceAtTime(allocation.unitPrice);
+                        record.setSubtotal(allocation.subtotal);
+                        record.setStockBatchId(allocation.batchId);
+                        finalizedItems.add(record);
+                        log.info("FIFO: Allocated {} units from Batch {} at Rs. {}", allocation.qty, allocation.batchId, allocation.unitPrice);
+                    }
+                }
+            } else {
+                // Keep non-stock items or invalid items if they somehow exist
+                finalizedItems.add(ji);
+            }
+        }
+        
+        // Rebuild the set with finalized allocations
+        job.getItems().clear();
+        job.getItems().addAll(finalizedItems);
+    }
+
+    private void logStockOutActivity(JobCard job) {
+        // Silenced to keep work activity feed clean
+    }
+
+    private void restoreStockForItems(JobCard job, java.util.Set<JobItem> items, String reason) {
+        if (items == null || items.isEmpty()) return;
+        boolean wasDeductedLogNeeded = (job.getStatus() == JobCard.JobStatus.PAID);
+        
+        for (JobItem ji : items) {
+            if (ji.getStockItem() != null && ji.getStockItem().getId() != null && ji.getQuantity() != null && ji.getQuantity() > 0) {
+                if (ji.getStockBatchId() != null) {
+                    stockRetryService.retryableRestoreStockToBatch(ji.getStockBatchId(), ji.getStockItem().getId(), ji.getQuantity(), reason, job.getId());
+                } else {
+                    stockRetryService.retryableRestoreStock(ji.getStockItem().getId(), ji.getQuantity(), reason, job.getId());
+                }
+            }
+        }
+        
+        // Silenced to keep activity feed clean as items are already listed in JOB_UPDATED/JOB_FINISHED
+    }
+
