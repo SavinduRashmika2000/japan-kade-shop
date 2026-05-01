@@ -13,4 +13,12 @@ public class ServiceTypeService {
     @Autowired
     private ServiceTypeRepository serviceTypeRepository;
 
-    public List<ServiceType> getAllServiceTypes() {
+    public List<ServiceType> getAllServiceTypes() {
+        return serviceTypeRepository.findAll();
+    }
+
+    public ServiceType getServiceTypeById(Long id) {
+        return serviceTypeRepository.findById(id).orElseThrow(() -> new RuntimeException("Service type not found"));
+    }
+
+    public ServiceType saveServiceType(ServiceType serviceType) {
