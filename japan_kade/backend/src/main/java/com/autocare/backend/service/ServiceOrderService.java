@@ -17,4 +17,13 @@ public class ServiceOrderService {
 
     public ServiceOrder getServiceOrderById(Long id) {
         return serviceOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("Service order not found"));
-    }
+    }
+
+    public ServiceOrder saveServiceOrder(ServiceOrder serviceOrder) {
+        return serviceOrderRepository.save(serviceOrder);
+    }
+
+    public void deleteServiceOrder(Long id) {
+        serviceOrderRepository.deleteById(id);
+    }
+}
