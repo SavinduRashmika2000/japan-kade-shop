@@ -21,4 +21,11 @@ public class ServiceTypeService {
         return serviceTypeRepository.findById(id).orElseThrow(() -> new RuntimeException("Service type not found"));
     }
 
-    public ServiceType saveServiceType(ServiceType serviceType) {
+    public ServiceType saveServiceType(ServiceType serviceType) {
+        return serviceTypeRepository.save(serviceType);
+    }
+
+    public void deleteServiceType(Long id) {
+        serviceTypeRepository.deleteById(id);
+    }
+}
