@@ -465,4 +465,119 @@ public class StockItemService {
             item.setFifoQuantity(oldest.getCurrentQuantity());
         }
         stockItemRepository.save(item);
-    }
+    }
+
+    @Transactional
+    public void releaseReservation(Long itemId, Integer releaseQty, Long jobId) {
+        log.info("Starting releaseReservation for itemId={}, jobId={}, releaseQty={}", itemId, jobId, releaseQty);
+        if (releaseQty <= 0) {
+            throw new IllegalArgumentException("Invalid quantity: " + releaseQty);
+        }
+        StockItem item = getStockItemById(itemId);
+        if (item.getReservedQuantity() == null || item.getReservedQuantity() < releaseQty) {
+            log.warn("Invalid reserved quantity state for itemId={}, reserved={}, release={}", itemId, item.getReservedQuantity(), releaseQty);
+            throw new InsufficientStockException("Invalid reserved quantity state for item: " + itemId);
+        }
+        item.setReservedQuantity(item.getReservedQuantity() - releaseQty);
+        stockItemRepository.save(item);
+        
+        if (jobId == null || !movementRepository.existsByReferenceIdAndStockBatchIdAndType(jobId, null, StockMovement.MovementType.CONSUME)) {
+            StockMovement movement = new StockMovement();
+            movement.setStockItem(item);
+            movement.setStockBatchId(null);
+            movement.setQuantity(releaseQty);
+            movement.setType(StockMovement.MovementType.CONSUME);
+            movement.setReferenceId(jobId);
+            movementRepository.save(movement);
+        }
+    }
+
+    public boolean isStockAvailable(Long itemId, Integer requestedQty) {
+        StockItem item = getStockItemById(itemId);
+        return item.getQuantity() >= requestedQty;
+    }
+
+    @Transactional
+    public StockItem restoreStock(Long id, Integer restoreQty, String reason, Long jobId) {
+        log.info("Starting legacy restoreStock for itemId={}, jobId={}, restoreQty={}", id, jobId, restoreQty);
+        StockItem item = getStockItemById(id);
+        if (restoreQty <= 0) {
+            throw new IllegalArgumentException("Invalid quantity: " + restoreQty);
+        }
+        item.setQuantity(item.getQuantity() + restoreQty);
+        item.setLastRestockedAt(java.time.LocalDateTime.now());
+        
+        // Use rounded price for matching
+        BigDecimal normalizedPrice = item.getUnitPrice().setScale(2, RoundingMode.HALF_UP);
+        
+        // Consolidate: Find oldest batch with matching price (Normal or Restored doesn't matter now)
+        List<StockBatch> existingBatches = batchRepository.findByStockItemOrderByCreatedAtAsc(item);
+        StockBatch batch = existingBatches.stream()
+            .filter(b -> b.getUnitPrice().setScale(2, RoundingMode.HALF_UP).compareTo(normalizedPrice) == 0)
+            .findFirst()
+            .orElse(null);
+
+        if (batch != null) {
+            batch.setInitialQuantity(batch.getInitialQuantity() + restoreQty);
+            batch.setCurrentQuantity(batch.getCurrentQuantity() + restoreQty);
+        } else {
+            batch = new StockBatch();
+            batch.setStockItem(item);
+            batch.setInitialQuantity(restoreQty);
+            batch.setCurrentQuantity(restoreQty);
+            batch.setUnitPrice(normalizedPrice);
+        }
+        batchRepository.save(batch);
+
+        // FIFO Pricing: Set item unitPrice and fifoQuantity to the price/qty of the OLDEST available batch
+        List<StockBatch> allBatchesAfterRestore = batchRepository.findByStockItemAndCurrentQuantityGreaterThanOrderByCreatedAtAsc(item, 0);
+        if (!allBatchesAfterRestore.isEmpty()) {
+            StockBatch oldest = allBatchesAfterRestore.get(0);
+            item.setUnitPrice(oldest.getSellingPrice() != null ? oldest.getSellingPrice() : (oldest.getUnitPrice() != null ? oldest.getUnitPrice() : BigDecimal.ZERO));
+            item.setFifoQuantity(oldest.getCurrentQuantity());
+        }
+
+        // Log Transaction
+        StockTransaction tx = new StockTransaction();
+        tx.setStockItem(item);
+        tx.setTransactionType("RESTORE");
+        tx.setQuantity(restoreQty);
+        tx.setUnitPrice(normalizedPrice);
+        tx.setTotalAmount(normalizedPrice.multiply(new BigDecimal(restoreQty)));
+        tx.setNote(reason);
+        tx.setJobId(jobId);
+        
+        transactionRepository.save(tx);
+        return stockItemRepository.save(item);
+    }
+
+    public List<StockBatch> getBatchesForItem(Long itemId) {
+        StockItem item = getStockItemById(itemId);
+        return batchRepository.findByStockItemOrderByCreatedAtAsc(item);
+    }
+
+    public void deleteStockItem(Long id) {
+        stockItemRepository.deleteById(id);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteAllStock() {
+        transactionRepository.deleteAll();
+        batchRepository.deleteAll();
+        stockItemRepository.findAll().forEach(item -> {
+            item.setQuantity(0);
+            item.setUnitPrice(BigDecimal.ZERO);
+            stockItemRepository.save(item);
+        });
+    }
+
+    @Transactional
+    public void deleteTransactionsByJobId(Long jobId) {
+        if (jobId == null) return;
+        transactionRepository.deleteByJobId(jobId);
+    }
+
+    public List<StockTransaction> getAllTransactions() {
+        return transactionRepository.findAllByOrderByTimestampDesc();
+    }
+}
