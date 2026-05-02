@@ -31,3 +31,19 @@ public class StockRetryService {
     }
 
     @Retryable(
+        value = {PessimisticLockException.class, LockTimeoutException.class, CannotAcquireLockException.class},
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 150)
+    )
+    public void retryableRestoreStockToBatch(Long batchId, Long itemId, Integer restoreQty, String reason, Long jobId) {
+        log.info("Attempting stock restoration to batch for batchId={}, itemId={}, jobId={}", batchId, itemId, jobId);
+        stockService.restoreStockToBatch(batchId, itemId, restoreQty, reason, jobId);
+    }
+
+    @Retryable(
+        value = {PessimisticLockException.class, LockTimeoutException.class, CannotAcquireLockException.class},
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 150)
+    )
+    public void retryableRestoreStock(Long id, Integer restoreQty, String reason, Long jobId) {
+        log.info("Attempting legacy stock restoration for itemId={}, jobId={}", id, jobId);
