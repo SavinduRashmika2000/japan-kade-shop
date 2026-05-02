@@ -14,3 +14,20 @@ import jakarta.persistence.PessimisticLockException;
 
 @Service
 public class StockRetryService {
+
+    private static final Logger log = LoggerFactory.getLogger(StockRetryService.class);
+
+    @Autowired
+    private StockItemService stockService;
+
+    @Retryable(
+        value = {PessimisticLockException.class, LockTimeoutException.class, CannotAcquireLockException.class},
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 150)
+    )
+    public StockItemService.ReductionResult retryableReduceStock(Long id, Integer reduceQty, String reason, Long jobId) {
+        log.info("Attempting stock reduction for itemId={}, jobId={}", id, jobId);
+        return stockService.reduceStock(id, reduceQty, reason, jobId);
+    }
+
+    @Retryable(
