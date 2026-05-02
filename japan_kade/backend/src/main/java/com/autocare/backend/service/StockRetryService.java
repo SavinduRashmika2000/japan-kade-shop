@@ -47,3 +47,18 @@ public class StockRetryService {
     )
     public void retryableRestoreStock(Long id, Integer restoreQty, String reason, Long jobId) {
         log.info("Attempting legacy stock restoration for itemId={}, jobId={}", id, jobId);
+        stockService.restoreStock(id, restoreQty, reason, jobId);
+    }
+
+    @Recover
+    public StockItemService.ReductionResult recoverReduceStock(Exception e, Long id, Integer reduceQty, String reason, Long jobId) {
+        log.error("Failed to reduce stock after retries for itemId={}, jobId={}. Error: {}", id, jobId, e.getMessage());
+        throw new StockLockException("Stock is currently being used by another operation. Please retry.", e);
+    }
+
+    @Recover
+    public void recoverRestoreStock(Exception e, Long id, Integer restoreQty, String reason, Long jobId) {
+        log.error("Failed to restore stock after retries for itemId={}, jobId={}. Error: {}", id, jobId, e.getMessage());
+        throw new StockLockException("Stock is currently being used by another operation. Please retry.", e);
+    }
+}
