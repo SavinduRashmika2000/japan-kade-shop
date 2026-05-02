@@ -231,4 +231,121 @@ public class StockItemService {
         batch.setLandedCost(landedCost);
         batch.setSellingPrice(sellingPrice);
 
-        if (supplierId != null) {
+        if (supplierId != null) {
+            Supplier supplier = supplierRepository.findById(supplierId).orElse(null);
+            batch.setSupplier(supplier);
+            item.setSupplier(supplier);
+        }
+        
+        batchRepository.save(batch);
+
+        // Update item summary fields
+        item.setQuantity(item.getQuantity() + additionalQty);
+        item.setLastRestockedAt(java.time.LocalDateTime.now());
+        
+        // FIFO Pricing: Set item unitPrice to the selling price/cost of the OLDEST available batch
+        List<StockBatch> allBatches = batchRepository.findByStockItemAndCurrentQuantityGreaterThanOrderByCreatedAtAsc(item, 0);
+        if (!allBatches.isEmpty()) {
+            StockBatch oldest = allBatches.get(0);
+            item.setUnitPrice(oldest.getSellingPrice() != null ? oldest.getSellingPrice() : (oldest.getUnitPrice() != null ? oldest.getUnitPrice() : BigDecimal.ZERO));
+            item.setFifoQuantity(oldest.getCurrentQuantity());
+        } else {
+            item.setUnitPrice(sellingPrice != null ? sellingPrice : normalizedPrice);
+            item.setFifoQuantity(0);
+        }
+
+        // Log Transaction
+        StockTransaction tx = new StockTransaction();
+        tx.setStockItem(item);
+        tx.setTransactionType("ADD");
+        tx.setQuantity(additionalQty);
+        tx.setUnitPrice(normalizedPrice);
+        tx.setTotalAmount(normalizedPrice.multiply(new BigDecimal(additionalQty)));
+        tx.setSupplier(batch.getSupplier());
+        tx.setJobId(null);
+        
+        transactionRepository.save(tx);
+        return stockItemRepository.save(item);
+    }
+
+    @Transactional
+    public ReductionResult reduceStock(Long id, Integer reduceQty, String reason, Long jobId) {
+        return reduceStockInternal(id, reduceQty, reason, jobId, false);
+    }
+
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public ReductionResult previewFifoCost(Long id, Integer qty) {
+        log.info("PREVIEW reduceStock for itemId={}, requestedQty={}", id, qty);
+        StockItem item = getStockItemById(id);
+
+        if (qty <= 0) {
+            throw new IllegalArgumentException("Invalid quantity: " + qty);
+        }
+        if (item.getQuantity() < qty) {
+            throw new com.autocare.backend.exception.InsufficientStockException(
+                "Insufficient stock! Available: " + item.getQuantity() + ", Requested: " + qty);
+        }
+
+        // Use the non-locking read query — safe for preview only
+        List<StockBatch> batches = batchRepository.findAvailableBatchesReadOnly(item);
+        log.info("PREVIEW FIFO: Found {} available batches for item '{}'", batches.size(), item.getName());
+
+        int remainingToReduce = qty;
+        List<BatchConsumption> consumptions = new java.util.ArrayList<>();
+
+        for (StockBatch batch : batches) {
+            if (remainingToReduce <= 0) break;
+            int availableInBatch = batch.getCurrentQuantity();
+            if (availableInBatch > 0) {
+                int toTake = Math.min(availableInBatch, remainingToReduce);
+                BigDecimal batchSellingPrice = batch.getSellingPrice() != null ? batch.getSellingPrice() : (batch.getStockItem().getUnitPrice() != null ? batch.getStockItem().getUnitPrice() : batch.getUnitPrice());
+                consumptions.add(new BatchConsumption(batch.getId(), batchSellingPrice, toTake));
+                remainingToReduce -= toTake;
+            }
+        }
+
+        if (remainingToReduce > 0) {
+            throw new com.autocare.backend.exception.InsufficientStockException(
+                "Critical stock mismatch during preview. Remaining: " + remainingToReduce);
+        }
+
+        log.info("PREVIEW SUCCESS: Cost calculation complete for item '{}'", item.getName());
+        return new ReductionResult(item, consumptions);
+    }
+
+    private ReductionResult reduceStockInternal(Long id, Integer reduceQty, String reason, Long jobId, boolean isSimulation) {
+        log.info("{} reduceStock for itemId={}, jobId={}, requestedQty={}", 
+            isSimulation ? "PREVIEW" : "STARTING", id, jobId, reduceQty);
+        StockItem item = getStockItemById(id);
+        
+        if (reduceQty <= 0) {
+            throw new IllegalArgumentException("Invalid quantity: " + reduceQty);
+        }
+        if (item.getQuantity() < reduceQty) {
+            log.warn("Insufficient stock for itemId={}, available={}, requested={}", id, item.getQuantity(), reduceQty);
+            throw new InsufficientStockException("Insufficient stock! Available: " + item.getQuantity() + ", Requested: " + reduceQty);
+        }
+
+        // Standard FIFO (Oldest first) with Pessimistic Locking
+        List<StockBatch> batches = batchRepository.findAvailableBatchesForUpdate(item);
+        log.info("FIFO: Found {} available batches for item '{}'", batches.size(), item.getName());
+        
+        int remainingToReduce = reduceQty;
+        List<BatchConsumption> consumptions = new java.util.ArrayList<>();
+
+        for (StockBatch batch : batches) {
+            if (remainingToReduce <= 0) break;
+            
+            int availableInBatch = batch.getCurrentQuantity();
+            if (availableInBatch > 0) {
+                int toTake = Math.min(availableInBatch, remainingToReduce);
+                log.info("FIFO ALLOCATION: Batch ID={}, Price={}, Available={}, Taking={}", 
+                    batch.getId(), batch.getUnitPrice(), availableInBatch, toTake);
+                
+                int newQtyInBatch = availableInBatch - toTake;
+                batch.setCurrentQuantity(newQtyInBatch);
+                
+                // Track this consumption
+                BigDecimal batchSellingPrice = batch.getSellingPrice() != null ? batch.getSellingPrice() : (batch.getStockItem().getUnitPrice() != null ? batch.getStockItem().getUnitPrice() : batch.getUnitPrice());
+                consumptions.add(new BatchConsumption(batch.getId(), batchSellingPrice, toTake));
