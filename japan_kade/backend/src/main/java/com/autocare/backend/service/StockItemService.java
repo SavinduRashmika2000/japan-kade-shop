@@ -348,4 +348,121 @@ public class StockItemService {
                 
                 // Track this consumption
                 BigDecimal batchSellingPrice = batch.getSellingPrice() != null ? batch.getSellingPrice() : (batch.getStockItem().getUnitPrice() != null ? batch.getStockItem().getUnitPrice() : batch.getUnitPrice());
-                consumptions.add(new BatchConsumption(batch.getId(), batchSellingPrice, toTake));
+                consumptions.add(new BatchConsumption(batch.getId(), batchSellingPrice, toTake));
+                
+                // Rule: Never delete empty batches, they are needed for restoration
+                if (!isSimulation) {
+                    batchRepository.save(batch);
+                }
+                
+                // Log Audit Transaction for THIS specific batch
+                if (!isSimulation) {
+                    StockTransaction tx = new StockTransaction();
+                    tx.setStockItem(item);
+                    tx.setTransactionType("REDUCE");
+                    tx.setQuantity(toTake);
+                    tx.setUnitPrice(batch.getUnitPrice());
+                    tx.setTotalAmount(batch.getUnitPrice().multiply(new BigDecimal(toTake)));
+                    tx.setNote(reason);
+                    tx.setJobId(jobId);
+                    transactionRepository.save(tx);
+                }
+                
+                // Record precise stock movement audit
+                if (!isSimulation) {
+                    if (jobId == null || !movementRepository.existsByReferenceIdAndStockBatchIdAndType(jobId, batch.getId(), StockMovement.MovementType.RESERVE)) {
+                        StockMovement movement = new StockMovement();
+                        movement.setStockItem(item);
+                        movement.setStockBatchId(batch.getId());
+                        movement.setQuantity(toTake);
+                        movement.setType(StockMovement.MovementType.RESERVE);
+                        movement.setReferenceId(jobId);
+                        movementRepository.save(movement);
+                    }
+                }
+
+                remainingToReduce -= toTake;
+                log.info("FIFO STATUS: Remaining requested quantity: {}", remainingToReduce);
+            }
+        }
+
+        if (remainingToReduce > 0) {
+            log.error("FIFO FAILURE: Could not satisfy request. Remaining qty: {}", remainingToReduce);
+            throw new InsufficientStockException("Critical stock mismatch during allocation. Remaining: " + remainingToReduce);
+        }
+
+        if (isSimulation) {
+            log.info("PREVIEW SUCCESS: Cost calculation complete for item '{}'", item.getName());
+            return new ReductionResult(item, consumptions);
+        }
+
+        log.info("FIFO SUCCESS: Allocation complete for item '{}'. Total records: {}", item.getName(), consumptions.size());
+
+        // Update overall item quantity and reservations
+        item.setQuantity(item.getQuantity() - reduceQty);
+        item.setReservedQuantity(item.getReservedQuantity() + reduceQty);
+        
+        // FIFO Pricing: Update item unitPrice and fifoQuantity to the NEW oldest available batch
+        List<StockBatch> remainingBatches = batchRepository.findByStockItemAndCurrentQuantityGreaterThanOrderByCreatedAtAsc(item, 0);
+        if (!remainingBatches.isEmpty()) {
+            StockBatch oldest = remainingBatches.get(0);
+            item.setUnitPrice(oldest.getSellingPrice() != null ? oldest.getSellingPrice() : (oldest.getUnitPrice() != null ? oldest.getUnitPrice() : BigDecimal.ZERO));
+            item.setFifoQuantity(oldest.getCurrentQuantity());
+        } else if (item.getQuantity() == 0) {
+            item.setUnitPrice(BigDecimal.ZERO);
+            item.setFifoQuantity(0);
+        }
+
+        StockItem savedItem = stockItemRepository.save(item);
+        return new ReductionResult(savedItem, consumptions);
+    }
+
+    @Transactional
+    public void restoreStockToBatch(Long batchId, Long itemId, Integer restoreQty, String reason, Long jobId) {
+        log.info("Starting restoreStockToBatch for batchId={}, itemId={}, jobId={}, restoreQty={}", batchId, itemId, jobId, restoreQty);
+        if (restoreQty <= 0) {
+            throw new IllegalArgumentException("Invalid quantity: " + restoreQty);
+        }
+        StockItem item = getStockItemById(itemId);
+        StockBatch batch = batchRepository.findById(batchId).orElse(null);
+        
+        if (batch != null) {
+            batch.setCurrentQuantity(batch.getCurrentQuantity() + restoreQty);
+            batchRepository.save(batch);
+            
+            BigDecimal normalizedPrice = batch.getUnitPrice();
+            StockTransaction tx = new StockTransaction();
+            tx.setStockItem(item);
+            tx.setTransactionType("RESTORE");
+            tx.setQuantity(restoreQty);
+            tx.setUnitPrice(normalizedPrice);
+            tx.setTotalAmount(normalizedPrice.multiply(new BigDecimal(restoreQty)));
+            tx.setNote(reason + " (Batch " + batchId + ")");
+            tx.setJobId(jobId);
+            transactionRepository.save(tx);
+            
+            if (jobId == null || !movementRepository.existsByReferenceIdAndStockBatchIdAndType(jobId, batch.getId(), StockMovement.MovementType.RESTORE)) {
+                StockMovement movement = new StockMovement();
+                movement.setStockItem(item);
+                movement.setStockBatchId(batch.getId());
+                movement.setQuantity(restoreQty);
+                movement.setType(StockMovement.MovementType.RESTORE);
+                movement.setReferenceId(jobId);
+                movementRepository.save(movement);
+            }
+        } else {
+            restoreStock(itemId, restoreQty, reason + " (Legacy Restore)", jobId);
+            return;
+        }
+
+        item.setQuantity(item.getQuantity() + restoreQty);
+        item.setReservedQuantity(item.getReservedQuantity() - restoreQty);
+        
+        List<StockBatch> remainingBatches = batchRepository.findByStockItemAndCurrentQuantityGreaterThanOrderByCreatedAtAsc(item, 0);
+        if (!remainingBatches.isEmpty()) {
+            StockBatch oldest = remainingBatches.get(0);
+            item.setUnitPrice(oldest.getSellingPrice() != null ? oldest.getSellingPrice() : (oldest.getUnitPrice() != null ? oldest.getUnitPrice() : BigDecimal.ZERO));
+            item.setFifoQuantity(oldest.getCurrentQuantity());
+        }
+        stockItemRepository.save(item);
+    }
