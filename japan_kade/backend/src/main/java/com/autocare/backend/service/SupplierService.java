@@ -14,3 +14,11 @@ public class SupplierService {
     private SupplierRepository supplierRepository;
 
     public List<Supplier> getAllSuppliers() {
+        return supplierRepository.findAll();
+    }
+
+    public Supplier getSupplierById(Long id) {
+        return supplierRepository.findById(id).orElseThrow(() -> new RuntimeException("Supplier not found"));
+    }
+
+    public Supplier saveSupplier(Supplier supplier) {
