@@ -114,4 +114,121 @@ public class StockItemService {
         return stockItemRepository.findById(id).orElseThrow(() -> new RuntimeException("Stock item not found"));
     }
 
-    @Transactional
+    @Transactional
+    public void syncAllStock() {
+        List<StockItem> items = stockItemRepository.findAll();
+        for (StockItem item : items) {
+            List<StockBatch> activeBatches = batchRepository.findByStockItemAndCurrentQuantityGreaterThanOrderByCreatedAtAsc(item, 0);
+            
+            int totalActiveQty = activeBatches.stream().mapToInt(StockBatch::getCurrentQuantity).sum();
+            item.setQuantity(totalActiveQty);
+            
+            if (!activeBatches.isEmpty()) {
+                StockBatch oldest = activeBatches.get(0);
+                item.setUnitPrice(oldest.getSellingPrice() != null ? oldest.getSellingPrice() : (oldest.getUnitPrice() != null ? oldest.getUnitPrice() : BigDecimal.ZERO));
+                item.setFifoQuantity(oldest.getCurrentQuantity());
+            } else {
+                item.setUnitPrice(BigDecimal.ZERO);
+                item.setFifoQuantity(0);
+            }
+            stockItemRepository.save(item);
+        }
+    }
+
+    @Transactional
+    public StockItem saveStockItem(StockItem stockItem) {
+        Integer initialQty = stockItem.getQuantity();
+        BigDecimal price = stockItem.getUnitPrice();
+        
+        // Save the item first to get an ID
+        StockItem saved = stockItemRepository.save(stockItem);
+        
+        // If initial quantity is provided, create the first FIFO batch
+        if (initialQty != null && initialQty > 0) {
+            StockBatch batch = new StockBatch();
+            batch.setStockItem(saved);
+            batch.setInitialQuantity(initialQty);
+            batch.setCurrentQuantity(initialQty);
+            batch.setUnitPrice(price != null ? price : BigDecimal.ZERO);
+            batch.setSupplier(saved.getSupplier());
+            batch.setCreatedAt(java.time.LocalDateTime.now());
+            batchRepository.save(batch);
+            
+            // Log the initial stock transaction
+            StockTransaction tx = new StockTransaction();
+            tx.setStockItem(saved);
+            tx.setQuantity(initialQty);
+            tx.setUnitPrice(batch.getUnitPrice());
+            tx.setTotalAmount(batch.getUnitPrice().multiply(new BigDecimal(initialQty)));
+            tx.setTransactionType("ADD");
+            tx.setSupplier(saved.getSupplier());
+            tx.setNote("Initial Stock Entry");
+            tx.setTimestamp(java.time.LocalDateTime.now());
+            transactionRepository.save(tx);
+        }
+        
+        return saved;
+    }
+
+    public static class BatchConsumption {
+        public Long batchId;
+        public BigDecimal unitPrice;
+        public Integer qty;
+        public BigDecimal subtotal;
+        public BatchConsumption(Long batchId, BigDecimal unitPrice, Integer qty) {
+            this.batchId = batchId;
+            this.unitPrice = unitPrice;
+            this.qty = qty;
+            this.subtotal = unitPrice.multiply(new BigDecimal(qty));
+        }
+    }
+
+    public static class ReductionResult {
+        public StockItem item;
+        public String itemName;
+        public Integer requestedQty;
+        public List<BatchConsumption> allocations;
+        public BigDecimal total;
+
+        public ReductionResult(StockItem item, List<BatchConsumption> allocations) {
+            this.item = item;
+            this.itemName = item.getName();
+            this.allocations = allocations;
+            this.requestedQty = allocations.stream().mapToInt(a -> a.qty).sum();
+            this.total = allocations.stream()
+                .map(a -> a.subtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+    }
+
+    @Transactional
+    public StockItem addStock(Long id, Integer additionalQty, BigDecimal purchasePrice, Long supplierId,
+                             String hsCode, BigDecimal unitCostForeign, BigDecimal exchangeRate,
+                             String currencyType,
+                             BigDecimal freightCost, BigDecimal shippingCost, BigDecimal bankCharges,
+                             BigDecimal clearanceFees, BigDecimal dutyFees, BigDecimal additionalExpenses,
+                             BigDecimal landedCost, BigDecimal sellingPrice) {
+        StockItem item = getStockItemById(id);
+        
+        BigDecimal normalizedPrice = purchasePrice.setScale(2, RoundingMode.HALF_UP);
+        
+        if (hsCode != null) item.setHsCode(hsCode);
+        
+        StockBatch batch = new StockBatch();
+        batch.setStockItem(item);
+        batch.setInitialQuantity(additionalQty);
+        batch.setCurrentQuantity(additionalQty);
+        batch.setUnitPrice(normalizedPrice);
+        batch.setUnitCostForeign(unitCostForeign);
+        batch.setExchangeRate(exchangeRate);
+        batch.setCurrencyType(currencyType);
+        batch.setFreightCost(freightCost);
+        batch.setShippingCost(shippingCost);
+        batch.setBankCharges(bankCharges);
+        batch.setClearanceFees(clearanceFees);
+        batch.setDutyFees(dutyFees);
+        batch.setAdditionalExpenses(additionalExpenses);
+        batch.setLandedCost(landedCost);
+        batch.setSellingPrice(sellingPrice);
+
+        if (supplierId != null) {
