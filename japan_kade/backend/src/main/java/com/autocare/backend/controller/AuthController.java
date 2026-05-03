@@ -330,3 +330,84 @@ public class AuthController {
         if (!enabled) {
             user.setCurrentToken(null); // Force logout
         }
+        userRepository.save(user);
+        return ResponseEntity.ok(new MessageResponse("User status updated successfully!"));
+    }
+
+    @GetMapping("/staff")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllStaff() {
+        System.out.println("DEBUG: getAllStaff triggered");
+        
+        // 1. Fetch all users from the system
+        java.util.List<User> allUsers = userRepository.findAll();
+        System.out.println("DEBUG: Total users in DB: " + allUsers.size());
+        
+        // 2. Fetch all specific Staff records
+        java.util.List<Staff> staffList = staffRepository.findAll();
+        System.out.println("DEBUG: Total staff records in DB: " + staffList.size());
+        
+        java.util.List<java.util.Map<String, Object>> response = new java.util.ArrayList<>();
+        
+        // 3. Filter for Management roles (Admin and Staff) only
+        for (User user : allUsers) {
+            RoleType role = user.getRole();
+            
+            // Skip Customers - User specifically requested to exclude them from Team Management
+            if (role == RoleType.ROLE_CUSTOMER) continue;
+            
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            
+            // Try to find a linked Staff record for extra details
+            java.util.Optional<Staff> staffOpt = staffList.stream()
+                    .filter(s -> s.getUser().getId().equals(user.getId()))
+                    .findFirst();
+            
+            if (staffOpt.isPresent()) {
+                Staff s = staffOpt.get();
+                map.put("id", s.getId());
+                map.put("userId", user.getId());
+                map.put("firstName", s.getFirstName());
+                map.put("lastName", s.getLastName());
+                map.put("phone", s.getPhone());
+                map.put("idNo", s.getIdNo());
+                map.put("address", s.getAddress());
+            } else {
+                // Fallback to User table data if Staff record is missing (e.g. legacy/direct admin)
+                map.put("id", null);
+                map.put("userId", user.getId());
+                String[] nameParts = user.getName() != null ? user.getName().split(" ", 2) : new String[]{"User", ""};
+                map.put("firstName", nameParts[0]);
+                map.put("lastName", nameParts.length > 1 ? nameParts[1] : "");
+                map.put("phone", user.getPhone());
+                map.put("idNo", "N/A");
+                map.put("address", "N/A");
+            }
+            
+            map.put("email", user.getEmail());
+            map.put("enabled", user.isEnabled());
+            map.put("role", role.name());
+            response.add(map);
+        }
+        
+        System.out.println("DEBUG: Returning " + response.size() + " team members");
+        return ResponseEntity.ok(response);
+    }
+    @DeleteMapping("/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Error: User not found."));
+        
+        // Remove linked Staff record if it exists
+        java.util.Optional<Staff> staffOpt = staffRepository.findByUser(user);
+        staffOpt.ifPresent(staffRepository::delete);
+        
+        // Remove linked Customer record if it exists
+        java.util.Optional<Customer> customerOpt = customerRepository.findByUser(user);
+        customerOpt.ifPresent(customerRepository::delete);
+        
+        userRepository.delete(user);
+        return ResponseEntity.ok(new MessageResponse("User deleted successfully from system."));
+    }
+}
