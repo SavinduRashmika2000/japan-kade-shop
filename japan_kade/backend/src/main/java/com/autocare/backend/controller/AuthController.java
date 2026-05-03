@@ -247,3 +247,86 @@ public class AuthController {
         user.setName(fullName);
         
         user.setPassword(encoder.encode(signUpRequest.getPassword()));
+        RoleType userRole = RoleType.ROLE_STAFF;
+        if ("ADMIN".equalsIgnoreCase(signUpRequest.getRole())) {
+            userRole = RoleType.ROLE_ADMIN;
+        }
+        user.setRole(userRole);
+        user.setEnabled(true);
+        User savedUser = userRepository.save(user);
+
+        Staff staff = new Staff();
+        staff.setUser(savedUser);
+        staff.setFirstName(signUpRequest.getFirstName());
+        
+        String lastName = signUpRequest.getLastName();
+        staff.setLastName((lastName != null && !lastName.isEmpty()) ? lastName : null);
+        
+        staff.setPhone(user.getPhone());
+        staff.setIdNo(signUpRequest.getIdNo());
+        staff.setAddress(signUpRequest.getAddress());
+        staffRepository.save(staff);
+
+        return ResponseEntity.ok(new MessageResponse(userRole == RoleType.ROLE_ADMIN ? "Admin member created successfully!" : "Staff member created successfully!"));
+    }
+
+    @PutMapping("/staff/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateStaff(@PathVariable Long userId, @RequestBody SignupRequest updateRequest) {
+        System.out.println("DEBUG: updateStaff triggered for userId: " + userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Error: User not found."));
+
+        // Update User Details
+        if (updateRequest.getFirstName() != null) {
+            String fullName = updateRequest.getFirstName();
+            if (updateRequest.getLastName() != null && !updateRequest.getLastName().isEmpty()) {
+                fullName += " " + updateRequest.getLastName();
+            }
+            user.setName(fullName);
+        }
+        
+        if (updateRequest.getEmail() != null) user.setEmail(updateRequest.getEmail());
+        if (updateRequest.getPhone() != null) user.setPhone(updateRequest.getPhone());
+
+        // Update password if provided
+        if (updateRequest.getPassword() != null && !updateRequest.getPassword().isEmpty()) {
+            user.setPassword(encoder.encode(updateRequest.getPassword()));
+        }
+
+        // Update active status
+        if (updateRequest.getEnabled() != null) {
+            System.out.println("DEBUG: Setting user " + userId + " enabled to: " + updateRequest.getEnabled());
+            user.setEnabled(updateRequest.getEnabled());
+            if (!updateRequest.getEnabled()) {
+                user.setCurrentToken(null); // Force logout if disabled
+            }
+        }
+
+        userRepository.saveAndFlush(user);
+
+        // Update Staff Details
+        Staff staff = staffRepository.findByUser(user).orElse(new Staff());
+        staff.setUser(user);
+        if (updateRequest.getFirstName() != null) staff.setFirstName(updateRequest.getFirstName());
+        if (updateRequest.getLastName() != null) staff.setLastName(updateRequest.getLastName());
+        if (updateRequest.getPhone() != null) staff.setPhone(updateRequest.getPhone());
+        if (updateRequest.getIdNo() != null) staff.setIdNo(updateRequest.getIdNo());
+        if (updateRequest.getAddress() != null) staff.setAddress(updateRequest.getAddress());
+        
+        staffRepository.saveAndFlush(staff);
+
+        return ResponseEntity.ok(new MessageResponse("Team member updated successfully!"));
+    }
+
+
+
+    @PatchMapping("/users/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> toggleUserStatus(@PathVariable Long id, @RequestParam boolean enabled) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Error: User not found."));
+        user.setEnabled(enabled);
+        if (!enabled) {
+            user.setCurrentToken(null); // Force logout
+        }
