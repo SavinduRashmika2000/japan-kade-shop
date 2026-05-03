@@ -164,3 +164,86 @@ public class AuthController {
         if (userOpt.isEmpty()) {
             System.out.println("DEBUG: User not found for phone: " + phone);
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Customer not found with this phone number!"));
+        }
+        
+        User user = userOpt.get();
+        // Check if customer profile exists
+        java.util.Optional<Customer> customerOpt = customerRepository.findByPhone(phone);
+        if (customerOpt.isEmpty()) {
+            System.out.println("DEBUG: Customer profile not found for user: " + user.getUsername());
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Customer profile not found!"));
+        }
+        
+        Customer customer = customerOpt.get();
+        System.out.println("DEBUG: Found customer: " + customer.getFirstName() + ", dbIdNo: " + customer.getIdNo());
+        
+        if (customer.getIdNo() == null || !customer.getIdNo().equalsIgnoreCase(idNo)) {
+            System.out.println("DEBUG: ID mismatch: provided=" + idNo + ", expected=" + customer.getIdNo());
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: ID Number does not match our records!"));
+        }
+        
+        return ResponseEntity.ok(new MessageResponse("Credentials verified. You may now reset your password."));
+    }
+
+    @PostMapping("/reset-password/change")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody PasswordResetRequest resetRequest) {
+        String phone = resetRequest.getPhone();
+        String idNo = resetRequest.getIdNo();
+        
+        java.util.Optional<Customer> customerOpt = customerRepository.findByPhone(phone);
+        
+        if (customerOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Process failed. Customer not found."));
+        }
+        
+        Customer customer = customerOpt.get();
+        if (customer.getIdNo() == null || !customer.getIdNo().equalsIgnoreCase(idNo)) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Verification failed."));
+        }
+        
+        User user = customer.getUser();
+        user.setPassword(encoder.encode(resetRequest.getNewPassword()));
+        userRepository.save(user);
+        
+        return ResponseEntity.ok(new MessageResponse("Password has been reset successfully!"));
+    }
+
+    @PostMapping("/staff")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createStaff(@Valid @RequestBody SignupRequest signUpRequest) {
+        if (signUpRequest.getUsername() == null || signUpRequest.getUsername().isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is required for staff!"));
+        }
+        
+        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
+        }
+
+        if (signUpRequest.getEmail() != null && !signUpRequest.getEmail().isEmpty()) {
+            if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
+            }
+        }
+
+        if (signUpRequest.getPhone() != null && !signUpRequest.getPhone().isEmpty()) {
+            if (userRepository.existsByPhone(signUpRequest.getPhone())) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Error: Phone number is already in use!"));
+            }
+        }
+
+        User user = new User();
+        user.setUsername(signUpRequest.getUsername());
+        
+        String email = signUpRequest.getEmail();
+        user.setEmail((email != null && !email.isEmpty()) ? email : null);
+        
+        String phone = signUpRequest.getPhone();
+        user.setPhone((phone != null && !phone.isEmpty()) ? phone : null);
+        
+        String fullName = signUpRequest.getFirstName();
+        if (signUpRequest.getLastName() != null && !signUpRequest.getLastName().isEmpty()) {
+            fullName += " " + signUpRequest.getLastName();
+        }
+        user.setName(fullName);
+        
+        user.setPassword(encoder.encode(signUpRequest.getPassword()));
