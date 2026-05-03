@@ -17,4 +17,12 @@ public class CategoryController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     public List<Category> getAllCategories() {
-        return categoryService.getAllCategories();
+        return categoryService.getAllCategories();
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public Category createCategory(@RequestBody Category category) {
+        return categoryService.saveCategory(category);
+    }
+}
