@@ -17,4 +17,13 @@ public class VehicleService {
 
     public Vehicle getVehicleById(Long id) {
         return vehicleRepository.findById(id).orElseThrow(() -> new RuntimeException("Vehicle not found"));
-    }
+    }
+
+    public Vehicle saveVehicle(Vehicle vehicle) {
+        return vehicleRepository.save(vehicle);
+    }
+
+    public void deleteVehicle(Long id) {
+        vehicleRepository.deleteById(id);
+    }
+}
