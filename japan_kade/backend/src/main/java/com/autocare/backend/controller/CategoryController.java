@@ -7,4 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-
+
+@RestController
+@RequestMapping("/api/categories")
+public class CategoryController {
+    @Autowired
+    private CategoryService categoryService;
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public List<Category> getAllCategories() {
+        return categoryService.getAllCategories();
