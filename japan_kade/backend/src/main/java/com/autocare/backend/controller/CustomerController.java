@@ -54,3 +54,21 @@ public class CustomerController {
         if (updates.containsKey("address")) customer.setAddress((String) updates.get("address"));
         
         // Also update User if applicable
+        if (customer.getUser() != null) {
+            User user = customer.getUser();
+            if (updates.containsKey("enabled")) {
+                user.setEnabled((Boolean) updates.get("enabled"));
+            }
+            if (updates.containsKey("password") && updates.get("password") != null) {
+                String pwd = (String) updates.get("password");
+                if (!pwd.isEmpty()) {
+                    user.setPassword(passwordEncoder.encode(pwd));
+                }
+            }
+            // Update User details to match customer
+            if (updates.containsKey("firstName")) {
+                String name = (String) updates.get("firstName");
+                if (updates.containsKey("lastName") && updates.get("lastName") != null) {
+                    name += " " + updates.get("lastName");
+                }
+                user.setName(name);
