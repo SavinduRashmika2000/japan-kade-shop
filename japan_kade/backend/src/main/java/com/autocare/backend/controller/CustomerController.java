@@ -35,3 +35,22 @@ public class CustomerController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasRole('CUSTOMER')")
     public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
         return ResponseEntity.ok(customerService.getCustomerById(id));
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public Customer createCustomer(@RequestBody Customer customer) {
+        return customerService.saveCustomer(customer);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasRole('CUSTOMER')")
+    public ResponseEntity<?> updateCustomer(@PathVariable Long id, @RequestBody java.util.Map<String, Object> updates) {
+        Customer customer = customerService.getCustomerById(id);
+        
+        if (updates.containsKey("firstName")) customer.setFirstName((String) updates.get("firstName"));
+        if (updates.containsKey("lastName")) customer.setLastName((String) updates.get("lastName"));
+        if (updates.containsKey("phone")) customer.setPhone((String) updates.get("phone"));
+        if (updates.containsKey("address")) customer.setAddress((String) updates.get("address"));
+        
+        // Also update User if applicable
