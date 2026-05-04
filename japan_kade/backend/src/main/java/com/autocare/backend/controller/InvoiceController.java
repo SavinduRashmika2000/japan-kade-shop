@@ -36,4 +36,16 @@ public class InvoiceController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     public ResponseEntity<Invoice> updateInvoice(@PathVariable Long id, @RequestBody Invoice details) {
-        Invoice invoice = invoiceService.getInvoiceById(id);
+        Invoice invoice = invoiceService.getInvoiceById(id);
+        invoice.setStatus(details.getStatus());
+        invoice.setTotalAmount(details.getTotalAmount());
+        return ResponseEntity.ok(invoiceService.saveInvoice(invoice));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteInvoice(@PathVariable Long id) {
+        invoiceService.deleteInvoice(id);
+        return ResponseEntity.ok().build();
+    }
+}
