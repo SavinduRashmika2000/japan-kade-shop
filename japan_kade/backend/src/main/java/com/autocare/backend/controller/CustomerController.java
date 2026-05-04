@@ -72,3 +72,20 @@ public class CustomerController {
                     name += " " + updates.get("lastName");
                 }
                 user.setName(name);
+            }
+            if (updates.containsKey("phone")) {
+                user.setPhone((String) updates.get("phone"));
+            }
+            userRepository.save(user);
+        }
+        
+        return ResponseEntity.ok(customerService.saveCustomer(customer));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteCustomer(@PathVariable Long id) {
+        customerService.deleteCustomer(id);
+        return ResponseEntity.ok().build();
+    }
+}
