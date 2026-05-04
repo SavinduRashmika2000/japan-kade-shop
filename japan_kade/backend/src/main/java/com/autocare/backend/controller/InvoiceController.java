@@ -23,4 +23,17 @@ public class InvoiceController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasRole('CUSTOMER')")
-    public ResponseEntity<Invoice> getInvoiceById(@PathVariable Long id) {
+    public ResponseEntity<Invoice> getInvoiceById(@PathVariable Long id) {
+        return ResponseEntity.ok(invoiceService.getInvoiceById(id));
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public Invoice createInvoice(@RequestBody Invoice invoice) {
+        return invoiceService.saveInvoice(invoice);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<Invoice> updateInvoice(@PathVariable Long id, @RequestBody Invoice details) {
+        Invoice invoice = invoiceService.getInvoiceById(id);
