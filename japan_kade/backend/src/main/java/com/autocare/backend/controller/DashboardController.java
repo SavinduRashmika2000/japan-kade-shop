@@ -14,3 +14,10 @@ public class DashboardController {
 
     @Autowired
     private DashboardService dashboardService;
+
+    @GetMapping("/stats")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public DashboardStatsDTO getStats() {
+        return dashboardService.getDashboardStats();
+    }
+}
