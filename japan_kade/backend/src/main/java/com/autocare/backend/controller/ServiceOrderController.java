@@ -24,4 +24,17 @@ public class ServiceOrderController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasRole('CUSTOMER')")
     public ResponseEntity<ServiceOrder> getServiceOrderById(@PathVariable Long id) {
-        return ResponseEntity.ok(serviceOrderService.getServiceOrderById(id));
+        return ResponseEntity.ok(serviceOrderService.getServiceOrderById(id));
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasRole('CUSTOMER')")
+    public ServiceOrder createServiceOrder(@RequestBody ServiceOrder serviceOrder) {
+        return serviceOrderService.saveServiceOrder(serviceOrder);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<ServiceOrder> updateServiceOrder(@PathVariable Long id, @RequestBody ServiceOrder details) {
+        ServiceOrder order = serviceOrderService.getServiceOrderById(id);
+        order.setStatus(details.getStatus());
