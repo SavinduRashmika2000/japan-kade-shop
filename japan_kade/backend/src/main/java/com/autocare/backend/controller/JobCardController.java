@@ -45,4 +45,19 @@ public class JobCardController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     public ResponseEntity<JobCard> updateJob(@PathVariable Long id, @Valid @RequestBody JobCard jobCard) {
         jobCard.setId(id);
-        return ResponseEntity.ok(jobCardService.saveJob(jobCard));
+        return ResponseEntity.ok(jobCardService.saveJob(jobCard));
+    }
+
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<JobCard> updateStatus(@PathVariable Long id, @RequestParam JobCard.JobStatus status) {
+        return ResponseEntity.ok(jobCardService.updateStatus(id, status));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteJob(@PathVariable Long id) {
+        jobCardService.deleteJob(id);
+        return ResponseEntity.ok().build();
+    }
+}
