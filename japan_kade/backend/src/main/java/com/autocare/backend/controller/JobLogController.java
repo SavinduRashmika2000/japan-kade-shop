@@ -11,4 +11,10 @@ import java.util.List;
 public class JobLogController {
 
     @Autowired
-    private JobLogRepository jobLogRepository;
+    private JobLogRepository jobLogRepository;
+
+    @GetMapping
+    public List<JobLog> getAllLogs() {
+        return jobLogRepository.findAllByOrderByTimestampDesc();
+    }
+}
