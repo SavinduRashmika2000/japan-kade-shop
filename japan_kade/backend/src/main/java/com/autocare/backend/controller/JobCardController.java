@@ -29,4 +29,20 @@ public class JobCardController {
         return jobCardService.getMyJobs();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<JobCard> getJobById(@PathVariable Long id) {
+        return ResponseEntity.ok(jobCardService.getJobById(id));
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public JobCard createJob(@Valid @RequestBody JobCard jobCard) {
+        return jobCardService.saveJob(jobCard);
+    }
+
+    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<JobCard> updateJob(@PathVariable Long id, @Valid @RequestBody JobCard jobCard) {
+        jobCard.setId(id);
+        return ResponseEntity.ok(jobCardService.saveJob(jobCard));
