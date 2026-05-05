@@ -11,4 +11,17 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/services")
-public class ServiceOrderController {
+public class ServiceOrderController {
+    @Autowired
+    private ServiceOrderService serviceOrderService;
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public List<ServiceOrder> getAllServiceOrders() {
+        return serviceOrderService.getAllServiceOrders();
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasRole('CUSTOMER')")
+    public ResponseEntity<ServiceOrder> getServiceOrderById(@PathVariable Long id) {
+        return ResponseEntity.ok(serviceOrderService.getServiceOrderById(id));
