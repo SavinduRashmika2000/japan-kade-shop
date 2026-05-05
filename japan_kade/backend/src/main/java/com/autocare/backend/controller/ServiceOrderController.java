@@ -37,4 +37,16 @@ public class ServiceOrderController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     public ResponseEntity<ServiceOrder> updateServiceOrder(@PathVariable Long id, @RequestBody ServiceOrder details) {
         ServiceOrder order = serviceOrderService.getServiceOrderById(id);
-        order.setStatus(details.getStatus());
+        order.setStatus(details.getStatus());
+        order.setNotes(details.getNotes());
+        // staff and vehicle assignments would be handled carefully in a real world scenario
+        return ResponseEntity.ok(serviceOrderService.saveServiceOrder(order));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteServiceOrder(@PathVariable Long id) {
+        serviceOrderService.deleteServiceOrder(id);
+        return ResponseEntity.ok().build();
+    }
+}
