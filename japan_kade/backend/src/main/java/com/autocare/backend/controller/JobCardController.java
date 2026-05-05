@@ -13,4 +13,20 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/job-cards")
 public class JobCardController {
-
+
+    @Autowired
+    private JobCardService jobCardService;
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public List<JobCard> getAllJobs() {
+        return jobCardService.getAllJobs();
+    }
+
+    @GetMapping("/my-jobs")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public List<JobCard> getMyJobs() {
+        return jobCardService.getMyJobs();
+    }
+
+    @GetMapping("/{id}")
