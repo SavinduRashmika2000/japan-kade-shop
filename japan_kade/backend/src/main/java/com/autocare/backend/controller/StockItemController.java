@@ -218,3 +218,56 @@ public class StockItemController {
             Map<String, Object> row = new java.util.LinkedHashMap<>();
             row.put("itemId", item.getId());
             row.put("name", item.getName());
+            row.put("partNumber", item.getPartNumber());
+            row.put("supplierName", item.getSupplier() != null ? item.getSupplier().getCompanyName() : "N/A");
+            row.put("categoryName", item.getCategory() != null ? item.getCategory().getName() : "N/A");
+            row.put("totalPurchased", totalPurchased);
+            row.put("soldQty", soldQty);
+            row.put("remainingQty", remaining);
+            row.put("landedCostPerUnit", landedCostPerUnit.setScale(2, RoundingMode.HALF_UP));
+            row.put("sellingPricePerUnit", sellingPricePerUnit.setScale(2, RoundingMode.HALF_UP));
+            row.put("gpPerUnit", gpPerUnit.setScale(2, RoundingMode.HALF_UP));
+            row.put("totalRevenue", totalRevenue.setScale(2, RoundingMode.HALF_UP));
+            row.put("totalProfit", totalProfit.setScale(2, RoundingMode.HALF_UP));
+            row.put("remainingValue", remainingValue.setScale(2, RoundingMode.HALF_UP));
+            row.put("estimatedSellingValue", estimatedSellingValue.setScale(2, RoundingMode.HALF_UP));
+            row.put("estimatedFutureProfit", estimatedFutureProfit.setScale(2, RoundingMode.HALF_UP));
+            row.put("monthlySold", monthlySold);
+            row.put("monthlyRevenue", monthlyRevenue.setScale(2, RoundingMode.HALF_UP));
+            row.put("monthlyProfit", monthlyProfit.setScale(2, RoundingMode.HALF_UP));
+            row.put("lowStock", item.getLowStockThreshold() != null && remaining <= item.getLowStockThreshold() && remaining > 0);
+            row.put("outOfStock", remaining == 0);
+            result.add(row);
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<StockItem> updateStockItem(@PathVariable Long id, @RequestBody StockItem stockDetails) {
+        StockItem item = stockItemService.getStockItemById(id);
+        item.setName(stockDetails.getName());
+        item.setPartNumber(stockDetails.getPartNumber());
+        item.setHsCode(stockDetails.getHsCode());
+        item.setQuantity(stockDetails.getQuantity());
+        item.setUnitPrice(stockDetails.getUnitPrice());
+        item.setLowStockThreshold(stockDetails.getLowStockThreshold());
+        item.setSupplier(stockDetails.getSupplier());
+        return ResponseEntity.ok(stockItemService.saveStockItem(item));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteStockItem(@PathVariable Long id) {
+        stockItemService.deleteStockItem(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteAllStock() {
+        stockItemService.deleteAllStock();
+        return ResponseEntity.ok().build();
+    }
+}
