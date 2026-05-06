@@ -108,3 +108,58 @@ public class StockItemController {
     @PostMapping("/{id}/reduce-stock")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<StockItemService.ReductionResult> reduceStock(
+            @PathVariable Long id, 
+            @Valid @RequestBody ReduceStockRequest request) {
+        
+        StockItemService.ReductionResult result = stockItemService.reduceStock(id, request.getQuantity(), request.getReason(), null);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/{id}/preview-fifo-cost")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<StockItemService.ReductionResult> previewFifoCost(
+            @PathVariable Long id,
+            @RequestParam Integer quantity) {
+        
+        StockItemService.ReductionResult result = stockItemService.previewFifoCost(id, quantity);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Per-item inventory profit analytics endpoint.
+     * Computes landedCostPerUnit, gpPerUnit, soldQty, totalProfit, remainingValue,
+     * estimatedFutureProfit from existing batch and item data.
+     * No schema changes required — all derived from StockBatch fields.
+     */
+    @GetMapping("/analytics")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Map<String, Object>>> getInventoryAnalytics() {
+        List<StockItem> items = stockItemService.getAllStockItems();
+        
+        // Performance Optimization: Fetch all batches and job items once to avoid N+1 queries
+        java.time.LocalDateTime startOfCurrentMonth = java.time.LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        List<StockBatch> allBatches = stockBatchRepository.findAll();
+        java.util.Map<Long, List<StockBatch>> batchMap = allBatches.stream()
+            .collect(Collectors.groupingBy(b -> b.getStockItem().getId()));
+            
+        List<com.autocare.backend.model.JobItem> allMonthlySales = jobItemRepository.findByJobCardStatusAndJobCardEndTimeAfter(
+            com.autocare.backend.model.JobCard.JobStatus.PAID, startOfCurrentMonth);
+        java.util.Map<Long, List<com.autocare.backend.model.JobItem>> salesMap = allMonthlySales.stream()
+            .collect(Collectors.groupingBy(ji -> ji.getStockItem().getId()));
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        java.util.Map<Long, StockBatch> allBatchesMap = allBatches.stream()
+            .collect(Collectors.toMap(StockBatch::getId, b -> b));
+
+        for (StockItem item : items) {
+            List<StockBatch> batches = batchMap.getOrDefault(item.getId(), new ArrayList<>());
+            if (batches.isEmpty()) continue;
+
+            // Aggregate across all batches
+            int totalPurchased = batches.stream().mapToInt(b -> b.getInitialQuantity() != null ? b.getInitialQuantity() : 0).sum();
+            int remaining = batches.stream().mapToInt(b -> b.getCurrentQuantity() != null ? b.getCurrentQuantity() : 0).sum();
+            int soldQty = totalPurchased - remaining;
+
+            // FIFO Pricing: Use the Landed Cost and Selling Price of the OLDEST active (available) batch
+            StockBatch oldestActive = batches.stream()
