@@ -39,4 +39,16 @@ public class ServiceTypeController {
         ServiceType serviceType = serviceTypeService.getServiceTypeById(id);
         serviceType.setName(details.getName());
         serviceType.setDescription(details.getDescription());
-        serviceType.setBasePrice(details.getBasePrice());
+        serviceType.setBasePrice(details.getBasePrice());
+        serviceType.setDuration(details.getDuration());
+        serviceType.setActive(details.isActive());
+        return ResponseEntity.ok(serviceTypeService.saveServiceType(serviceType));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteServiceType(@PathVariable Long id) {
+        serviceTypeService.deleteServiceType(id);
+        return ResponseEntity.ok().build();
+    }
+}
