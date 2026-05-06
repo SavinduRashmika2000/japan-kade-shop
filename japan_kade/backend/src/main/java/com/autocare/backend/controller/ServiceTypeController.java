@@ -11,4 +11,18 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/service-types")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+public class ServiceTypeController {
+
+    @Autowired
+    private ServiceTypeService serviceTypeService;
+
+    @GetMapping
+    public List<ServiceType> getAllServiceTypes() {
+        return serviceTypeService.getAllServiceTypes();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ServiceType> getServiceTypeById(@PathVariable Long id) {
+        return ResponseEntity.ok(serviceTypeService.getServiceTypeById(id));
+    }
