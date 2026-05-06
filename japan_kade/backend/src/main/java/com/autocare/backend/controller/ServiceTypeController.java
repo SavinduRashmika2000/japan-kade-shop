@@ -25,4 +25,18 @@ public class ServiceTypeController {
     @GetMapping("/{id}")
     public ResponseEntity<ServiceType> getServiceTypeById(@PathVariable Long id) {
         return ResponseEntity.ok(serviceTypeService.getServiceTypeById(id));
-    }
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ServiceType createServiceType(@RequestBody ServiceType serviceType) {
+        return serviceTypeService.saveServiceType(serviceType);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ServiceType> updateServiceType(@PathVariable Long id, @RequestBody ServiceType details) {
+        ServiceType serviceType = serviceTypeService.getServiceTypeById(id);
+        serviceType.setName(details.getName());
+        serviceType.setDescription(details.getDescription());
+        serviceType.setBasePrice(details.getBasePrice());
