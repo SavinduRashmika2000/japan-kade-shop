@@ -163,3 +163,58 @@ public class StockItemController {
 
             // FIFO Pricing: Use the Landed Cost and Selling Price of the OLDEST active (available) batch
             StockBatch oldestActive = batches.stream()
+                .filter(b -> b.getCurrentQuantity() != null && b.getCurrentQuantity() > 0)
+                .min(java.util.Comparator.comparing(b -> b.getCreatedAt() != null ? b.getCreatedAt() : java.time.LocalDateTime.MIN))
+                .orElse(null);
+            
+            if (oldestActive == null) {
+                // If all batches are consumed, fall back to the oldest batch overall
+                oldestActive = batches.stream()
+                    .min(java.util.Comparator.comparing(b -> b.getCreatedAt() != null ? b.getCreatedAt() : java.time.LocalDateTime.MIN))
+                    .orElse(null);
+            }
+
+            BigDecimal landedCostPerUnit = BigDecimal.ZERO;
+            BigDecimal sellingPricePerUnit = BigDecimal.ZERO;
+
+            if (oldestActive != null) {
+                landedCostPerUnit = oldestActive.getLandedCost() != null ? oldestActive.getLandedCost() : (oldestActive.getUnitPrice() != null ? oldestActive.getUnitPrice() : BigDecimal.ZERO);
+                sellingPricePerUnit = oldestActive.getSellingPrice() != null ? oldestActive.getSellingPrice() : (item.getUnitPrice() != null ? item.getUnitPrice() : landedCostPerUnit);
+            } else if (item.getUnitPrice() != null) {
+                sellingPricePerUnit = item.getUnitPrice();
+            }
+
+            BigDecimal gpPerUnit = sellingPricePerUnit.subtract(landedCostPerUnit);
+            BigDecimal totalRevenue = sellingPricePerUnit.multiply(new BigDecimal(soldQty));
+            BigDecimal totalProfit = gpPerUnit.multiply(new BigDecimal(soldQty));
+            BigDecimal remainingValue = landedCostPerUnit.multiply(new BigDecimal(remaining));
+            BigDecimal estimatedSellingValue = sellingPricePerUnit.multiply(new BigDecimal(remaining));
+            BigDecimal estimatedFutureProfit = gpPerUnit.multiply(new BigDecimal(remaining));
+
+            // Monthly breakdown for this specific item (Optimized lookup)
+            int monthlySold = 0;
+            BigDecimal monthlyRevenue = BigDecimal.ZERO;
+            BigDecimal monthlyProfit = BigDecimal.ZERO;
+
+            List<com.autocare.backend.model.JobItem> monthlyItemSales = salesMap.getOrDefault(item.getId(), new ArrayList<>());
+            
+            for (com.autocare.backend.model.JobItem ji : monthlyItemSales) {
+                int q = ji.getQuantity() != null ? ji.getQuantity() : 0;
+                monthlySold += q;
+                monthlyRevenue = monthlyRevenue.add(ji.getSubtotal() != null ? ji.getSubtotal() : (ji.getPriceAtTime() != null ? ji.getPriceAtTime().multiply(new BigDecimal(q)) : BigDecimal.ZERO));
+                
+                if (ji.getStockBatchId() != null) {
+                    // Fast lookup in map
+                    StockBatch b = allBatchesMap.get(ji.getStockBatchId());
+                    if (b != null) {
+                        BigDecimal landed = b.getLandedCost() != null ? b.getLandedCost() : (b.getUnitPrice() != null ? b.getUnitPrice() : BigDecimal.ZERO);
+                        BigDecimal salePrice = ji.getPriceAtTime() != null ? ji.getPriceAtTime() : (b.getSellingPrice() != null ? b.getSellingPrice() : item.getUnitPrice());
+                        if (salePrice == null) salePrice = landed;
+                        monthlyProfit = monthlyProfit.add(salePrice.subtract(landed).multiply(new BigDecimal(q)));
+                    }
+                }
+            }
+
+            Map<String, Object> row = new java.util.LinkedHashMap<>();
+            row.put("itemId", item.getId());
+            row.put("name", item.getName());
