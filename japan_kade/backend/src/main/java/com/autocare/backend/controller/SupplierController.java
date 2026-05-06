@@ -12,3 +12,18 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/suppliers")
 public class SupplierController {
+
+    @Autowired
+    private SupplierService supplierService;
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public List<Supplier> getAllSuppliers() {
+        return supplierService.getAllSuppliers();
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<Supplier> getSupplierById(@PathVariable Long id) {
+        return ResponseEntity.ok(supplierService.getSupplierById(id));
+    }
