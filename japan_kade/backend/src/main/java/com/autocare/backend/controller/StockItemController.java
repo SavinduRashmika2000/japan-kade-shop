@@ -53,3 +53,58 @@ public class StockItemController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     public ResponseEntity<Map<String, Object>> checkAvailability(@PathVariable Long id, @RequestParam Integer quantity) {
         StockItem item = stockItemService.getStockItemById(id);
+        boolean available = item.getQuantity() >= quantity;
+        return ResponseEntity.ok(Map.of(
+            "available", available,
+            "availableQty", item.getQuantity(),
+            "requestedQty", quantity
+        ));
+    }
+
+    @GetMapping("/{id}/batches")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<List<com.autocare.backend.model.StockBatch>> getBatches(@PathVariable Long id) {
+        return ResponseEntity.ok(stockItemService.getBatchesForItem(id));
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public StockItem createStockItem(@RequestBody StockItem stockItem) {
+        return stockItemService.saveStockItem(stockItem);
+    }
+
+    @GetMapping("/transactions")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<StockTransaction>> getAllTransactions() {
+        return ResponseEntity.ok(stockItemService.getAllTransactions());
+    }
+
+    @PostMapping("/{id}/add-stock")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<StockItem> addStock(
+            @PathVariable Long id, 
+            @Valid @RequestBody AddStockRequest request) {
+        
+        return ResponseEntity.ok(stockItemService.addStock(
+            id, 
+            request.getQuantity(), 
+            request.getUnitPrice(), 
+            request.getSupplierId(),
+            request.getHsCode(),
+            request.getUnitCostForeign(),
+            request.getExchangeRate(),
+            request.getCurrencyType(),
+            request.getFreightCost(),
+            request.getShippingCost(),
+            request.getBankCharges(),
+            request.getClearanceFees(),
+            request.getDutyFees(),
+            request.getAdditionalExpenses(),
+            request.getLandedCost(),
+            request.getSellingPrice()
+        ));
+    }
+
+    @PostMapping("/{id}/reduce-stock")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<StockItemService.ReductionResult> reduceStock(
