@@ -27,3 +27,17 @@ public class SupplierController {
     public ResponseEntity<Supplier> getSupplierById(@PathVariable Long id) {
         return ResponseEntity.ok(supplierService.getSupplierById(id));
     }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public Supplier createSupplier(@RequestBody Supplier supplier) {
+        return supplierService.saveSupplier(supplier);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Supplier> updateSupplier(@PathVariable Long id, @RequestBody Supplier supplierDetails) {
+        Supplier supplier = supplierService.getSupplierById(id);
+        supplier.setCompanyName(supplierDetails.getCompanyName());
+        supplier.setContactPerson(supplierDetails.getContactPerson());
+        supplier.setEmail(supplierDetails.getEmail());
