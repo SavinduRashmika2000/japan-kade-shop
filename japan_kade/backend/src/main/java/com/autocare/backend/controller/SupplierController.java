@@ -41,3 +41,16 @@ public class SupplierController {
         supplier.setCompanyName(supplierDetails.getCompanyName());
         supplier.setContactPerson(supplierDetails.getContactPerson());
         supplier.setEmail(supplierDetails.getEmail());
+        supplier.setPhone(supplierDetails.getPhone());
+        supplier.setAddress(supplierDetails.getAddress());
+        supplier.setActive(supplierDetails.isActive());
+        return ResponseEntity.ok(supplierService.saveSupplier(supplier));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteSupplier(@PathVariable Long id) {
+        supplierService.deleteSupplier(id);
+        return ResponseEntity.ok().build();
+    }
+}
