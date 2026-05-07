@@ -38,4 +38,16 @@ public class VehicleController {
     public ResponseEntity<Vehicle> updateVehicle(@PathVariable Long id, @RequestBody Vehicle vehicleDetails) {
         Vehicle vehicle = vehicleService.getVehicleById(id);
         vehicle.setMake(vehicleDetails.getMake());
-        vehicle.setModel(vehicleDetails.getModel());
+        vehicle.setModel(vehicleDetails.getModel());
+        vehicle.setYear(vehicleDetails.getYear());
+        vehicle.setLicensePlate(vehicleDetails.getLicensePlate());
+        return ResponseEntity.ok(vehicleService.saveVehicle(vehicle));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<?> deleteVehicle(@PathVariable Long id) {
+        vehicleService.deleteVehicle(id);
+        return ResponseEntity.ok().build();
+    }
+}
