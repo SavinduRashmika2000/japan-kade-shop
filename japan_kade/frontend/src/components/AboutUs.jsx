@@ -37,3 +37,23 @@ const AboutUs = () => {
               <div>
                 <h4 className="font-bold text-slate-900">Expert Support</h4>
                 <p className="text-sm text-slate-500">We help you find the perfect part for your car.</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="relative"
+        >
+          <div className="bg-blue-600 rounded-[3rem] p-12 text-white overflow-hidden relative group">
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-700" />
+            <h3 className="text-3xl font-black mb-6 tracking-tight">Our Commitment</h3>
+            <p className="text-blue-50 leading-relaxed text-lg mb-8">
+              We understand that your vehicle is an essential part of your daily life. That's why we 
+              prioritize quality, availability, and fast delivery for every order.
+            </p>
+            <div className="flex items-center gap-6">
