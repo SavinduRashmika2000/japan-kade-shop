@@ -11,4 +11,17 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/vehicles")
-public class VehicleController {
+public class VehicleController {
+    @Autowired
+    private VehicleService vehicleService;
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public List<Vehicle> getAllVehicles() {
+        return vehicleService.getAllVehicles();
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasRole('CUSTOMER')")
+    public ResponseEntity<Vehicle> getVehicleById(@PathVariable Long id) {
+        return ResponseEntity.ok(vehicleService.getVehicleById(id));
