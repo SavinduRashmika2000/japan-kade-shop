@@ -57,3 +57,21 @@ const AboutUs = () => {
               prioritize quality, availability, and fast delivery for every order.
             </p>
             <div className="flex items-center gap-6">
+              <div>
+                <p className="text-4xl font-black">15+</p>
+                <p className="text-blue-200 text-xs font-bold uppercase tracking-widest mt-1">Years Experience</p>
+              </div>
+              <div className="w-px h-12 bg-white/20" />
+              <div>
+                <p className="text-4xl font-black">10k+</p>
+                <p className="text-blue-200 text-xs font-bold uppercase tracking-widest mt-1">Happy Clients</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
+export default AboutUs;
