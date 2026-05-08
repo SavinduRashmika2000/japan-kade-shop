@@ -30,3 +30,35 @@ const DashboardPreview = () => {
             <div className="flex flex-wrap gap-3 mb-10">
               <button
                 className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all shadow-lg hover:opacity-90"
+                style={{ background: '#3B82F6' }}
+              >
+                Get Started Now <ArrowRight className="w-4 h-4" />
+              </button>
+              <button className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white border border-white/20 hover:bg-white/10 transition-all">
+                <Play className="w-4 h-4" />
+                View Demo
+              </button>
+            </div>
+            {/* Trust badges */}
+            <div className="flex flex-wrap gap-5">
+              {[
+                { icon: <CheckCircle2 className="w-4 h-4 text-green-400" />, label: 'Easy to Use' },
+                { icon: <Shield className="w-4 h-4 text-blue-400" />, label: 'Secure & Reliable' },
+                { icon: <Headphones className="w-4 h-4 text-purple-400" />, label: '24/7 Support' },
+              ].map((b, i) => (
+                <div key={i} className="flex items-center gap-1.5 text-xs text-blue-100/70">
+                  {b.icon} {b.label}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: Dashboard mockup */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="relative"
+          >
+            <div className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-2xl transform -rotate-1 hover:rotate-0 transition-transform duration-500">
