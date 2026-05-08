@@ -17,3 +17,21 @@ const Contact = () => {
         {/* Contact Info */}
         <div className="bg-white rounded-[2rem] p-10 border border-slate-100 shadow-xl">
           <div className="space-y-10">
+            <div className="flex items-start gap-6">
+              <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                <MapPin className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <h4 className="text-xl font-bold text-slate-900 mb-2">Our Location</h4>
+                <p className="text-slate-500 leading-relaxed text-lg">
+                  123 Auto Avenue, Motor City<br />
+                  New York, NY 10001
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-6">
+              <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                <Phone className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
