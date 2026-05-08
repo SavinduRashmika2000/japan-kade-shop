@@ -54,3 +54,20 @@ const Contact = () => {
                   support@mindspareparts.com
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Map Placeholder */}
+        <div className="w-full h-full min-h-[400px] rounded-[2rem] overflow-hidden bg-slate-200 relative border border-slate-100 shadow-sm">
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
+            <MapPin className="w-12 h-12 mb-4 text-slate-300" />
+            <p className="text-lg font-medium">Interactive Map Placeholder</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Contact;
