@@ -62,3 +62,33 @@ const DashboardPreview = () => {
             className="relative"
           >
             <div className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-2xl transform -rotate-1 hover:rotate-0 transition-transform duration-500">
+              {/* Dashboard chrome header */}
+              <div className="bg-slate-800 px-4 py-2.5 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-blue-600 flex items-center justify-center">
+                    <Settings className="w-3 h-3 text-white" />
+                  </div>
+                  <span className="text-white text-xs font-semibold">MIND SPARE PARTS</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-slate-600"></div>
+                </div>
+              </div>
+
+              <div className="flex" style={{ minHeight: '260px' }}>
+                {/* Sidebar */}
+                <div className="bg-slate-900 w-28 shrink-0 p-3 space-y-1">
+                  {sidebarItems.map((item, i) => {
+                    const Icon = sidebarIcons[i];
+                    return (
+                      <div key={i} className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg cursor-pointer text-[10px] font-medium transition-colors ${i === 0 ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}>
+                        <Icon className="w-3 h-3 shrink-0" />
+                        {item}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Main content */}
+                <div className="flex-1 p-4 bg-[#F9FAFB]">
+                  <div className="text-xs font-bold text-slate-700 mb-3">Dashboard</div>
