@@ -25,3 +25,10 @@ const CallToAction = () => {
               <Phone className="w-6 h-6" /> Contact Sales
             </a>
           </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default CallToAction;
