@@ -16,3 +16,12 @@ const CallToAction = () => {
           <p className="text-blue-100 text-xl max-w-2xl mx-auto mb-12">
             Get in touch with us today for high-quality automotive parts you can rely on.
           </p>
+          
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+            <a href="#contact" className="bg-white text-blue-600 font-bold px-10 py-5 rounded-full text-lg hover:shadow-xl hover:scale-105 transition-all w-full sm:w-auto flex items-center justify-center gap-3">
+              <Calendar className="w-6 h-6" /> Inquire Now
+            </a>
+            <a href="#contact" className="bg-blue-700 text-white font-bold px-10 py-5 rounded-full text-lg hover:bg-blue-800 transition-all w-full sm:w-auto flex items-center justify-center gap-3 border border-blue-500">
+              <Phone className="w-6 h-6" /> Contact Sales
+            </a>
+          </div>
