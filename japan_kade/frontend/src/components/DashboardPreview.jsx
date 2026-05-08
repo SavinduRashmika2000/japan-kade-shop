@@ -92,3 +92,36 @@ const DashboardPreview = () => {
                 {/* Main content */}
                 <div className="flex-1 p-4 bg-[#F9FAFB]">
                   <div className="text-xs font-bold text-slate-700 mb-3">Dashboard</div>
+
+                  {/* Mini stat cards */}
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {[
+                      { label: 'Total Customers', value: '320', up: '+12.5%' },
+                      { label: 'Total Orders', value: '1,180', up: '+10.3%' },
+                      { label: 'Total Revenue', value: '₹12.5L', up: '+8.5%' },
+                    ].map((s, i) => (
+                      <div key={i} className="bg-white rounded-xl p-2 shadow-sm border border-slate-100">
+                        <div className="text-[9px] text-slate-400 mb-0.5">{s.label}</div>
+                        <div className="text-xs font-bold text-slate-800">{s.value}</div>
+                        <div className="text-[9px] text-green-500 font-medium">{s.up}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Charts row */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Revenue chart */}
+                    <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100">
+                      <div className="text-[9px] font-semibold text-slate-600 mb-2">Revenue Overview</div>
+                      <svg viewBox="0 0 100 40" className="w-full" style={{ height: '40px' }}>
+                        <polyline points="0,35 15,25 30,30 45,15 60,20 75,10 100,18"
+                          fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" />
+                        <polygon points="0,35 15,25 30,30 45,15 60,20 75,10 100,18 100,40 0,40"
+                          fill="rgba(59,130,246,0.1)" />
+                      </svg>
+                    </div>
+
+                    {/* Donut chart */}
+                    <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100">
+                      <div className="text-[9px] font-semibold text-slate-600 mb-2">Order Status</div>
+                      <div className="flex items-center gap-2">
