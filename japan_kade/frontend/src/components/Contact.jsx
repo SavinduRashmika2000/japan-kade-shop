@@ -35,3 +35,22 @@ const Contact = () => {
                 <Phone className="w-6 h-6 text-blue-600" />
               </div>
               <div>
+                <h4 className="text-xl font-bold text-slate-900 mb-2">Call Us</h4>
+                <p className="text-slate-500 leading-relaxed text-lg">
+                  +1 (555) 123-4567<br />
+                  Mon-Sat: 8AM - 6PM
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-6">
+              <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                <Mail className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <h4 className="text-xl font-bold text-slate-900 mb-2">Email Us</h4>
+                <p className="text-slate-500 leading-relaxed text-lg">
+                  sales@mindspareparts.com<br />
+                  support@mindspareparts.com
+                </p>
+              </div>
