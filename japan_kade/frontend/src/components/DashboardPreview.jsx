@@ -125,3 +125,33 @@ const DashboardPreview = () => {
                     <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100">
                       <div className="text-[9px] font-semibold text-slate-600 mb-2">Order Status</div>
                       <div className="flex items-center gap-2">
+                        <svg viewBox="0 0 36 36" className="w-10 h-10 shrink-0">
+                          <circle cx="18" cy="18" r="15" fill="none" stroke="#e2e8f0" strokeWidth="5" />
+                          <circle cx="18" cy="18" r="15" fill="none" stroke="#3B82F6" strokeWidth="5"
+                            strokeDasharray="60 40" strokeDashoffset="25" />
+                          <circle cx="18" cy="18" r="15" fill="none" stroke="#10b981" strokeWidth="5"
+                            strokeDasharray="25 75" strokeDashoffset="-35" />
+                        </svg>
+                        <div className="space-y-1">
+                          {[['Completed', 'bg-blue-500', '65%'], ['In Progress', 'bg-green-500', '25%'], ['Pending', 'bg-slate-200', '10%']].map(([l, c, v]) => (
+                            <div key={l} className="flex items-center gap-1">
+                              <div className={`w-1.5 h-1.5 rounded-full ${c}`}></div>
+                              <span className="text-[8px] text-slate-500">{l}</span>
+                              <span className="text-[8px] font-bold text-slate-700">{v}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default DashboardPreview;
