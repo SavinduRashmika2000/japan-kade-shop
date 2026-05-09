@@ -74,3 +74,20 @@ const Footer = () => {
           </div>
 
         </div>
+
+        {/* Bottom */}
+        <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-slate-500">
+            &copy; {new Date().getFullYear()} Mind Spare Parts. All rights reserved.
+          </p>
+          <div className="flex gap-6 text-sm text-slate-500">
+            <a href="#" className="hover:text-blue-400">Privacy Policy</a>
+            <a href="#" className="hover:text-blue-400">Terms of Service</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
