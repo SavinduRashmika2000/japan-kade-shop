@@ -31,3 +31,20 @@ const features = [
     icon: <Receipt className="w-7 h-7 text-pink-600" />,
     iconBg: 'bg-pink-50 dark:bg-pink-900/30',
     title: 'Billing & Invoicing',
+    desc: 'Generate invoices, track payments, manage discounts and get paid faster.',
+  },
+  {
+    icon: <BarChart2 className="w-7 h-7 text-teal-600" />,
+    iconBg: 'bg-teal-50 dark:bg-teal-900/30',
+    title: 'Reports & Analytics',
+    desc: 'Get insights into your business with detailed reports and beautiful analytics.',
+  },
+];
+
+const FeatureCards = () => {
+  return (
+    <section id="features" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="text-center mb-16">
+        <p className="text-blue-600 font-semibold tracking-widest uppercase text-xs mb-3">Powerful Features</p>
+        <h2 className="text-3xl md:text-4xl font-bold text-[#111827] dark:text-white mb-4">
