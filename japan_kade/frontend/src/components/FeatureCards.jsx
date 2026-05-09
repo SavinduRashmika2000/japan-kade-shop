@@ -15,3 +15,19 @@ const features = [
     title: 'Inventory Management',
     desc: 'Track stock levels, manage batches, and ensure availability across all your part categories.',
   },
+  {
+    icon: <Package className="w-7 h-7 text-orange-500" />,
+    iconBg: 'bg-orange-50 dark:bg-orange-900/30',
+    title: 'Inventory Management',
+    desc: 'Track spare parts, manage stock levels, get low stock alerts and never run out of essentials.',
+  },
+  {
+    icon: <UserCircle className="w-7 h-7 text-purple-600" />,
+    iconBg: 'bg-purple-50 dark:bg-purple-900/30',
+    title: 'Staff Management',
+    desc: 'Manage staff roles, schedules, performance and payroll efficiently.',
+  },
+  {
+    icon: <Receipt className="w-7 h-7 text-pink-600" />,
+    iconBg: 'bg-pink-50 dark:bg-pink-900/30',
+    title: 'Billing & Invoicing',
