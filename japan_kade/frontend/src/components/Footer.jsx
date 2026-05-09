@@ -36,3 +36,22 @@ const Footer = () => {
                   <a href={`#${link.toLowerCase().replace(/\s+/g, '-')}`} className="text-slate-400 hover:text-blue-400 transition-colors">
                     {link}
                   </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-lg font-bold text-white mb-6">Part Categories</h4>
+            <ul className="space-y-4">
+              {['Engine Components', 'Braking System', 'Electrical Parts', 'Suspension', 'Filters & Plugs'].map(link => (
+                <li key={link}>
+                  <a href="#inventory" className="text-slate-400 hover:text-blue-400 transition-colors">
+                    {link}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Hours */}
