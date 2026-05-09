@@ -48,3 +48,19 @@ const FeatureCards = () => {
       <div className="text-center mb-16">
         <p className="text-blue-600 font-semibold tracking-widest uppercase text-xs mb-3">Powerful Features</p>
         <h2 className="text-3xl md:text-4xl font-bold text-[#111827] dark:text-white mb-4">
+          Everything You Need to Manage<br className="hidden md:block" /> Your Spare Parts Business
+        </h2>
+        <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-lg">
+          Powerful tools to streamline operations and deliver quality parts faster.
+        </p>
+      </div>
+
+      {/* Cards */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {features.map((f, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: i * 0.08 }}
