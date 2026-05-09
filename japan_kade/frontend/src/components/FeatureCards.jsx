@@ -64,3 +64,18 @@ const FeatureCards = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: i * 0.08 }}
+            className="group bg-white dark:bg-slate-800 rounded-2xl p-7 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer"
+          >
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 ${f.iconBg} group-hover:scale-110 transition-transform duration-300`}>
+              {f.icon}
+            </div>
+            <h4 className="text-base font-bold text-[#111827] dark:text-white mb-2">{f.title}</h4>
+            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{f.desc}</p>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default FeatureCards;
