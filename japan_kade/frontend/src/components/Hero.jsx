@@ -43,3 +43,26 @@ const Hero = () => {
             <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
             <div className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-green-500" /> Reliable</div>
             <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+            <div className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-green-500" /> Affordable</div>
+          </div>
+        </motion.div>
+
+        {/* RIGHT SIDE */}
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="relative lg:h-[650px] flex items-center justify-center"
+        >
+          {/* Main Image */}
+          <div className="relative w-full h-full min-h-[400px] rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/40 to-transparent z-10 mix-blend-overlay"></div>
+            <img 
+              src="/hero-mechanic.png" 
+              alt="Professional Mechanic Working" 
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            
+            {/* Floating Trust Cards */}
+            <div className="absolute top-8 left-8 z-20 animate-[float_6s_ease-in-out_infinite]">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl flex items-center gap-4">
