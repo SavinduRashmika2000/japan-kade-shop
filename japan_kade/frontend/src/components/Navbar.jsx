@@ -29,3 +29,36 @@ const Navbar = () => {
               <div className="text-xl font-bold text-slate-900 tracking-tight">Mind Spare Parts</div>
             </div>
           </div>
+
+          {/* Desktop Links */}
+          <div className="hidden md:flex items-center space-x-8">
+            <a href="#home" className="text-base font-medium text-slate-600 hover:text-blue-600 transition-colors">Home</a>
+            <a href="#about" className="text-base font-medium text-slate-600 hover:text-blue-600 transition-colors">About Us</a>
+            <a href="#contact" className="text-base font-medium text-slate-600 hover:text-blue-600 transition-colors">Contact</a>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="hidden md:flex items-center gap-6">
+            <a href="/login" className="premium-btn-3d">
+              <span className="premium-btn-inner">
+                <span className="premium-btn-text">Login</span>
+              </span>
+            </a>
+            <a href="#contact" className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-full transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
+              Contact Us
+            </a>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center">
+            <button onClick={() => setIsOpen(!isOpen)} className="p-2 text-slate-600">
+              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-xl border-t border-slate-100 py-6 px-6 flex flex-col gap-5">
+          <a href="#home" className="text-lg font-medium text-slate-700 hover:text-blue-600" onClick={() => setIsOpen(false)}>Home</a>
