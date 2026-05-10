@@ -66,3 +66,24 @@ const Hero = () => {
             {/* Floating Trust Cards */}
             <div className="absolute top-8 left-8 z-20 animate-[float_6s_ease-in-out_infinite]">
               <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  <Clock className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-900">10,000+ Parts</div>
+                  <div className="text-xs font-medium text-slate-500">Always in stock</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute bottom-16 right-8 z-20 animate-[float_7s_ease-in-out_infinite_reverse]">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-900">Genuine OEM Parts</div>
+                  <div className="text-xs font-medium text-slate-500">Quality guaranteed</div>
+                </div>
+              </div>
+            </div>
