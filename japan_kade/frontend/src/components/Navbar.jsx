@@ -62,3 +62,34 @@ const Navbar = () => {
       {isOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-xl border-t border-slate-100 py-6 px-6 flex flex-col gap-5">
           <a href="#home" className="text-lg font-medium text-slate-700 hover:text-blue-600" onClick={() => setIsOpen(false)}>Home</a>
+          <a href="#about" className="text-lg font-medium text-slate-700 hover:text-blue-600" onClick={() => setIsOpen(false)}>About Us</a>
+          <a href="#contact" className="text-lg font-medium text-slate-700 hover:text-blue-600" onClick={() => setIsOpen(false)}>Contact</a>
+          <hr className="border-slate-100 my-2" />
+          <div className="flex justify-center">
+            <a href="/login" className="premium-btn-3d w-full text-center">
+              <span className="premium-btn-inner">
+                <span className="premium-btn-text">Login</span>
+              </span>
+            </a>
+          </div>
+          <a href="#contact" className="w-full text-center py-4 text-base font-bold text-white bg-blue-600 rounded-full shadow-md">
+            Contact Us
+          </a>
+        </div>
+      )}
+
+      {/* Premium Glassmorphism 3D Button Styles */}
+      <style>{`
+        .premium-btn-3d {
+          position: relative;
+          display: inline-block;
+          padding: 2px; /* Border thickness */
+          border-radius: 12px;
+          background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+          text-decoration: none;
+          transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+          box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+          cursor: pointer;
+        }
+
+        .premium-btn-inner {
