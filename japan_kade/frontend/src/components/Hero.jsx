@@ -87,3 +87,25 @@ const Hero = () => {
                 </div>
               </div>
             </div>
+
+            <div className="absolute top-1/2 -right-6 z-20 animate-[float_5s_ease-in-out_infinite]">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl px-6 py-3 shadow-xl border border-slate-100">
+                <div className="font-bold text-blue-600">Affordable Pricing</div>
+              </div>
+            </div>
+          </div>
+          
+        </motion.div>
+      </div>
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-15px); }
+          100% { transform: translateY(0px); }
+        }
+      `}} />
+    </section>
+  );
+};
+
+export default Hero;
