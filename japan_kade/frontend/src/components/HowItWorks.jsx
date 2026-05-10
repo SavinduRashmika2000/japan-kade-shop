@@ -29,3 +29,18 @@ const HowItWorks = () => {
         </h2>
         <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-lg">
           A seamless workflow designed to keep your garage moving fast.
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-10 relative">
+        {/* Connecting line for desktop */}
+        <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-blue-100 via-blue-500 to-blue-100 dark:from-blue-900 dark:via-blue-500 dark:to-blue-900 z-0"></div>
+
+        {steps.map((step, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: i * 0.2 }}
+            className="relative z-10 flex flex-col items-center text-center"
