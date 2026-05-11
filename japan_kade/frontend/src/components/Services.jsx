@@ -18,3 +18,23 @@ const Services = () => {
         setLoading(false);
       }
     };
+    fetchServices();
+  }, []);
+
+  return (
+    <section id="services" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="text-center mb-16">
+        <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
+          Part Categories
+        </h2>
+        <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+          We stock a comprehensive range of spare parts for all vehicle systems and models.
+        </p>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
