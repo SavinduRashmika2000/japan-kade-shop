@@ -125,3 +125,33 @@ const Navbar = () => {
         .premium-btn-3d:hover .premium-btn-text {
           -webkit-text-fill-color: #ffffff;
         }
+
+        /* Active State */
+        .premium-btn-3d:active {
+          transform: translateY(1px) scale(0.98);
+          box-shadow: 0 2px 10px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Glossy overlay effect */
+        .premium-btn-inner::after {
+          content: '';
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          pointer-events: none;
+        }
+
+        .premium-btn-3d:hover .premium-btn-inner::after {
+          opacity: 1;
+        }
+      `}</style>
+    </nav>
+  );
+};
+
+export default Navbar;
