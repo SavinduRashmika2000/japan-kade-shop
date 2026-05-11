@@ -13,3 +13,9 @@ const ProtectedRoute = ({ children, roles }) => {
 
   if (roles && !roles.some(role => user.roles.includes(role))) {
     return <Navigate to="/" />;
+  }
+
+  return children;
+};
+
+export default ProtectedRoute;
