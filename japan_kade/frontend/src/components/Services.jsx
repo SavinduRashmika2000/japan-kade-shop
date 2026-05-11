@@ -38,3 +38,23 @@ const Services = () => {
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {dbServices.length === 0 ? (
+            <div className="col-span-full py-20 text-center font-bold text-slate-400">Our service catalog is currently being updated. Please check back soon!</div>
+          ) : dbServices.map((s, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="group bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col h-full"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-blue-600 transition-all duration-300">
+                <Wrench className="w-8 h-8 text-blue-600 group-hover:text-white transition-colors" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 mb-4">{s.name}</h3>
+              <p className="text-slate-500 leading-relaxed text-lg mb-8 flex-1">{s.description || 'High-quality parts for your vehicle\'s maintenance and repair.'}</p>
+              
+              <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Duration</span>
