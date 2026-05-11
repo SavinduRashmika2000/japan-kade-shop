@@ -33,3 +33,20 @@ const PainPoints = () => {
           Stop struggling with spreadsheets, WhatsApp messages, and paper diaries. Upgrade to a system built specifically for automotive retailers.
         </p>
       </div>
+
+      <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+        {painPoints.map((item, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: i * 0.1 }}
+            className="flex flex-col sm:flex-row gap-6 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700"
+          >
+            <div className="flex-1">
+              <div className="flex items-start gap-3 mb-3">
+                <XCircle className="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
+                <p className="text-slate-700 dark:text-slate-300 font-medium">{item.problem}</p>
+              </div>
+            </div>
