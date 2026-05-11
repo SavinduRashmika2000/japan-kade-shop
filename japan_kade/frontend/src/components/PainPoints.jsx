@@ -50,3 +50,19 @@ const PainPoints = () => {
                 <p className="text-slate-700 dark:text-slate-300 font-medium">{item.problem}</p>
               </div>
             </div>
+            <div className="hidden sm:block w-px bg-slate-200 dark:bg-slate-700"></div>
+            <div className="sm:hidden h-px w-full bg-slate-200 dark:bg-slate-700"></div>
+            <div className="flex-1">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0 mt-0.5" />
+                <p className="text-[#111827] dark:text-white font-semibold">{item.solution}</p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default PainPoints;
