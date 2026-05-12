@@ -58,3 +58,22 @@ const Services = () => {
               <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Duration</span>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <Clock className="w-3.5 h-3.5 text-amber-500" />
+                    <span className="text-sm font-bold text-slate-700">{s.duration} mins</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Base Rate</span>
+                  <p className="text-2xl font-black text-blue-600 mt-1">Rs. {(s.basePrice || 0).toLocaleString()}</p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+};
+
+export default Services;
