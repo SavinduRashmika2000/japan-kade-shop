@@ -23,3 +23,15 @@ const Stats = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-white/10">
           {stats.map((stat, i) => (
             <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="flex items-center gap-4 px-8 py-8"
+            >
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${stat.iconBg}`}>
+                {stat.icon}
+              </div>
+              <div>
+                <div className="text-2xl md:text-3xl font-extrabold text-white leading-tight">{stat.value}</div>
