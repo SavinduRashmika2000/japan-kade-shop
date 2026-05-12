@@ -35,3 +35,14 @@ const Stats = () => {
               </div>
               <div>
                 <div className="text-2xl md:text-3xl font-extrabold text-white leading-tight">{stat.value}</div>
+                <div className="text-xs text-blue-100/70 font-medium mt-0.5 uppercase tracking-wide">{stat.label}</div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+    </section>
+  );
+};
+
+export default Stats;
