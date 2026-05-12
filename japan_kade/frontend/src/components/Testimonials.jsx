@@ -50,3 +50,19 @@ const Testimonials = () => {
                 <Star key={idx} className="w-4 h-4 fill-amber-400 text-amber-400" />
               ))}
             </div>
+            <p className="text-slate-600 dark:text-slate-300 italic mb-8">"{t.text}"</p>
+            <div className="flex items-center gap-4 mt-auto">
+              <img src={t.image} alt={t.name} className="w-12 h-12 rounded-full" />
+              <div>
+                <h4 className="font-bold text-[#111827] dark:text-white text-sm">{t.name}</h4>
+                <p className="text-slate-500 dark:text-slate-400 text-xs">{t.shop}</p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default Testimonials;
