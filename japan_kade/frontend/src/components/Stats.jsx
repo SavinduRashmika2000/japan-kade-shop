@@ -11,3 +11,15 @@ const stats = [
 
 const Stats = () => {
   return (
+    <section className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="rounded-3xl overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #111827 0%, #1e3a8a 100%)' }}
+      >
+        <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-white/10">
+          {stats.map((stat, i) => (
+            <motion.div
