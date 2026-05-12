@@ -33,3 +33,20 @@ const Testimonials = () => {
         <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-lg">
           Don't just take our word for it. See what real spare parts retailers have to say.
         </p>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-8">
+        {testimonials.map((t, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: i * 0.1 }}
+            className="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-sm border border-slate-100 dark:border-slate-700 relative"
+          >
+            <div className="flex items-center gap-1 mb-6">
+              {[...Array(5)].map((_, idx) => (
+                <Star key={idx} className="w-4 h-4 fill-amber-400 text-amber-400" />
+              ))}
+            </div>
