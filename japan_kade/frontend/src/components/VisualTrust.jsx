@@ -16,3 +16,10 @@ const VisualTrust = () => {
             Premium Parts for<br />Peak Performance
           </h2>
           <div className="w-24 h-1 bg-blue-500 mx-auto rounded-full"></div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default VisualTrust;
