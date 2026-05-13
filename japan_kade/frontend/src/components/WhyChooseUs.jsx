@@ -46,3 +46,17 @@ const WhyChooseUs = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: i * 0.1 }}
             className="text-center flex flex-col items-center"
+          >
+            <div className="w-20 h-20 rounded-full bg-blue-600 shadow-xl shadow-blue-600/20 flex items-center justify-center mb-6">
+              {r.icon}
+            </div>
+            <h4 className="text-xl font-bold text-slate-900 mb-3">{r.title}</h4>
+            <p className="text-slate-500">{r.desc}</p>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default WhyChooseUs;
