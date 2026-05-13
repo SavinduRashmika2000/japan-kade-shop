@@ -258,3 +258,90 @@ const LoginPage = () => {
       {/* Recovery Modal */}
       <AnimatePresence>
         {showRecovery && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-xl"
+              onClick={closeRecovery}
+            />
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative z-10 w-full max-w-lg bg-white rounded-[3rem] shadow-2xl border border-white p-8 md:p-12 overflow-hidden"
+            >
+              <button 
+                onClick={closeRecovery}
+                className="absolute top-8 right-8 text-slate-400 hover:text-red-500 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="mb-10 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-6 shadow-inner">
+                  {recoveryStep === 1 ? <Shield className="w-8 h-8" /> : <Lock className="w-8 h-8" />}
+                </div>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight">
+                  {recoveryStep === 1 ? "Identity Verification" : "New Access Key"}
+                </h3>
+                <p className="text-slate-500 mt-2 font-medium">
+                  {recoveryStep === 1 
+                    ? "Enter your registered phone and ID to proceed." 
+                    : "Create a strong new password for your account."}
+                </p>
+              </div>
+
+              {recoveryStep === 1 ? (
+                <form onSubmit={handleVerify} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Phone Number</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                        <Phone className="w-5 h-5" />
+                      </div>
+                      <input 
+                        type="text" name="phone" required
+                        value={recoveryForm.phone} onChange={handleRecoveryChange}
+                        maxLength="10"
+                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-14 pr-6 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
+                        placeholder="0712345678"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Identity Card Number (NIC)</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                        <CreditCard className="w-5 h-5" />
+                      </div>
+                      <input 
+                        type="text" name="idNo" required
+                        value={recoveryForm.idNo} onChange={handleRecoveryChange}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-14 pr-6 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
+                        placeholder="199512345678"
+                      />
+                    </div>
+                  </div>
+
+                  {recoveryError && (
+                    <p className="text-red-500 text-xs font-bold text-center bg-red-50 p-3 rounded-xl border border-red-100">{recoveryError}</p>
+                  )}
+
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    disabled={recoveryLoading}
+                    className="w-full bg-slate-900 hover:bg-blue-600 text-white font-black py-4.5 rounded-2xl transition-all shadow-xl shadow-slate-900/10 flex items-center justify-center gap-3"
+                  >
+                    {recoveryLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Verify Identity <ChevronRight className="w-5 h-5" /></>}
+                  </motion.button>
+                </form>
+              ) : (
+                <form onSubmit={handleReset} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">New Password</label>
