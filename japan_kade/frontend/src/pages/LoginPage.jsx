@@ -172,3 +172,89 @@ const LoginPage = () => {
                     required
                     value={identifier}
                     onChange={(e) => {
+                      const val = e.target.value;
+                      if (isCustomer) {
+                        setIdentifier(val.replace(/\D/g, '').slice(0, 10));
+                      } else {
+                        setIdentifier(val);
+                      }
+                    }}
+                    maxLength={isCustomer ? "10" : undefined}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-14 pr-6 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
+                    placeholder={isCustomer ? "0712345678" : "admin_official"}
+                  />
+                </div>
+              </div>
+
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center ml-1">
+                  <label className="block text-xs font-black uppercase tracking-widest text-slate-500">Access Key</label>
+                  {isCustomer && (
+                    <button 
+                      type="button"
+                      onClick={() => setShowRecovery(true)}
+                      className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 cursor-pointer"
+                    >
+                      Recovery
+                    </button>
+                  )}
+                </div>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <input 
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-14 pr-12 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-5 flex items-center text-slate-400 hover:text-blue-600 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="bg-red-50 border border-red-100 text-red-600 text-sm py-3 px-5 rounded-xl font-bold overflow-hidden"
+                >
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              disabled={loading}
+              className="w-full bg-slate-900 hover:bg-blue-600 disabled:opacity-50 text-white font-black py-4.5 px-6 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all duration-300 shadow-xl shadow-slate-900/10"
+            >
+              {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Sign In <ArrowRight className="w-5 h-5" /></>}
+            </motion.button>
+          </form>
+
+          {isCustomer && (
+            <p className="text-center text-slate-500 mt-10 text-sm font-bold">
+              New customer? <Link to="/signup" className="text-blue-600 hover:underline underline-offset-4 ml-1">Create Account</Link>
+            </p>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Recovery Modal */}
+      <AnimatePresence>
+        {showRecovery && (
