@@ -14,3 +14,11 @@ const LandingPage = () => {
       <Navbar />
       <main>
         <Hero />
+        <AboutUs />
+        <WhyChooseUs />
+        <VisualTrust />
+        <CallToAction />
+        <Contact />
+      </main>
+      <Footer />
+    </div>
