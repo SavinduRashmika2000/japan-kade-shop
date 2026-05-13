@@ -6,3 +6,11 @@ import WhyChooseUs from '../components/WhyChooseUs';
 import VisualTrust from '../components/VisualTrust';
 import CallToAction from '../components/CallToAction';
 import Contact from '../components/Contact';
+import Footer from '../components/Footer';
+
+const LandingPage = () => {
+  return (
+    <div className="min-h-screen font-sans bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-900">
+      <Navbar />
+      <main>
+        <Hero />
