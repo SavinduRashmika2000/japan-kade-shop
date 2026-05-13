@@ -22,3 +22,9 @@ const LandingPage = () => {
       </main>
       <Footer />
     </div>
+  );
+};
+
+
+
+export default LandingPage;
