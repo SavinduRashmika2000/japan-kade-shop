@@ -94,3 +94,50 @@ const SignupPage = () => {
               className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center mb-6 shadow-xl shadow-blue-600/20 cursor-pointer"
             >
               <Car className="w-8 h-8 text-white" />
+            </motion.div>
+            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Join Mind Spare Parts</h1>
+            <p className="text-slate-500 mt-3 font-medium text-center">The genuine parts your vehicle deserves</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">First Name</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                    <UserIcon className="w-5 h-5" />
+                  </div>
+                  <input 
+                    type="text" name="firstName" required
+                    value={formData.firstName} onChange={handleChange}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3.5 pl-14 pr-6 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
+                    placeholder="John"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Last Name (Optional)</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                    <UserIcon className="w-5 h-5" />
+                  </div>
+                  <input 
+                    type="text" name="lastName"
+                    value={formData.lastName} onChange={handleChange}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3.5 pl-14 pr-6 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
+                    placeholder="Doe"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Phone Number</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                  <Phone className="w-5 h-5" />
+                </div>
+                <input 
+                  type="text" name="phone" required
+                  value={formData.phone} onChange={handleChange}
