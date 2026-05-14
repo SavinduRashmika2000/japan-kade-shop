@@ -141,3 +141,51 @@ const SignupPage = () => {
                 <input 
                   type="text" name="phone" required
                   value={formData.phone} onChange={handleChange}
+                  maxLength="10"
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3.5 pl-14 pr-6 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
+                  placeholder="0712345678"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Identity Card Number (NIC)</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                  <CreditCard className="w-5 h-5" />
+                </div>
+                <input 
+                  type="text" name="idNo" required
+                  value={formData.idNo} onChange={handleChange}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3.5 pl-14 pr-6 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
+                  placeholder="199512345678"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Email Address (Optional)</label>
+
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <input 
+                  type="email" name="email"
+                  value={formData.email} onChange={handleChange}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3.5 pl-14 pr-6 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
+                  placeholder="john@example.com"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Secure Password</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <input 
+                  type={showPassword ? "text" : "password"} name="password" required
+                  value={formData.password} onChange={handleChange}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3.5 pl-14 pr-12 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
