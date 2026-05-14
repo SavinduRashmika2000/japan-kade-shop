@@ -4776,3 +4776,1196 @@ const AdminDashboard = () => {
       </AnimatePresence>
 
       {/* Quick Reduce Stock Modal */}
+      <AnimatePresence>
+        {showQuickReduceModal && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowQuickReduceModal(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 60 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="relative z-10 w-full sm:max-w-md bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl flex flex-col max-h-[92vh]"
+            >
+              <div className="bg-rose-600 p-5 sm:p-7 rounded-t-[2rem] flex items-center justify-between">
+                <div className="flex items-center gap-3 text-white">
+                  <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                    <TrendingDown className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black tracking-tight">Reduce Stock</h3>
+                    <p className="text-rose-100 text-xs font-medium">FIFO deduction / Outflow</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowQuickReduceModal(false)}
+                  className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-all">
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-5 sm:p-7">
+                <form onSubmit={handleQuickReduceSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Select Item</label>
+                    <select required value={quickReduceData.itemId} onChange={(e) => setQuickReduceData({...quickReduceData, itemId: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-rose-600/10 focus:border-rose-600 transition-all cursor-pointer">
+                      <option value="" disabled>-- Choose an item --</option>
+                      {stockList.map(item => <option key={item.id} value={item.id}>{item.name} ({item.partNumber}) - {item.quantity} In Stock</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Qty to Reduce</label>
+                    <input type="number" required min="1" value={quickReduceData.quantity} onChange={(e) => setQuickReduceData({...quickReduceData, quantity: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-rose-600/10 focus:border-rose-600 transition-all" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Reason / Note</label>
+                    <input type="text" value={quickReduceData.reason} onChange={(e) => setQuickReduceData({...quickReduceData, reason: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-rose-600/10 focus:border-rose-600 transition-all" placeholder="e.g. Damaged, Manual Sale" />
+                  </div>
+
+                  <div className="pt-2 flex gap-3">
+                    <button type="button" onClick={() => setShowQuickReduceModal(false)}
+                      className="flex-1 px-4 py-3.5 rounded-xl font-bold text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors text-sm">Cancel</button>
+                    <button type="submit" disabled={loading}
+                      className="flex-[2] bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-black py-3.5 rounded-xl shadow-lg shadow-rose-600/20 transition-all flex items-center justify-center gap-2 text-sm">
+                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Reduce Stock</span><CheckCircle2 className="w-4 h-4" /></>}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Supplier Modal */}
+      <AnimatePresence>
+        {showAddSupplierModal && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowAddSupplierModal(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 60 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="relative z-10 w-full sm:max-w-md bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl flex flex-col max-h-[92vh]"
+            >
+              <div className="bg-blue-600 p-5 sm:p-7 rounded-t-[2rem] flex items-center justify-between">
+                <div className="flex items-center gap-3 text-white">
+                  <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                    <Truck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black tracking-tight">Add Supplier</h3>
+                    <p className="text-blue-100 text-xs font-medium">Register new source</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowAddSupplierModal(false)}
+                  className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-all">
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-5 sm:p-7">
+                <form onSubmit={handleAddSupplier} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Company Name</label>
+                    <input type="text" name="companyName" required value={addSupplierData.companyName} onChange={handleAddSupplierChange}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Contact Person</label>
+                    <input type="text" name="contactPerson" required value={addSupplierData.contactPerson} onChange={handleAddSupplierChange}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Email</label>
+                      <input type="email" name="email" required value={addSupplierData.email} onChange={handleAddSupplierChange}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Phone</label>
+                      <input type="text" name="phone" required value={addSupplierData.phone} onChange={handleAddSupplierChange}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Address</label>
+                    <input type="text" name="address" value={addSupplierData.address} onChange={handleAddSupplierChange}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all" />
+                  </div>
+
+                  <div className="pt-2 flex gap-3">
+                    <button type="button" onClick={() => setShowAddSupplierModal(false)}
+                      className="flex-1 px-4 py-3.5 rounded-xl font-bold text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors text-sm">Cancel</button>
+                    <button type="submit" disabled={loading}
+                      className="flex-[2] bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-black py-3.5 rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 text-sm">
+                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add Supplier'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Supplier Modal */}
+      <AnimatePresence>
+        {showEditSupplierModal && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowEditSupplierModal(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 60 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="relative z-10 w-full sm:max-w-md bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl flex flex-col max-h-[92vh]"
+            >
+              <div className="bg-slate-900 p-5 sm:p-7 rounded-t-[2rem] flex items-center justify-between">
+                <div className="flex items-center gap-3 text-white">
+                  <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center">
+                    <Pencil className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black tracking-tight">Edit Supplier</h3>
+                    <p className="text-slate-400 text-xs font-medium">Modify partner details</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowEditSupplierModal(false)}
+                  className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-white/30 transition-all">
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-5 sm:p-7">
+                <form onSubmit={handleUpdateSupplier} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Company Name</label>
+                    <input type="text" name="companyName" required value={editSupplierData.companyName} onChange={handleEditSupplierChange}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Contact Person</label>
+                    <input type="text" name="contactPerson" required value={editSupplierData.contactPerson} onChange={handleEditSupplierChange}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Email</label>
+                      <input type="email" name="email" required value={editSupplierData.email} onChange={handleEditSupplierChange}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Phone</label>
+                      <input type="text" name="phone" required value={editSupplierData.phone} onChange={handleEditSupplierChange}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Address</label>
+                    <input type="text" name="address" value={editSupplierData.address} onChange={handleEditSupplierChange}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" />
+                  </div>
+                  <div className="flex items-center justify-between bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                    <span className="font-black text-slate-700 text-sm">Operational Status</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" checked={editSupplierData.active} onChange={(e) => setEditSupplierData({...editSupplierData, active: e.target.checked})} className="sr-only peer" />
+                      <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
+                    </label>
+                  </div>
+
+                  <div className="pt-2 flex gap-3">
+                    <button type="button" onClick={() => setShowEditSupplierModal(false)}
+                      className="flex-1 px-4 py-3.5 rounded-xl font-bold text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors text-sm">Cancel</button>
+                    <button type="submit" disabled={loading}
+                      className="flex-[2] bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-black py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
+                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Batch Details Modal */}
+      <AnimatePresence>
+        {showBatchModal && (
+          <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowBatchModal(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 60 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="relative z-10 w-full sm:max-w-xl bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[85vh]"
+            >
+              <div className="bg-slate-900 p-5 sm:p-7 rounded-t-[2rem] flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-black text-white tracking-tight">{selectedItemName}</h3>
+                  <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Inventory Batch History</p>
+                </div>
+                <button onClick={() => setShowBatchModal(false)}
+                  className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all">
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex-1 p-5 sm:p-7 overflow-y-auto custom-scrollbar">
+                <div className="space-y-3">
+                  {selectedItemBatches.map((batch, index) => (
+                    <div key={batch.id || index} className="p-4 sm:p-5 rounded-2xl border border-slate-100 bg-slate-50 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-indigo-600 font-black text-xs">
+                          #{index + 1}
+                        </div>
+                        <div>
+                          <div className="text-sm font-black text-slate-900">Rs. {batch.unitPrice.toFixed(2)}</div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Received: {new Date(batch.createdAt).toLocaleDateString()}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-base font-black text-slate-900">{batch.currentQuantity} <span className="text-[9px] text-slate-400 font-bold uppercase ml-1">Left</span></div>
+                        <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Initial: {batch.initialQuantity}</div>
+                      </div>
+                    </div>
+                  ))}
+                  {selectedItemBatches.length === 0 && (
+                    <div className="py-16 text-center">
+                      <History className="w-10 h-10 text-slate-100 mx-auto mb-3" />
+                      <p className="text-slate-400 font-bold text-sm">No batch history found.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      {/* Add Category Modal */}
+      <AnimatePresence>
+        {showAddCategoryModal && (
+          <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowAddCategoryModal(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 60 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="relative z-10 w-full sm:max-w-sm bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl flex flex-col max-h-[92vh]"
+            >
+              <div className="p-6 sm:p-7">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900">Categories</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Organize Inventory</p>
+                  </div>
+                  <button onClick={() => setShowAddCategoryModal(false)}
+                    className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 hover:text-red-500 transition-all flex items-center justify-center">
+                    <XCircle className="w-5 h-5" />
+                  </button>
+                </div>
+                <form onSubmit={handleAddCategory} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Category Name</label>
+                    <input type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 transition-all" placeholder="e.g. Engine Parts" />
+                  </div>
+                  <button type="submit" disabled={loading}
+                    className="w-full bg-slate-900 hover:bg-indigo-600 text-white font-black py-3.5 rounded-xl transition-all shadow-lg text-sm">
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Add Category"}
+                  </button>
+                </form>
+                <div className="mt-8 pt-6 border-t border-slate-50">
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Existing</p>
+                  <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto custom-scrollbar">
+                    {categoryList.map(cat => (
+                      <span key={cat.id} className="px-3 py-1.5 bg-slate-50 text-slate-600 text-[10px] font-black rounded-lg border border-slate-100 uppercase">{cat.name}</span>
+                    ))}
+                    {categoryList.length === 0 && <p className="text-xs font-bold text-slate-300 py-2">No categories yet.</p>}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+       <AnimatePresence>
+        {showAddJobModal && (
+          <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowAddJobModal(false)} />
+            <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 60 }}
+              className="relative z-10 w-full sm:max-w-4xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl flex flex-col max-h-[95vh] overflow-hidden">
+              
+              <div className="bg-slate-900 p-6 sm:p-8 flex items-center justify-between text-white shrink-0">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-blue-400 shadow-inner">
+                    <Car className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black tracking-tight">Creating Bill</h3>
+                    <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Retail Inventory & Sales</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowAddJobModal(false)} className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all">
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8">
+                <form id="job-card-form" onSubmit={handleAddJob} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <section className="space-y-4">
+                      <h5 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2">Primary Details</h5>
+                      <div className="space-y-4">
+                        <div className="relative">
+                          <label className="text-[10px] font-black uppercase text-slate-500 ml-1 mb-1.5 block">Select Customer</label>
+                          <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                              {addJobData.customerId ? (
+                                <div className="bg-white border border-blue-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
+                                   <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-black text-xs">
+                                        {customerList.find(c => c.id === addJobData.customerId)?.firstName?.[0]}
+                                      </div>
+                                      <div>
+                                         <p className="text-sm font-black text-slate-900">{customerList.find(c => c.id === addJobData.customerId)?.firstName} {customerList.find(c => c.id === addJobData.customerId)?.lastName}</p>
+                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{customerList.find(c => c.id === addJobData.customerId)?.phone}</p>
+                                      </div>
+                                   </div>
+                                   <button type="button" onClick={() => { setAddJobData({...addJobData, customerId: ''}); setCustomerSearchQuery(''); }} className="text-[10px] font-black text-red-500 hover:underline uppercase tracking-widest">Change</button>
+                                </div>
+                              ) : (
+                                <div className="relative" ref={customerDropdownRef}>
+                                  <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm focus-within:border-blue-600 transition-all">
+                                    <Search className="w-4 h-4 text-slate-400" />
+                                    <input type="text" placeholder="Search customer by name or phone..." value={customerSearchQuery} 
+                                      onChange={e => setCustomerSearchQuery(e.target.value)}
+                                      onFocus={() => { if(!customerSearchQuery) setCustomerSearchQuery(' '); }}
+                                      className="bg-transparent text-xs font-black text-slate-700 outline-none w-full" />
+                                    <button type="button" onClick={() => setCustomerSearchQuery(customerSearchQuery.trim() === '' ? ' ' : '')} className="text-slate-400 hover:text-blue-600"><ChevronDown className={`w-4 h-4 transition-transform ${customerSearchQuery ? 'rotate-180' : ''}`} /></button>
+                                  </div>
+
+                                  {/* Customer Suggestions */}
+                                  {customerSearchQuery !== undefined && (customerSearchQuery.length > 0 || customerSearchQuery === ' ') && (
+                                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-48 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                                      {customerList
+                                        .filter(c => (c.firstName + ' ' + (c.lastName || '')).toLowerCase().includes(customerSearchQuery.toLowerCase().trim()) || (c.phone || '').includes(customerSearchQuery.trim()))
+                                        .map(c => (
+                                          <button key={c.id} type="button" 
+                                            onClick={() => {
+                                              setAddJobData({...addJobData, customerId: c.id});
+                                              setCustomerSearchQuery("");
+                                            }}
+                                            className="w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 transition-colors flex justify-between items-center group">
+                                            <div className="flex items-center gap-3">
+                                              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-all">{c.firstName[0]}</div>
+                                              <div>
+                                                <p className="text-xs font-black text-slate-700 group-hover:text-blue-700 transition-colors">{c.firstName} {c.lastName}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{c.phone}</p>
+                                              </div>
+                                            </div>
+                                          </button>
+                                        ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+                    <section className="space-y-4">
+                      <h5 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2">Scheduling</h5>
+                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                          <p className="text-[10px] font-black uppercase text-slate-500">Current Date</p>
+                          <p className="text-sm font-bold text-slate-900">{new Date().toLocaleDateString()}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] font-black uppercase text-slate-500">Current Time</p>
+                          <p className="text-sm font-bold text-slate-900">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                  
+                  {/* Right Column: Services & Parts */}
+                  <div className="space-y-6">
+                    <section className="space-y-4">
+                      <h5 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2">Billing</h5>
+                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                        
+                        <div className="space-y-4">
+                           <div className="relative mt-2" ref={partDropdownRef}>
+                              <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm focus-within:border-emerald-600 transition-all">
+                                <Search className="w-4 h-4 text-slate-400" />
+                                <input type="text" placeholder="Search inventory..." value={partSearchQuery} 
+                                  onChange={e => setPartSearchQuery(e.target.value)}
+                                  onFocus={() => { if(!partSearchQuery) setPartSearchQuery(' '); }}
+                                  className="bg-transparent text-xs font-black text-slate-700 outline-none w-full" />
+                                <button type="button" onClick={() => setPartSearchQuery(partSearchQuery.trim() === '' ? ' ' : '')} className="text-slate-400 hover:text-emerald-600"><ChevronDown className={`w-4 h-4 transition-transform ${partSearchQuery ? 'rotate-180' : ''}`} /></button>
+                              </div>
+
+                              {/* Part Suggestions */}
+                              {partSearchQuery !== undefined && (partSearchQuery.length > 0 || partSearchQuery === ' ') && (
+                                <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-48 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                                   {filteredPartDropdown
+                                      .map(it => {
+                                         const isOutOfStock = it.quantity < 1 || it.fifoQuantity < 1;
+                                         return (
+                                         <button key={it.id} type="button"
+                                           onClick={() => {
+                                             if (isOutOfStock) return;
+                                             if (!addJobData.items.find(ji => ji.stockItemId === it.id)) {
+                                                const newItem = { stockItemId: it.id, quantity: 1, priceAtTime: it.unitPrice, name: it.name };
+                                                const newItems = [...addJobData.items, newItem];
+                                                const newIdx = newItems.length - 1;
+                                                setAddJobData({...addJobData, items: newItems});
+                                                updateItemFifoPrice(newIdx, 1, 'add', newItems);
+                                             }
+                                             setPartSearchQuery("");
+                                           }}
+                                           disabled={isOutOfStock}
+                                           className={`w-full text-left px-4 py-3 rounded-lg flex justify-between items-center group transition-colors ${
+                                             isOutOfStock ? 'opacity-50 cursor-not-allowed bg-slate-50' : 'hover:bg-emerald-50 cursor-pointer'
+                                           }`}>
+                                           <div>
+                                             <p className={`text-xs font-black transition-colors ${isOutOfStock ? 'text-slate-400' : 'text-slate-700 group-hover:text-emerald-700'}`}>{it.name}</p>
+                                             <p className={`text-[10px] font-bold uppercase tracking-tighter ${isOutOfStock ? 'text-slate-300' : 'text-slate-400'}`}>{it.partNumber} | {isOutOfStock ? 'OUT OF STOCK' : `${it.fifoQuantity} Avail.`}</p>
+                                           </div>
+                                           {!isOutOfStock && <span className="text-xs font-black text-emerald-600">Rs. {it.unitPrice}</span>}
+                                         </button>
+                                       );
+                                     })}
+                                </div>
+                              )}
+                           </div>
+
+                           <div className="space-y-2">
+                              <div className="flex items-center gap-2 mb-2 pt-2 border-t border-slate-100">
+                                <Package className="w-4 h-4 text-emerald-600" />
+                                <span className="text-xs font-black text-slate-900 uppercase">Inventory / Parts Used</span>
+                              </div>
+                              <div className="grid grid-cols-1 gap-2">
+                                 {addJobData.items.map((item, idx) => (
+                                   <div key={idx} className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+                                     {/* Item row */}
+                                     <div className="flex items-center gap-2 p-2">
+                                       <span className="flex-1 text-[10px] font-bold text-slate-700 truncate">{item.name}</span>
+                                       <div className="flex items-center gap-1 bg-slate-50 rounded-lg px-1">
+                                         <button type="button" onClick={() => {
+                                           if (item.quantity > 1) updateItemFifoPrice(idx, item.quantity - 1, 'add');
+                                         }} className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-red-500"><Minus className="w-3 h-3" /></button>
+                                         <span className="text-[10px] font-black w-5 text-center">{item.quantity}</span>
+                                         <button type="button" onClick={() => {
+                                           const stockItem = stockList.find(s => s.id === item.stockItemId);
+                                           if (stockItem && item.quantity >= stockItem.quantity) {
+                                             setMsg({ type: 'error', text: `Insufficient stock! Only ${stockItem.quantity} available.` });
+                                             return;
+                                           }
+                                           updateItemFifoPrice(idx, item.quantity + 1, 'add');
+                                         }} className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-emerald-500"><Plus className="w-3 h-3" /></button>
+                                       </div>
+                                       <span className="text-[10px] font-black text-emerald-700 whitespace-nowrap">
+                                         Rs. {((item.priceAtTime || 0) * (item.quantity || 1)).toLocaleString()}
+                                       </span>
+                                       <button type="button" onClick={() => {
+                                         setAddJobData({...addJobData, items: addJobData.items.filter((_, i) => i !== idx)});
+                                       }} className="w-6 h-6 text-slate-300 hover:text-red-500"><XCircle className="w-4 h-4" /></button>
+                                     </div>
+                                     {/* FIFO batch breakdown — shown when multiple batches are used */}
+                                     {item.allocations && item.allocations.length > 1 && (
+                                       <div className="mx-2 mb-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 space-y-1">
+                                         <p className="text-[9px] font-black uppercase tracking-widest text-amber-500 flex items-center gap-1">
+                                           <span>⚡</span> Price split across {item.allocations.length} stock batches
+                                         </p>
+                                         {item.allocations.map((alloc, ai) => (
+                                           <div key={ai} className="flex justify-between items-center text-[10px]">
+                                             <span className="text-slate-500 font-bold">
+                                               {alloc.qty} unit{alloc.qty > 1 ? 's' : ''} @ Rs. {parseFloat(alloc.unitPrice).toLocaleString()}
+                                             </span>
+                                             <span className="font-black text-slate-700">
+                                               Rs. {parseFloat(alloc.subtotal).toLocaleString()}
+                                             </span>
+                                           </div>
+                                         ))}
+                                       </div>
+                                     )}
+                                   </div>
+                                 ))}
+                              </div>
+                           </div>
+                        </div>
+                      </div>
+                      <div className="bg-blue-600 p-6 rounded-2xl shadow-xl shadow-blue-600/20 text-white">
+                         <div className="flex justify-between items-center mb-4">
+                            <span className="text-xs font-black uppercase tracking-widest opacity-80">Total Bill</span>
+                            <span className="text-2xl font-black">Rs. {addJobData.items.reduce((acc, i) => acc + ((i.priceAtTime || 0) * (i.quantity || 1)), 0).toLocaleString()}</span>
+                         </div>
+                         <div className="text-[10px] font-bold uppercase tracking-widest opacity-60">
+                            <div className="flex justify-between"><span>Items Total:</span><span>Rs. {addJobData.items.reduce((acc, i) => acc + ((i.priceAtTime || 0) * (i.quantity || 1)), 0).toLocaleString()}</span></div>
+                         </div>
+                      </div>
+                    </section>
+                  </div>
+                </form>
+                <div className="p-6 sm:p-8 bg-slate-50 border-t border-slate-100 flex gap-4 shrink-0">
+                  <button type="button" onClick={() => setShowAddJobModal(false)} className="flex-1 bg-white border border-slate-200 text-slate-500 font-black py-4 rounded-xl hover:bg-slate-100 transition-all">Cancel</button>
+                  <button type="submit" form="job-card-form" disabled={loading} className="flex-[2] sm:px-12 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-black py-4 rounded-xl shadow-2xl shadow-blue-600/20 transition-all flex items-center justify-center gap-3">
+                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><span>Make Bill</span><ClipboardCheck className="w-5 h-5" /></>}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showEditJobModal && (
+          <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowEditJobModal(false)} />
+            <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 60 }}
+              className="relative z-10 w-full sm:max-w-4xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl flex flex-col max-h-[95vh] overflow-hidden">
+              
+              <div className="bg-indigo-600 p-6 sm:p-8 flex items-center justify-between text-white shrink-0">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-indigo-200 shadow-inner">
+                    <Pencil className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black tracking-tight">Edit Job Card</h3>
+                    <p className="text-indigo-200 text-[10px] font-bold uppercase tracking-widest mt-0.5">Modify Work Details</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowEditJobModal(false)} className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all">
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8">
+                <form id="edit-job-card-form" onSubmit={handleEditJob} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Left Column: Core Info */}
+                  <div className="space-y-6">
+                    {updateMsg.text && (
+                      <div className={`p-4 rounded-xl text-xs font-black uppercase tracking-wider ${updateMsg.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>{updateMsg.text}</div>
+                    )}
+                    <section className="space-y-4">
+                      <h5 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2">Primary Details</h5>
+                      <div className="space-y-4">
+
+
+                        <div className="relative">
+                          <label className="text-[10px] font-black uppercase text-slate-500 ml-1 mb-1.5 block">Select Customer</label>
+                          <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                             {editJobData.customerId ? (
+                               <div className="bg-white border border-indigo-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
+                                  <div className="flex items-center gap-3">
+                                     <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xs">
+                                       {customerList.find(c => c.id === editJobData.customerId)?.firstName?.[0]}
+                                     </div>
+                                     <div>
+                                        <p className="text-sm font-black text-slate-900">{customerList.find(c => c.id === editJobData.customerId)?.firstName} {customerList.find(c => c.id === editJobData.customerId)?.lastName}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{customerList.find(c => c.id === editJobData.customerId)?.phone}</p>
+                                     </div>
+                                  </div>
+                                  <button type="button" onClick={() => { setEditJobData({...editJobData, customerId: ''}); setCustomerSearchQuery(''); }} className="text-[10px] font-black text-red-500 hover:underline uppercase tracking-widest">Change</button>
+                               </div>
+                             ) : (
+                               <div className="relative" ref={customerDropdownRef}>
+                                  <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm focus-within:border-indigo-600 transition-all">
+                                    <Search className="w-4 h-4 text-slate-400" />
+                                    <input type="text" placeholder="Search customer by name or phone..." value={customerSearchQuery} 
+                                      onChange={e => setCustomerSearchQuery(e.target.value)}
+                                      onFocus={() => { if(!customerSearchQuery) setCustomerSearchQuery(' '); }}
+                                      className="bg-transparent text-xs font-black text-slate-700 outline-none w-full" />
+                                    <button type="button" onClick={() => setCustomerSearchQuery(customerSearchQuery ? '' : ' ')} className="text-slate-400 hover:text-indigo-600"><ChevronDown className={`w-4 h-4 transition-transform ${customerSearchQuery ? 'rotate-180' : ''}`} /></button>
+                                  </div>
+
+                                  {/* Customer Suggestions */}
+                                  {customerSearchQuery !== undefined && (customerSearchQuery.length > 0 || customerSearchQuery === ' ') && (
+                                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-48 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                                      {filteredCustomerDropdown
+                                        .map(c => (
+                                          <button key={c.id} type="button" 
+                                            onClick={() => {
+                                              setEditJobData({...editJobData, customerId: c.id});
+                                              setCustomerSearchQuery("");
+                                            }}
+                                            className="w-full text-left px-4 py-3 rounded-lg hover:bg-indigo-50 transition-colors flex justify-between items-center group">
+                                            <div className="flex items-center gap-3">
+                                              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-all">{c.firstName[0]}</div>
+                                              <div>
+                                                <p className="text-xs font-black text-slate-700 group-hover:text-indigo-700 transition-colors">{c.firstName} {c.lastName}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{c.phone}</p>
+                                                 </div>
+                                               </div>
+                                             </button>
+                                        ))}
+                                    </div>
+                                  )}
+                               </div>
+                             )}
+                          </div>
+                        </div>
+
+                        <div className="relative">
+                          <label className="text-[10px] font-black uppercase text-slate-500 ml-1 mb-1.5 block">Job Status</label>
+                          <select value={editJobData.status} onChange={e => setEditJobData({...editJobData, status: e.target.value})}
+                            className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black text-slate-900 outline-none focus:border-indigo-600 transition-all cursor-pointer">
+                            <option value="WAITING">WAITING</option>
+                            <option value="PAID">PAID</option>
+                            <option value="CANCELLED">CANCELLED</option>
+                          </select>
+                        </div>
+                      </div>
+                    </section>
+
+                      <section className="space-y-4">
+                        <h5 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2">Scheduling</h5>
+                        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between">
+                          <div>
+                            <p className="text-[10px] font-black uppercase text-slate-500">Current Date</p>
+                            <p className="text-sm font-bold text-slate-900">{new Date().toLocaleDateString()}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] font-black uppercase text-slate-500">Current Time</p>
+                            <p className="text-sm font-bold text-slate-900">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                          </div>
+                        </div>
+                      </section>
+                  </div>
+
+                  {/* Right Column: Services & Parts */}
+                  <div className="space-y-6">
+                    <section className="space-y-4">
+                      <h5 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2">Billing</h5>
+                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                        
+                            <div className="relative mt-2" ref={partDropdownRef}>
+                               <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm focus-within:border-indigo-600 transition-all">
+                                 <Search className="w-4 h-4 text-slate-400" />
+                                 <input type="text" placeholder="Search inventory..." value={partSearchQuery} 
+                                   onChange={e => setPartSearchQuery(e.target.value)}
+                                   onFocus={() => { if(!partSearchQuery) setPartSearchQuery(' '); }}
+                                   className="bg-transparent text-xs font-black text-slate-700 outline-none w-full" />
+                                 <button type="button" onClick={() => setPartSearchQuery(partSearchQuery ? '' : ' ')} className="text-slate-400 hover:text-indigo-600"><ChevronDown className={`w-4 h-4 transition-transform ${partSearchQuery ? 'rotate-180' : ''}`} /></button>
+                               </div>
+
+                               {/* Part Suggestions */}
+                               {partSearchQuery !== undefined && (partSearchQuery.length > 0 || partSearchQuery === ' ') && (
+                                 <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-48 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                                    {filteredPartDropdown
+                                      .map(it => {
+                                         const isOutOfStock = it.quantity < 1 || it.fifoQuantity < 1;
+                                         return (
+                                         <button key={it.id} type="button"
+                                           onClick={() => {
+                                             if (isOutOfStock) return;
+                                             if (!editJobData.items.find(ji => ji.stockItemId === it.id)) {
+                                                setEditJobData({...editJobData, items: [...editJobData.items, { stockItemId: it.id, quantity: 1, priceAtTime: it.unitPrice, name: it.name }]});
+                                             }
+                                             setPartSearchQuery("");
+                                           }}
+                                           disabled={isOutOfStock}
+                                           className={`w-full text-left px-4 py-3 rounded-lg flex justify-between items-center group transition-colors ${
+                                             isOutOfStock ? 'opacity-50 cursor-not-allowed bg-slate-50' : 'hover:bg-indigo-50 cursor-pointer'
+                                           }`}>
+                                           <div>
+                                             <p className={`text-xs font-black transition-colors ${isOutOfStock ? 'text-slate-400' : 'text-slate-700 group-hover:text-indigo-700'}`}>{it.name}</p>
+                                             <div className="flex items-center gap-2 mt-0.5">
+                                               <p className={`text-[9px] font-black uppercase tracking-tighter bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 ${isOutOfStock ? 'text-slate-300' : 'text-slate-400'}`}>{it.partNumber}</p>
+                                               <p className={`text-[10px] font-black ${isOutOfStock ? 'text-red-400' : 'text-indigo-600'}`}>
+                                                 {isOutOfStock ? 'OUT OF STOCK' : `${it.fifoQuantity} Avail @ Rs. ${parseFloat(it.unitPrice || 0).toLocaleString()}`}
+                                               </p>
+                                             </div>
+                                           </div>
+                                           {!isOutOfStock && <span className="text-xs font-black text-indigo-600">Rs. {it.unitPrice}</span>}
+                                         </button>
+                                       );
+                                      })}
+                                 </div>
+                               )}
+                            </div>
+
+                            <div className="space-y-2">
+                               <div className="flex items-center gap-2 mb-2 pt-2 border-t border-slate-100">
+                                 <Package className="w-4 h-4 text-emerald-600" />
+                                 <span className="text-xs font-black text-slate-900 uppercase">Inventory / Parts Used</span>
+                               </div>
+                               <div className="grid grid-cols-1 gap-2">
+                                  {editJobData.items.map((item, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 bg-white p-2 rounded-xl border border-slate-100 shadow-sm">
+                                      <span className="flex-1 text-[10px] font-bold text-slate-700 truncate">{item.name}</span>
+                                      <div className="flex items-center gap-1 bg-slate-50 rounded-lg px-1">
+                                        <button type="button" onClick={() => {
+                                          const newItems = [...editJobData.items];
+                                          if (newItems[idx].quantity > 1) {
+                                            newItems[idx].quantity -= 1;
+                                            setEditJobData({...editJobData, items: newItems});
+                                          }
+                                        }} className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-red-500"><Minus className="w-3 h-3" /></button>
+                                        <span className="text-[10px] font-black w-4 text-center">{item.quantity}</span>
+                                        <button type="button" onClick={() => {
+                                          const stockItem = stockList.find(s => s.id === item.stockItemId);
+                                          if (stockItem && item.quantity >= stockItem.quantity) {
+                                            setMsg({ type: 'error', text: `Insufficient stock! Only ${stockItem.quantity} available.` });
+                                            return;
+                                          }
+                                          const newItems = [...editJobData.items];
+                                          newItems[idx].quantity += 1;
+                                          setEditJobData({...editJobData, items: newItems});
+                                        }} className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-emerald-500"><Plus className="w-3 h-3" /></button>
+                                      </div>
+                                      <button type="button" onClick={() => {
+                                        setEditJobData({...editJobData, items: editJobData.items.filter((_, i) => i !== idx)});
+                                      }} className="w-6 h-6 text-slate-300 hover:text-red-500"><XCircle className="w-4 h-4" /></button>
+                                    </div>
+                                  ))}
+                               </div>
+                            </div>
+                         </div>
+                      <div className="bg-indigo-600 p-6 rounded-2xl shadow-xl shadow-indigo-600/20 text-white">
+                         <div className="flex justify-between items-center mb-4">
+                            <span className="text-xs font-black uppercase tracking-widest opacity-80">Total Bill</span>
+                            <span className="text-2xl font-black">Rs. {editJobData.items.reduce((acc, i) => acc + ((i.priceAtTime || 0) * (i.quantity || 1)), 0).toLocaleString()}</span>
+                         </div>
+                         <div className="text-[10px] font-bold uppercase tracking-widest opacity-60">
+                            <div className="flex justify-between"><span>Items Total:</span><span>Rs. {editJobData.items.reduce((acc, i) => acc + ((i.priceAtTime || 0) * (i.quantity || 1)), 0).toLocaleString()}</span></div>
+                         </div>
+                      </div>
+                    </section>
+                  </div>
+                </form>
+              </div>
+
+              <div className="p-6 sm:p-8 bg-slate-50 border-t border-slate-100 flex gap-4 shrink-0">
+                <button type="button" onClick={() => setShowEditJobModal(false)} className="flex-1 bg-white border border-slate-200 text-slate-500 font-black py-4 rounded-xl hover:bg-slate-100 transition-all">Cancel</button>
+                <button type="submit" form="edit-job-card-form" disabled={loading} className="flex-[2] sm:px-12 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-black py-4 rounded-xl shadow-2xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-3">
+                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><span>Update Job Card</span><CheckCircle2 className="w-5 h-5" /></>}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Batch Details View Modal */}
+      <AnimatePresence>
+        {selectedBatchDetail && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" 
+              onClick={() => setSelectedBatchDetail(null)} 
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 60 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="relative z-10 w-full sm:max-w-lg bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl flex flex-col max-h-[92vh] overflow-hidden"
+            >
+              <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-6 sm:p-8 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-3 text-white">
+                  <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10">
+                    <Package className="w-5 h-5 text-indigo-300" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black tracking-tight text-white uppercase">Batch Financial Ledger</h3>
+                    <p className="text-slate-300 text-xs font-semibold">Detailed breakdown of FIFO stock batch</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setSelectedBatchDetail(null)}
+                  className="w-9 h-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 space-y-6">
+                
+                {/* Section 1: Core Specifications */}
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Batch Specifications</h4>
+                  <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <div>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Part Item</p>
+                      <p className="text-xs font-black text-slate-800 mt-0.5">{selectedBatchDetail.stockItem?.name || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Part Number</p>
+                      <p className="text-xs font-black text-slate-800 mt-0.5">{selectedBatchDetail.stockItem?.partNumber || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Supplier</p>
+                      <p className="text-xs font-black text-slate-800 mt-0.5">{selectedBatchDetail.supplier?.companyName || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">HS Code</p>
+                      <p className="text-xs font-black text-slate-800 mt-0.5">{selectedBatchDetail.hsCode || selectedBatchDetail.stockItem?.hsCode || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Created Date</p>
+                      <p className="text-xs font-black text-slate-800 mt-0.5">
+                        {new Date(selectedBatchDetail.createdAt).toLocaleDateString()} at {new Date(selectedBatchDetail.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Batch Inventory</p>
+                      <p className="text-xs font-black text-slate-800 mt-0.5">
+                        {selectedBatchDetail.currentQuantity} / {selectedBatchDetail.initialQuantity} Units
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 2: Import & Foreign Currency Details */}
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Foreign Exchange & Import Valuation</h4>
+                  <div className="grid grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <div>
+                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Foreign Cost</p>
+                      <p className="text-xs font-black text-slate-800 mt-0.5">
+                        {selectedBatchDetail.unitCostForeign ? `${selectedBatchDetail.currencyType || ''} ${parseFloat(selectedBatchDetail.unitCostForeign).toLocaleString([], {minimumFractionDigits: 2})}` : '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Exchange Rate</p>
+                      <p className="text-xs font-black text-slate-800 mt-0.5">
+                        {selectedBatchDetail.exchangeRate ? `Rs. ${parseFloat(selectedBatchDetail.exchangeRate).toLocaleString()}` : '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">FOB Value (LKR)</p>
+                      <p className="text-xs font-black text-slate-800 mt-0.5">
+                        Rs. {( (parseFloat(selectedBatchDetail.unitCostForeign) || 0) * (parseFloat(selectedBatchDetail.exchangeRate) || 0) * (parseFloat(selectedBatchDetail.initialQuantity) || 0) ).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 3: Overhead Expenses Breakdown */}
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Overhead Expenses Breakdown (LKR)</h4>
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2">
+                    <div className="flex items-center justify-between text-xs border-b border-slate-200/50 pb-1.5">
+                      <span className="font-bold text-slate-400">Freight Cost:</span>
+                      <span className="font-black text-slate-700">Rs. {parseFloat(selectedBatchDetail.freightCost || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs border-b border-slate-200/50 pb-1.5">
+                      <span className="font-bold text-slate-400">Shipping Cost:</span>
+                      <span className="font-black text-slate-700">Rs. {parseFloat(selectedBatchDetail.shippingCost || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs border-b border-slate-200/50 pb-1.5">
+                      <span className="font-bold text-slate-400">Bank, D/O & Clearance:</span>
+                      <span className="font-black text-slate-700">Rs. { (parseFloat(selectedBatchDetail.bankCharges || 0) + parseFloat(selectedBatchDetail.clearanceFees || 0)).toLocaleString() }</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs border-b border-slate-200/50 pb-1.5">
+                      <span className="font-bold text-slate-400">Duty / Tax:</span>
+                      <span className="font-black text-slate-700">Rs. {parseFloat(selectedBatchDetail.dutyFees || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs pt-1">
+                      <span className="font-black text-slate-800">Total Batch Overhead:</span>
+                      <span className="font-black text-indigo-600">
+                        Rs. { (
+                          parseFloat(selectedBatchDetail.freightCost || 0) + 
+                          parseFloat(selectedBatchDetail.shippingCost || 0) + 
+                          parseFloat(selectedBatchDetail.bankCharges || 0) + 
+                          parseFloat(selectedBatchDetail.clearanceFees || 0) + 
+                          parseFloat(selectedBatchDetail.dutyFees || 0)
+                        ).toLocaleString() }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 4: Unit Economics */}
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Landed Cost & Profitability Economics</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-xl flex flex-col justify-between">
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">Landed Cost Per Unit</p>
+                        <p className="text-base font-black mt-1">Rs. {parseFloat(selectedBatchDetail.landedCost || 0).toLocaleString([], {minimumFractionDigits: 2})}</p>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-white/5 text-[8px] text-slate-400 font-bold leading-relaxed">
+                        FOB Cost + duty + freight + shipping + bank / quantity
+                      </div>
+                    </div>
+                    
+                    <div className="bg-blue-600 text-white p-5 rounded-2xl shadow-xl flex flex-col justify-between">
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-wider text-blue-100">Selling Price / RTL</p>
+                        <p className="text-base font-black mt-1">Rs. {parseFloat(selectedBatchDetail.sellingPrice || selectedBatchDetail.unitPrice || 0).toLocaleString([], {minimumFractionDigits: 2})}</p>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-white/10 text-[8px] text-blue-100 font-bold leading-relaxed">
+                        Standard retail price charged to customer
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 5: Profit Performance */}
+                <div>
+                  <div className="bg-emerald-50 border border-emerald-100 rounded-3xl p-5 sm:p-6 flex items-center justify-between">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[0.15em] text-emerald-600">Gross Profit (GP) Per Unit</p>
+                      <p className="text-xl font-black text-emerald-950 mt-1">
+                        +Rs. {(
+                          (parseFloat(selectedBatchDetail.sellingPrice || selectedBatchDetail.unitPrice || 0)) - 
+                          (parseFloat(selectedBatchDetail.landedCost || 0))
+                        ).toLocaleString([], {minimumFractionDigits: 2})}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[9px] font-black uppercase tracking-[0.15em] text-emerald-600">Batch Profit Potential</p>
+                      <p className="text-lg font-black text-emerald-950 mt-1">
+                        Rs. {(
+                          ((parseFloat(selectedBatchDetail.sellingPrice || selectedBatchDetail.unitPrice || 0)) - 
+                          (parseFloat(selectedBatchDetail.landedCost || 0))) * 
+                          (parseFloat(selectedBatchDetail.currentQuantity) || 0)
+                        ).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <div className="p-6 border-t border-slate-100 flex gap-3 shrink-0">
+                <button 
+                  type="button" 
+                  onClick={() => setSelectedBatchDetail(null)}
+                  className="w-full px-5 py-4 rounded-2xl font-black text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors text-xs uppercase tracking-widest"
+                >
+                  Close Details
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Monthly Sales Breakdown Modal */}
+      <AnimatePresence>
+        {showMonthlySalesModal && selectedMonthlySalesItem && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-[2.5rem] w-full max-w-2xl max-h-[85vh] shadow-2xl border border-slate-100 flex flex-col overflow-hidden"
+            >
+              <div className="p-8 border-b border-slate-100 flex justify-between items-start shrink-0">
+                <div>
+                  <span className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] bg-indigo-50 px-2.5 py-1 rounded-lg">Performance Analytics</span>
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight mt-2.5">{selectedMonthlySalesItem.name}</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Part Number: {selectedMonthlySalesItem.partNumber}</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setShowMonthlySalesModal(false);
+                    setSelectedMonthlySalesItem(null);
+                  }}
+                  className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-8 overflow-y-auto space-y-6">
+                {(() => {
+                  const monthlySalesData = getMonthlySalesForItem(selectedMonthlySalesItem.id);
+                  const totalItemSale = monthlySalesData.reduce((sum, s) => sum + s.sold, 0);
+                  const totalLandedCost = monthlySalesData.reduce((sum, s) => sum + (s.landedCost || 0), 0);
+                  const totalSellingValue = monthlySalesData.reduce((sum, s) => sum + s.revenue, 0);
+                  const totalProfit = monthlySalesData.reduce((sum, s) => sum + s.profit, 0);
+
+                  return (
+                    <>
+                      {/* Overall Totals Section */}
+                      <div>
+                        <h4 className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-400 mb-4">Overall Performance Summary</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Total Item Sale</p>
+                            <p className="text-sm font-black text-slate-800 mt-1">{totalItemSale} units</p>
+                          </div>
+                          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Total Landed Cost</p>
+                            <p className="text-sm font-black text-slate-800 mt-1">Rs. {totalLandedCost.toLocaleString()}</p>
+                          </div>
+                          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 bg-indigo-50/20 border-indigo-100/50">
+                            <p className="text-[8px] font-bold text-indigo-500 uppercase tracking-widest">Total Selling Value</p>
+                            <p className="text-sm font-black text-indigo-600 mt-1">Rs. {totalSellingValue.toLocaleString()}</p>
+                          </div>
+                          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 bg-emerald-50/20 border-emerald-100/50">
+                            <p className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest">Total Profit</p>
+                            <p className="text-sm font-black text-emerald-600 mt-1">Rs. {totalProfit.toLocaleString()}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Monthly Sales Breakdown Table */}
+                      <div>
+                        <h4 className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-400 mb-4">Monthly Sales & Profit Breakdown</h4>
+                        <div className="overflow-hidden border border-slate-100 rounded-3xl shadow-sm">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-slate-50 border-b border-slate-100 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                <th className="py-4 px-6">Month</th>
+                                <th className="py-4 px-4 text-center">Units Sold</th>
+                                <th className="py-4 px-4 text-right">Landed Cost (Rs.)</th>
+                                <th className="py-4 px-4 text-right">Revenue (Rs.)</th>
+                                <th className="py-4 px-6 text-right text-emerald-600 font-black">Net Profit (Rs.)</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                              {monthlySalesData.length > 0 ? (
+                                monthlySalesData.map((monthSales, idx) => {
+                                  const [year, month] = monthSales.monthStr.split('-');
+                                  const monthName = new Date(year, parseInt(month) - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+                                  return (
+                                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                                      <td className="py-4 px-6 text-xs font-black text-slate-800">{monthName}</td>
+                                      <td className="py-4 px-4 text-center text-xs font-bold text-slate-600">{monthSales.sold} units</td>
+                                      <td className="py-4 px-4 text-right text-xs font-black text-slate-800">Rs. {(monthSales.landedCost || 0).toLocaleString()}</td>
+                                      <td className="py-4 px-4 text-right text-xs font-black text-slate-800">Rs. {monthSales.revenue.toLocaleString()}</td>
+                                      <td className="py-4 px-6 text-right text-xs font-black text-emerald-600 bg-emerald-50/20">Rs. {monthSales.profit.toLocaleString()}</td>
+                                    </tr>
+                                  );
+                                })
+                              ) : (
+                                <tr>
+                                  <td colSpan="5" className="py-8 text-center text-xs font-bold text-slate-400 italic">No sales recorded for this part in any month.</td>
+                                </tr>
+                              )}
+                            </tbody>
+                            {monthlySalesData.length > 0 && (
+                              <tfoot>
+                                <tr className="bg-slate-50 border-t border-slate-100 font-black text-[11px] text-slate-800">
+                                  <td className="py-4 px-6">Total</td>
+                                  <td className="py-4 px-4 text-center">{totalItemSale} units</td>
+                                  <td className="py-4 px-4 text-right">Rs. {totalLandedCost.toLocaleString()}</td>
+                                  <td className="py-4 px-4 text-right">Rs. {totalSellingValue.toLocaleString()}</td>
+                                  <td className="py-4 px-6 text-right text-emerald-600 bg-emerald-50/20">Rs. {totalProfit.toLocaleString()}</td>
+                                </tr>
+                              </tfoot>
+                            )}
+                          </table>
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+
+              <div className="p-6 border-t border-slate-100 flex gap-3 shrink-0">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setShowMonthlySalesModal(false);
+                    setSelectedMonthlySalesItem(null);
+                  }}
+                  className="w-full px-5 py-4 rounded-2xl font-black text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors text-xs uppercase tracking-widest"
+                >
+                  Close Analysis
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== CUSTOM DIALOG MODAL ===== */}
+      <AnimatePresence>
+        {dialogState && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{backdropFilter:'blur(8px)', backgroundColor:'rgba(15,23,42,0.55)'}}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 16 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+              className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-slate-100"
+            >
+              {/* Top accent bar */}
+              <div className={`h-1.5 w-full ${
+                dialogState.variant === 'danger' ? 'bg-gradient-to-r from-red-500 to-rose-600' :
+                dialogState.variant === 'warning' ? 'bg-gradient-to-r from-amber-400 to-orange-500' :
+                dialogState.variant === 'success' ? 'bg-gradient-to-r from-emerald-400 to-teal-500' :
+                'bg-gradient-to-r from-blue-500 to-indigo-600'
+              }`} />
+
+              <div className="p-8">
+                {/* Icon + Title */}
+                <div className="flex items-start gap-4 mb-5">
+                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
+                    dialogState.variant === 'danger' ? 'bg-red-50 text-red-500' :
+                    dialogState.variant === 'warning' ? 'bg-amber-50 text-amber-500' :
+                    dialogState.variant === 'success' ? 'bg-emerald-50 text-emerald-500' :
+                    'bg-blue-50 text-blue-500'
+                  }`}>
+                    {dialogState.variant === 'danger' ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+                    ) : dialogState.variant === 'warning' ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+                    ) : dialogState.variant === 'success' ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900 tracking-tight">{dialogState.title}</h3>
+                    <p className="text-sm text-slate-500 font-medium mt-1 leading-relaxed">{dialogState.message}</p>
+                  </div>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-3 mt-6">
+                  {dialogState.type === 'confirm' && (
+                    <button
+                      onClick={handleDialogCancel}
+                      className="flex-1 px-5 py-3 rounded-xl font-black text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all uppercase tracking-widest"
+                    >
+                      {dialogState.cancelText}
+                    </button>
+                  )}
+                  <button
+                    onClick={handleDialogConfirm}
+                    className={`flex-1 px-5 py-3 rounded-xl font-black text-sm text-white transition-all uppercase tracking-widest shadow-lg ${
+                      dialogState.variant === 'danger' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/30' :
+                      dialogState.variant === 'warning' ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30' :
+                      dialogState.variant === 'success' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30' :
+                      'bg-blue-600 hover:bg-blue-700 shadow-blue-600/30'
+                    }`}
+                  >
+                    {dialogState.type === 'confirm' ? dialogState.confirmText : 'OK'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default AdminDashboard;
