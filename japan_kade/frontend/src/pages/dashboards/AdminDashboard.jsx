@@ -3582,3 +3582,1197 @@ const AdminDashboard = () => {
                                       </span>
                                     ) : (
                                       <span className="text-[10px] text-slate-300 font-bold">—</span>
+                                    )}
+                                  </td>
+                                )}
+                                <td className="px-8 py-5 text-right font-black text-slate-900 whitespace-nowrap">
+                                  {tx.transactionType === 'ADD' || tx.transactionType === 'RESTORE' ? '+' : '-'}{tx.quantity}
+                                </td>
+                                <td className="px-8 py-5 text-right whitespace-nowrap">
+                                  <p className={`text-sm font-black ${isCancelled ? 'text-red-600 font-black' : 'text-slate-900'}`}>Rs. {tx.totalAmount.toLocaleString()}</p>
+                                  {!tx.isGroup && <p className="text-[10px] text-slate-400 font-bold">@ Rs. {parseFloat(tx.unitPrice || 0).toLocaleString()}</p>}
+                                </td>
+                                <td className="px-8 py-5">
+                                  <p className="text-xs font-black text-slate-600">{tx.isGroup ? `JOB #${tx.jobId}` : (tx.supplier?.companyName || 'INTERNAL')}</p>
+                                  <p className="text-[10px] font-medium text-slate-400 italic max-w-[200px] truncate">{tx.note || '-'}</p>
+                                </td>
+                              </tr>
+                              {tx.isGroup && (
+                                <tr>
+                                  <td colSpan="7" className="px-8 pb-4">
+                                    <div className={`border rounded-2xl p-4 ml-8 space-y-2 ${
+                                      isCancelled ? 'bg-red-50/50 border-red-100' : 'bg-white/50 border-slate-100'
+                                    }`}>
+                                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Itemized Breakdown</p>
+                                      {tx.items.map((it, idx) => (
+                                        <div key={idx} className="flex justify-between items-center text-[11px]">
+                                          <span className={`font-bold ${isCancelled ? 'text-slate-400 line-through' : 'text-slate-600'}`}>{it.stockItem?.name} (x{it.quantity})</span>
+                                          <span className="font-black text-slate-400">Rs. {it.totalAmount.toLocaleString()}</span>
+                                           </div>
+                                      ))}
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                   <div className="bg-white border border-slate-100 rounded-[2.5rem] overflow-hidden shadow-sm">
+                    <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Sales & Billing Log</h3>
+                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Comprehensive Transaction History</p>
+                      </div>
+                      <div className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-100 flex items-center gap-2">
+                        <History className="w-4 h-4" /> LIVE AUDIT
+                      </div>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-100">
+                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timestamp</th>
+                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Job Reference</th>
+                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Action</th>
+                             <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Job Status</th>
+                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Detailed Activity Log</th>
+                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Report</th>
+                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">By</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                          {jobLogs.map((log) => {
+                            const linkedJob = log.jobId ? jobList.find(j => j.id == log.jobId) : null;
+                            const jobStatus = linkedJob?.status || (log.action === 'JOB_CANCELLED' ? 'CANCELLED' : log.action === 'JOB_PAID' ? 'PAID' : null);
+                            const isCancelled = jobStatus === 'CANCELLED';
+                            return (
+                            <tr key={log.id} className={`hover:bg-slate-50/50 transition-colors ${
+                              isCancelled ? 'bg-red-50/40 border-l-4 border-l-red-400' : ''
+                            }`}>
+                              <td className="px-8 py-5">
+                                <p className={`text-sm font-black ${isCancelled ? 'text-red-400' : 'text-slate-900'}`}>{new Date(log.timestamp).toLocaleDateString()}</p>
+                                <p className="text-[10px] font-bold text-slate-400">{new Date(log.timestamp).toLocaleTimeString()}</p>
+                              </td>
+                              <td className="px-8 py-5">
+                                <p className={`text-sm font-black ${isCancelled ? 'text-red-500' : 'text-blue-600'}`}>{log.vehicleNumber || `Bill #${log.jobId}`}</p>
+                                <p className="text-[10px] text-slate-400 font-bold">Job #{log.jobId}</p>
+                              </td>
+                              <td className="px-8 py-5">
+                                  <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${
+                                  log.action === 'DELETED' ? 'bg-red-50 text-red-600' : 
+                                  log.action === 'STOCK_OUT' ? 'bg-blue-600 text-white shadow-sm' :
+                                  log.action === 'JOB_PAID' ? 'bg-emerald-600 text-white shadow-sm' :
+                                  log.action === 'JOB_CANCELLED' ? 'bg-red-600 text-white shadow-sm' :
+                                  log.action === 'STATUS_CHANGED' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'
+                                }`}>
+                                  {log.action.replace(/_/g, ' ')}
+                                </span>
+                              </td>
+                              <td className="px-8 py-5 whitespace-nowrap">
+                                {jobStatus ? (
+                                  <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${
+                                    jobStatus === 'CANCELLED'  ? 'bg-red-700 text-white shadow-lg ring-2 ring-red-100' :
+                                    jobStatus === 'PAID'   ? 'bg-emerald-50 text-emerald-600' :
+                                                                  'bg-slate-100 text-slate-500'
+                                  }`}>
+                                    {jobStatus === 'CANCELLED' ? '⚠ CANCELLED' : jobStatus}
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] text-slate-300 font-bold">—</span>
+                                )}
+                              </td>
+                              <td className="px-8 py-5">
+                                <div className={`p-4 rounded-2xl border max-w-lg ${
+                                  isCancelled ? 'bg-red-50/50 border-red-100' : 'bg-slate-50 border-slate-100'
+                                }`}>
+                                  <p className={`text-[13px] font-bold whitespace-pre-wrap leading-relaxed ${
+                                    isCancelled ? 'text-red-400' : 'text-slate-700'
+                                  }`}>{log.details}</p>
+                                  <div className="mt-3 pt-3 border-t border-slate-200/60">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Customer: <span className="text-slate-600 ml-1">{log.customerName}</span></p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-8 py-5 text-center">
+                                {!isCancelled && (
+                                  <button
+                                    onClick={() => generateCustomerReport(log)}
+                                    title={`Generate report for ${log.customerName}`}
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-blue-100 hover:border-blue-600"
+                                  >
+                                    <FileDown className="w-3.5 h-3.5" /> Report
+                                  </button>
+                                )}
+                              </td>
+                              <td className="px-8 py-5 text-right">
+                                <span className="px-3 py-1 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                                  {log.performedBy}
+                                </span>
+                              </td>
+                            </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {activeTab === 'services' && null}
+
+          {activeTab === 'work' && (
+            <motion.div 
+              key="work"
+              variants={containerVariants} 
+              initial="hidden" 
+              animate="visible" 
+              exit={{ opacity: 0, x: -10 }}
+              className="space-y-8"
+            >
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Bill Management</h2>
+                  <p className="text-slate-500 font-medium">Create and track customer bills, inventory sales, and status.</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                  <div className="flex items-center gap-1.5 mr-1">
+                    <button 
+                      onClick={() => setJobDateFilter(new Date().toISOString().split('T')[0])}
+                      className={`px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                        jobDateFilter === new Date().toISOString().split('T')[0] 
+                        ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20' 
+                        : 'bg-white text-slate-400 border border-slate-100 hover:border-slate-200'
+                      }`}
+                    >
+                      Today
+                    </button>
+                    <button 
+                      onClick={() => setJobDateFilter('')}
+                      className={`px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                        jobDateFilter === '' 
+                        ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20' 
+                        : 'bg-white text-slate-400 border border-slate-100 hover:border-slate-200'
+                      }`}
+                    >
+                      All
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm w-full sm:w-auto">
+                    <Calendar className="w-4 h-4 text-slate-400" />
+                    <input 
+                      type={jobDateFilter ? "date" : "text"}
+                      placeholder="Select Date"
+                      onFocus={(e) => e.target.type = 'date'}
+                      onBlur={(e) => { if (!jobDateFilter) e.target.type = 'text'; }}
+                      value={jobDateFilter} 
+                      onChange={(e) => setJobDateFilter(e.target.value)}
+                      className="bg-transparent text-sm font-bold outline-none text-slate-600 cursor-pointer w-full" />
+                    {jobDateFilter && (
+                      <button onClick={() => setJobDateFilter('')} className="text-slate-300 hover:text-red-500 transition-colors">
+                        <Plus className="w-4 h-4 rotate-45" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm w-full sm:w-64">
+                    <Search className="w-4 h-4 text-slate-400" />
+                    <input type="text" placeholder="Search Bill # or Customer..." value={jobSearch} onChange={(e) => setJobSearch(e.target.value)}
+                      className="bg-transparent text-sm font-bold outline-none placeholder:text-slate-500 w-full" />
+                  </div>
+                  <button onClick={() => {
+                    const now = getLocalISOString();
+                    setAddJobData({ ...initialJobData, startTime: now, endTime: now });
+                    setShowAddJobModal(true);
+                  }} className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 whitespace-nowrap">
+                    <Plus className="w-4 h-4" />
+                    <span>Create New Bill</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Work Stats */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {workStats.map((stat, i) => (
+                  <button key={i} onClick={() => setJobStatusFilter(stat.id)} className={`p-5 rounded-2xl border transition-all flex items-center gap-3 text-left ${jobStatusFilter === stat.id ? 'bg-blue-600 border-blue-600 shadow-xl' : 'bg-white border-slate-100 shadow-sm hover:border-blue-200'}`}>
+                    <div className={`w-10 h-10 rounded-xl ${jobStatusFilter === stat.id ? 'bg-white/20 text-white' : `${stat.bg} ${stat.color}`} flex items-center justify-center flex-shrink-0`}><stat.icon className="w-5 h-5" /></div>
+                    <div>
+                      <p className={`text-[10px] font-black uppercase tracking-widest ${jobStatusFilter === stat.id ? 'text-blue-100' : 'text-slate-400'}`}>{stat.label}</p>
+                      <p className={`text-xl font-black leading-none mt-1 ${jobStatusFilter === stat.id ? 'text-white' : 'text-slate-900'}`}>{stat.value}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Status Filter Tabs */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+                {['ALL', 'WAITING', 'PAID', 'CANCELLED'].map(status => (
+                  <button
+                    key={status}
+                    onClick={() => setJobStatusFilter(status)}
+                    className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
+                      jobStatusFilter === status 
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                      : 'bg-white text-slate-400 border border-slate-100 hover:border-blue-200'
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+
+              {/* Bills List */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {filteredJobs.length === 0 ? (
+                  <div className="col-span-full bg-white border border-dashed border-slate-200 rounded-[2.5rem] py-20 flex flex-col items-center">
+                    <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mb-4"><Briefcase className="w-10 h-10 text-slate-200" /></div>
+                    <p className="text-slate-400 font-bold">{jobList.length === 0 ? "No active jobs found." : "No jobs match your search/filter."}</p>
+                    <button onClick={() => setShowAddJobModal(true)} className="mt-4 text-blue-600 font-black text-sm hover:underline">Assign a new job</button>
+                  </div>
+                ) : (
+                  filteredJobs.map(job => (
+                    <motion.div key={job.id} variants={itemVariants} className="bg-white border border-slate-100 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all overflow-hidden group relative">
+                      {/* Bill ID Badge */}
+                      <div className="absolute top-0 right-0 p-1">
+                        <div className="bg-slate-900 text-white text-[8px] font-black px-3 py-1 rounded-bl-xl rounded-tr-xl tracking-[0.2em] uppercase">
+                          SALE-{job.id}
+                        </div>
+                      </div>
+
+                      <div className="p-7">
+                        <div className="flex justify-between items-start mb-6">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500 ${
+                              job.status === 'PAID' ? 'bg-emerald-50 text-emerald-600' : 
+                              job.status === 'CANCELLED' ? 'bg-red-50 text-red-600' : 
+                              'bg-blue-50 text-blue-600 shadow-sm'
+                            }`}>
+                              <Receipt className="w-8 h-8" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-xl font-black text-slate-900 tracking-tight">{job.vehicleNumber || `Bill #${job.id}`}</h4>
+                                <span className="text-[10px] font-bold text-slate-300 bg-slate-50 px-2 py-0.5 rounded border border-slate-100 uppercase tracking-widest">BILL</span>
+                              </div>
+                              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
+                                <User className="w-3 h-3 text-slate-300" />
+                                {job.customer?.firstName} {job.customer?.lastName}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-2 pr-8">
+                             <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${
+                               job.status === 'PAID' ? 'bg-emerald-600 text-white' : 
+                               job.status === 'CANCELLED' ? 'bg-red-600 text-white' : 
+                               'bg-amber-400 text-white'
+                             }`}>
+                              {job.status}
+                            </span>
+                            <div className="flex gap-2">
+                              <button onClick={() => openEditJob(job)} className="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white transition-all border border-slate-100 shadow-sm" title="Edit Bill">
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              {job.status === 'WAITING' && (
+                                <button onClick={() => handleUpdateJobStatus(job.id, 'PAID')} className="bg-emerald-50 text-emerald-600 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all shadow-sm">
+                                  Mark Paid
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-slate-50/50 rounded-2xl p-5 mb-6 border border-slate-50">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <Tag className="w-3 h-3" /> Sales Breakdown
+                              </p>
+                              <div className="flex flex-col gap-2">
+                                {job.items?.map(i => (
+                                  <div key={i.id} className="flex justify-between items-center group/item">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                                      <span className="text-xs font-black text-slate-700">{i.itemName}</span>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-slate-400 bg-white border border-slate-100 px-1.5 py-0.5 rounded">x{i.quantity}</span>
+                                  </div>
+                                ))}
+                                {job.items?.length === 0 && <span className="text-[10px] font-bold text-slate-300 italic">No parts added</span>}
+                              </div>
+                            </div>
+                            <div className="space-y-3">
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <Wrench className="w-3 h-3" /> Labor / Services
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {job.services?.map(s => (
+                                  <span key={s.id} className="px-3 py-1 bg-white border border-slate-100 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm">{s.serviceName}</span>
+                                ))}
+                                {job.services?.length === 0 && <span className="text-[10px] font-bold text-slate-300 italic">No services</span>}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-6 border-t border-slate-100">
+                          <div className="flex items-center gap-6">
+                             <div className="group/time cursor-help">
+                              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover/time:text-blue-500 transition-colors">Date Issued</p>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="w-3.5 h-3.5 text-slate-300" />
+                                <span className="text-xs font-black text-slate-600">{new Date(job.startTime).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Time</p>
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-3.5 h-3.5 text-slate-300" />
+                                <span className="text-xs font-bold text-slate-500">{new Date(job.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Grand Total</p>
+                            <p className="text-2xl font-black text-blue-600 tracking-tighter drop-shadow-sm">Rs. {(job.totalAmount || 0).toLocaleString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'finance' && (
+            <motion.div 
+              key="finance"
+              variants={containerVariants} 
+              initial="hidden" 
+              animate="visible" 
+              exit={{ opacity: 0, x: -10 }}
+              className="space-y-8"
+            >
+              {/* Header and Title */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Money Management</h2>
+                  <p className="text-slate-500 font-medium">Track your monthly expenses, view gross profits, and monitor overall profitability.</p>
+                </div>
+              </div>
+
+              {/* Overall Performance Card */}
+              {(() => {
+                const summary = getOverallFinanceSummary();
+                const isOverallProfit = summary.overallNet >= 0;
+                return (
+                  <motion.div 
+                    variants={itemVariants}
+                    className={`relative overflow-hidden rounded-[2.5rem] p-8 border ${
+                      isOverallProfit 
+                        ? 'bg-gradient-to-br from-emerald-600 to-teal-800 text-white border-emerald-500 shadow-xl shadow-emerald-950/20' 
+                        : 'bg-gradient-to-br from-rose-600 to-red-800 text-white border-rose-500 shadow-xl shadow-rose-950/20'
+                    }`}
+                  >
+                    <div className="absolute right-0 bottom-0 translate-x-10 translate-y-10 opacity-10">
+                      <DollarSign className="w-80 h-80 text-white" />
+                    </div>
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                      <div>
+                        <span className="text-[10px] font-black uppercase tracking-[0.25em] bg-white/10 px-3 py-1.5 rounded-lg">Overall Performance Ledger</span>
+                        <h3 className="text-5xl font-black tracking-tight mt-4">
+                          {isOverallProfit ? '' : '-'}Rs. {Math.abs(summary.overallNet).toLocaleString(undefined, {minimumFractionDigits: 2})}
+                        </h3>
+                        <p className="text-white/80 text-xs font-bold uppercase tracking-widest mt-2">
+                          Cumulative Net Result: <span className="underline font-black">{isOverallProfit ? 'Profit' : 'Loss'}</span>
+                        </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 md:border-l md:border-white/15 md:pl-8">
+                        <div>
+                          <p className="text-[10px] text-white/60 font-black uppercase tracking-wider">Total Sales GP</p>
+                          <p className="text-lg font-black text-white mt-1">Rs. {summary.overallGrossProfit.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-white/60 font-black uppercase tracking-wider">Total Expenses</p>
+                          <p className="text-lg font-black text-white/90 mt-1">Rs. {summary.overallExpenses.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })()}
+
+              {/* Monthly Ledger Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                {/* Monthly Metrics Left Panel (1 column) */}
+                <div className="space-y-6">
+                  <div className="bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm space-y-6">
+                    <h4 className="font-black text-lg text-slate-900 tracking-tight">Select Accounting Period</h4>
+                    
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-black uppercase tracking-widest block mb-2">Month & Year</label>
+                      <input 
+                        type="month"
+                        value={selectedFinanceMonth}
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            setSelectedFinanceMonth(e.target.value);
+                          }
+                        }}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 font-bold text-slate-700 bg-slate-50 hover:bg-slate-100/50 transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const grossProfit = getMonthGrossProfit(selectedFinanceMonth);
+                    const revenue = getMonthRevenue(selectedFinanceMonth);
+                    const totalExp = currentMonthExpenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+                    const netResult = grossProfit - totalExp;
+                    const isProfit = netResult >= 0;
+
+                    const [year, month] = selectedFinanceMonth.split('-');
+                    const monthName = new Date(year, parseInt(month) - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+
+                    return (
+                      <div className="bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm space-y-6">
+                        <h4 className="font-black text-lg text-slate-900 tracking-tight flex items-center justify-between">
+                          <span>{monthName} Recap</span>
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${
+                            isProfit ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'
+                          }`}>
+                            {isProfit ? 'Profit' : 'Loss'}
+                          </span>
+                        </h4>
+
+                        <div className="space-y-4">
+                          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex justify-between items-center">
+                            <div>
+                              <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Monthly Sales (GP)</p>
+                              <p className="text-base font-black text-slate-800 mt-0.5">Rs. {grossProfit.toLocaleString()}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[8px] text-slate-400 font-bold uppercase">Revenue</p>
+                              <p className="text-xs font-bold text-slate-500">Rs. {revenue.toLocaleString()}</p>
+                            </div>
+                          </div>
+
+                          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Total Operating Expenses</p>
+                            <p className="text-base font-black text-slate-800 mt-0.5">Rs. {totalExp.toLocaleString()}</p>
+                          </div>
+
+                          <div className={`p-5 rounded-2xl border ${
+                            isProfit 
+                              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-950' 
+                              : 'bg-red-500/10 border-red-500/20 text-red-950'
+                          }`}>
+                            <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Net Profit/Loss Deduction</p>
+                            <p className="text-xl font-black mt-1">
+                              {isProfit ? '+' : '-'}Rs. {Math.abs(netResult).toLocaleString(undefined, {minimumFractionDigits: 2})}
+                            </p>
+                            <p className="text-[9px] font-bold mt-2 opacity-80 leading-relaxed">
+                              {isProfit 
+                                ? 'Your spare parts store made a positive net profit after reducing all operating expenses.' 
+                                : 'Operating expenses exceeded the gross profit earned from billing. Showed as loss.'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Expenses Details Table Panel (2 columns) */}
+                <div className="lg:col-span-2 space-y-6">
+                  <div className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-sm space-y-6">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                      <div>
+                        <h4 className="font-black text-lg text-slate-900 tracking-tight">Manually Managed Operating Expenses</h4>
+                        <p className="text-slate-400 text-xs font-medium mt-1">Enter your expenses below. All changes auto-save instantly.</p>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={handleInitializeDefaultFields}
+                        className="px-4 py-2.5 rounded-xl border border-slate-200 hover:border-slate-900 hover:bg-slate-900 hover:text-white font-black text-[10px] uppercase tracking-widest transition-all text-slate-500 shrink-0"
+                      >
+                        Reset Standard Fields
+                      </button>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-100 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                            <th className="pb-4 pr-4">Expense Item</th>
+                            <th className="pb-4 px-4 w-44 text-right">Amount (LKR)</th>
+                            <th className="pb-4 pl-4 w-16 text-center">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {currentMonthExpenses.length > 0 ? (
+                            currentMonthExpenses.map((exp, idx) => (
+                              <tr key={idx} className="group hover:bg-slate-50/50 transition-colors">
+                                <td className="py-3 pr-4 text-xs font-black text-slate-700">
+                                  {exp.name}
+                                </td>
+                                <td className="py-3 px-4">
+                                  <div className="flex items-center justify-end gap-2 bg-slate-50 group-hover:bg-white border border-slate-200 focus-within:border-indigo-500 rounded-xl px-3 py-1.5 transition-all w-full max-w-[11rem] ml-auto">
+                                    <span className="text-[10px] text-slate-400 font-bold">Rs.</span>
+                                    <input 
+                                      type="number"
+                                      value={exp.amount === 0 ? '' : exp.amount}
+                                      placeholder="0"
+                                      onChange={(e) => handleUpdateExpense(idx, e.target.value)}
+                                      className="bg-transparent border-none outline-none focus:ring-0 w-full text-right font-black text-xs text-slate-800 placeholder-slate-300"
+                                    />
+                                  </div>
+                                </td>
+                                <td className="py-3 pl-4 text-center">
+                                  <button 
+                                    type="button"
+                                    onClick={() => handleDeleteExpenseField(idx)}
+                                    className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition-all border border-slate-100 hover:border-red-100"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan="3" className="py-12 text-center text-xs font-bold text-slate-400 italic">
+                                No expenses initialized or entered for this month.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Add Custom Expense Field Form */}
+                    <div className="pt-6 border-t border-slate-100 space-y-4">
+                      <h5 className="text-xs font-black text-slate-900 uppercase tracking-wider">Add Custom or Standard Expense Item</h5>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                        <div>
+                          <label className="text-[9px] text-slate-400 font-black uppercase tracking-widest block mb-1.5">Expense Name / Field</label>
+                          <select 
+                            value={newExpenseField}
+                            onChange={(e) => setNewExpenseField(e.target.value)}
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 font-bold text-xs text-slate-700 bg-slate-50"
+                          >
+                            {PREDEFINED_EXPENSE_FIELDS.map((name, i) => (
+                              <option key={i} value={name}>{name}</option>
+                            ))}
+                            <option value="Custom Expense">Other / Custom Field...</option>
+                          </select>
+                        </div>
+
+                        {newExpenseField === 'Custom Expense' && (
+                          <div className="animate-in slide-in-from-left duration-200">
+                            <label className="text-[9px] text-slate-400 font-black uppercase tracking-widest block mb-1.5">Enter Custom Name</label>
+                            <input 
+                              type="text"
+                              placeholder="e.g. Electric Bill"
+                              value={customExpenseName}
+                              onChange={(e) => setCustomExpenseName(e.target.value)}
+                              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 font-bold text-xs text-slate-700 placeholder-slate-400"
+                            />
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="text-[9px] text-slate-400 font-black uppercase tracking-widest block mb-1.5">Amount (LKR)</label>
+                          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 focus-within:border-indigo-500 rounded-xl px-3 py-2 transition-all">
+                            <span className="text-[10px] text-slate-400 font-bold">Rs.</span>
+                            <input 
+                              type="number"
+                              min="0"
+                              placeholder="0"
+                              value={newExpenseAmount}
+                              onChange={(e) => setNewExpenseAmount(e.target.value)}
+                              className="bg-transparent border-none outline-none focus:ring-0 w-full font-black text-xs text-slate-800 placeholder-slate-300"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <button 
+                            type="button"
+                            onClick={(e) => handleAddExpenseField(e)}
+                            className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-indigo-600/10 shrink-0"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span>Add Field</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </motion.div>
+          )}
+          </AnimatePresence>
+        </div>
+      </main>
+
+      {/* Edit Staff Modal */}
+      <AnimatePresence>
+        {showEditStaff && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowEditStaff(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 60 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="relative z-10 w-full sm:max-w-xl bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh]"
+            >
+              {/* Modal Header */}
+              <div className="bg-blue-600 p-5 sm:p-7 rounded-t-[2rem] sm:rounded-t-[2rem] flex items-center justify-between flex-shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-white tracking-tight">Edit Team Member</h3>
+                    <p className="text-blue-100 text-xs font-medium">Update profile & credentials</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowEditStaff(false)}
+                  className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-all">
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Scrollable Form */}
+              <div className="flex-1 overflow-y-auto">
+                <form onSubmit={handleUpdateStaff} className="p-5 sm:p-7 space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">First Name</label>
+                      <input type="text" name="firstName" value={editStaffData.firstName} onChange={handleEditStaffChange} required
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Last Name</label>
+                      <input type="text" name="lastName" value={editStaffData.lastName} onChange={handleEditStaffChange}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Email Address</label>
+                    <input type="email" name="email" value={editStaffData.email} onChange={handleEditStaffChange}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Phone</label>
+                      <input type="text" name="phone" value={editStaffData.phone} onChange={handleEditStaffChange} maxLength="10"
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">NIC / ID No.</label>
+                      <input type="text" name="idNo" value={editStaffData.idNo} onChange={handleEditStaffChange}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">New Password <span className="normal-case text-slate-300">(leave blank to keep)</span></label>
+                    <input type="password" name="password" value={editStaffData.password} onChange={handleEditStaffChange} placeholder="Leave blank to keep"
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Address</label>
+                    <input type="text" name="address" value={editStaffData.address} onChange={handleEditStaffChange}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all" />
+                  </div>
+                  <div className="flex items-center justify-between bg-slate-50 border border-slate-100 p-4 rounded-2xl">
+                    <div>
+                      <p className="font-black text-slate-900 text-sm">Account Status</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Active / Inactive</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="staffEnabled" name="enabled" checked={editStaffData.enabled} onChange={handleEditStaffChange} className="sr-only peer" />
+                      <div className="w-12 h-7 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-[22px] after:w-[22px] after:transition-all peer-checked:bg-blue-600" />
+                    </label>
+                  </div>
+
+                  {updateMsg.text && (
+                    <div className={`p-3 rounded-xl text-sm font-bold text-center ${
+                      updateMsg.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
+                    }`}>{updateMsg.text}</div>
+                  )}
+
+                  <button type="submit" disabled={loading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><span>Save Changes</span><ArrowRight className="w-4 h-4" /></>}
+                  </button>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+
+      {/* Edit Customer Modal */}
+      <AnimatePresence>
+        {showEditCustomer && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowEditCustomer(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 60 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="relative z-10 w-full sm:max-w-xl bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh]"
+            >
+              {/* Modal Header */}
+              <div className="bg-indigo-600 p-5 sm:p-7 rounded-t-[2rem] flex items-center justify-between flex-shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                    <UserIcon className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-white tracking-tight">Edit Customer</h3>
+                    <p className="text-indigo-100 text-xs font-medium">Update profile & account settings</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowEditCustomer(false)}
+                  className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-all">
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Scrollable Form */}
+              <div className="flex-1 overflow-y-auto">
+                <form onSubmit={handleUpdateCustomer} className="p-5 sm:p-7 space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">First Name</label>
+                      <input type="text" name="firstName" value={editCustomerData.firstName} onChange={handleEditCustomerChange} required
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 transition-all" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Last Name</label>
+                      <input type="text" name="lastName" value={editCustomerData.lastName} onChange={handleEditCustomerChange}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 transition-all" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Phone</label>
+                    <input type="text" name="phone" value={editCustomerData.phone} onChange={handleEditCustomerChange} maxLength="10"
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 transition-all" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Address</label>
+                    <input type="text" name="address" value={editCustomerData.address} onChange={handleEditCustomerChange}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 transition-all" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">New Password <span className="normal-case text-slate-300">(leave blank to keep)</span></label>
+                    <input type="password" name="password" value={editCustomerData.password} onChange={handleEditCustomerChange} placeholder="Leave blank to keep"
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 transition-all" />
+                  </div>
+                  <div className="flex items-center justify-between bg-slate-50 border border-slate-100 p-4 rounded-2xl">
+                    <div>
+                      <p className="font-black text-slate-900 text-sm">Account Status</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Active / Inactive</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="customerEnabled" name="enabled" checked={editCustomerData.enabled} onChange={handleEditCustomerChange} className="sr-only peer" />
+                      <div className="w-12 h-7 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-[22px] after:w-[22px] after:transition-all peer-checked:bg-indigo-600" />
+                    </label>
+                  </div>
+
+                  {updateMsg.text && (
+                    <div className={`p-3 rounded-xl text-sm font-bold text-center ${
+                      updateMsg.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
+                    }`}>{updateMsg.text}</div>
+                  )}
+
+                  <button type="submit" disabled={loading}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2">
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><span>Save Changes</span><ArrowRight className="w-4 h-4" /></>}
+                  </button>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Stock Modal */}
+      <AnimatePresence>
+        {showAddStockModal && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowAddStockModal(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 60 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="relative z-10 w-full sm:max-w-xl bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh]"
+            >
+              <div className="bg-slate-900 p-5 sm:p-7 rounded-t-[2rem] flex items-center justify-between flex-shrink-0">
+                <div className="flex items-center gap-3 text-white">
+                  <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center">
+                    <Package className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black tracking-tight">Add Inventory Item</h3>
+                    <p className="text-slate-400 text-xs font-medium">Register new stock entries</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowAddStockModal(false)}
+                  className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all">
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <form onSubmit={handleAddStock} className="p-5 sm:p-7 space-y-6">
+                  {/* Basic Info Section */}
+                  <div className="space-y-4">
+                    <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">Part Specifications</h5>
+                    <div className="space-y-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Item Name</label>
+                        <input type="text" name="name" required value={addStockData.name} onChange={handleAddStockChange}
+                          className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" placeholder="e.g. Synthetic Motor Oil" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Part Number</label>
+                          <input type="text" name="partNumber" required value={addStockData.partNumber} onChange={handleAddStockChange}
+                            className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" placeholder="e.g. OIL-5W30" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">HS Code (Optional)</label>
+                          <input type="text" name="hsCode" value={addStockData.hsCode || ''} onChange={handleAddStockChange}
+                            className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" placeholder="HS-8409" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Inventory Settings */}
+                  <div className="space-y-4">
+                    <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">Inventory Settings</h5>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Category</label>
+                        <div className="flex gap-2">
+                          <select name="categoryId" value={addStockData.categoryId} onChange={handleAddStockChange}
+                            className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all cursor-pointer">
+                            <option value="">Select Category</option>
+                            {categoryList.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                          </select>
+                          <button type="button" onClick={() => setShowAddCategoryModal(true)}
+                            className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
+                            <PlusCircle className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Low Stock Alert</label>
+                        <input type="number" name="lowStockThreshold" required value={addStockData.lowStockThreshold} onChange={handleAddStockChange}
+                          className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" />
+                      </div>
+                    </div>
+                  </div>
+
+
+
+                  {msg.text && (
+                    <div className={`p-3 rounded-xl text-sm font-bold text-center ${
+                      msg.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
+                    }`}>{msg.text}</div>
+                  )}
+
+                  <div className="pt-4 flex gap-4">
+                    <button type="button" onClick={() => setShowAddStockModal(false)}
+                      className="flex-1 py-4 bg-slate-50 hover:bg-slate-100 text-slate-500 font-black rounded-2xl transition-all uppercase text-[10px] tracking-widest">Discard</button>
+                    <button type="submit" disabled={loading}
+                      className="flex-[2] bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-black py-4 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 uppercase text-[10px] tracking-widest">
+                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><span>Save Inventory Item</span><CheckCircle2 className="w-4 h-4" /></>}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Stock Modal */}
+      <AnimatePresence>
+        {showEditStockModal && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowEditStockModal(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 60 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="relative z-10 w-full sm:max-w-xl bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh]"
+            >
+              <div className="bg-slate-900 p-5 sm:p-7 rounded-t-[2rem] flex items-center justify-between flex-shrink-0">
+                <div className="flex items-center gap-3 text-white">
+                  <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center">
+                    <Package className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black tracking-tight">Edit Stock Item</h3>
+                    <p className="text-slate-400 text-xs font-medium">Update item specifications</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowEditStockModal(false)}
+                  className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all">
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto">
+                <form onSubmit={handleUpdateStock} className="p-5 sm:p-7 space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Item Name</label>
+                    <input type="text" name="name" required value={editStockData.name} onChange={handleEditStockChange}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Part Number</label>
+                      <input type="text" name="partNumber" required value={editStockData.partNumber} onChange={handleEditStockChange}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">HS Code</label>
+                      <input type="text" name="hsCode" value={editStockData.hsCode || ''} onChange={handleEditStockChange}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" placeholder="Optional" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Low Stock Alert</label>
+                      <input type="number" name="lowStockThreshold" required value={editStockData.lowStockThreshold} onChange={handleEditStockChange}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Category</label>
+                    <div className="flex gap-2">
+                      <select name="categoryId" value={editStockData.categoryId} onChange={handleEditStockChange}
+                        className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all cursor-pointer">
+                        <option value="">Select Category</option>
+                        {categoryList.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                      </select>
+                      <button type="button" onClick={() => setShowAddCategoryModal(true)}
+                        className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
+                        <PlusCircle className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {updateMsg.text && (
+                    <div className={`p-3 rounded-xl text-sm font-bold text-center ${
+                      updateMsg.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
+                    }`}>{updateMsg.text}</div>
+                  )}
+
+                  <button type="submit" disabled={loading}
+                    className="w-full bg-slate-900 hover:bg-blue-600 disabled:opacity-50 text-white font-black py-4 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2">
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><span>Save Changes</span><ArrowRight className="w-4 h-4" /></>}
+                  </button>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Quick Add Stock Modal */}
+      <AnimatePresence>
+        {showQuickAddModal && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowQuickAddModal(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 60 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="relative z-10 w-full sm:max-w-md bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl flex flex-col max-h-[92vh]"
+            >
+              <div className="bg-emerald-600 p-5 sm:p-7 rounded-t-[2rem] flex items-center justify-between">
+                <div className="flex items-center gap-3 text-white">
+                  <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                    <Layers className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black tracking-tight">Add Stock</h3>
+                    <p className="text-emerald-100 text-xs font-medium">Restock existing parts</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowQuickAddModal(false)}
+                  className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-all">
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-5 sm:p-7">
+                <form onSubmit={handleQuickAddSubmit} className="space-y-4">
+                  <div className="space-y-4">
+                    {/* Item Selection */}
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Select Item</label>
+                      <select required value={quickAddData.itemId} onChange={(e) => setQuickAddData({...quickAddData, itemId: e.target.value})}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-emerald-600/10 focus:border-emerald-600 transition-all cursor-pointer">
+                        <option value="" disabled>-- Choose an item --</option>
+                        {stockList.map(item => <option key={item.id} value={item.id}>{item.name} ({item.partNumber})</option>)}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600">Order Qty</label>
+                        <input type="number" required min="1" value={quickAddData.quantity} onChange={(e) => setQuickAddData({...quickAddData, quantity: e.target.value})}
+                          className="w-full bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 text-emerald-900 font-black text-sm outline-none focus:border-emerald-600 transition-all" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-600">Unit Cost GBP</label>
+                        <input type="number" step="0.01" value={quickAddData.unitCostForeign || ''} onChange={(e) => setQuickAddData({...quickAddData, unitCostForeign: e.target.value})}
+                          className="w-full bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-blue-900 font-black text-sm outline-none focus:border-blue-600 transition-all" placeholder="0.00" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                      <div>
+                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Value in GBP</p>
+                        <p className="text-sm font-black text-slate-700">£ {( (parseFloat(quickAddData.unitCostForeign) || 0) * (parseFloat(quickAddData.quantity) || 0) ).toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Exchange Rate</p>
+                        <input type="number" step="0.01" value={quickAddData.exchangeRate || ''} onChange={(e) => setQuickAddData({...quickAddData, exchangeRate: e.target.value})}
+                          className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold outline-none" />
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Total in LKR</p>
+                        <p className="text-sm font-black text-emerald-600">Rs. {( (parseFloat(quickAddData.unitCostForeign) || 0) * (parseFloat(quickAddData.quantity) || 0) * (parseFloat(quickAddData.exchangeRate) || 0) ).toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">LKR Price per Unit</label>
+                        <div className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-slate-600 font-black text-sm">
+                          Rs. {( (parseFloat(quickAddData.unitCostForeign) || 0) * (parseFloat(quickAddData.exchangeRate) || 0) ).toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Duty/Tax</label>
+                        <input type="number" step="0.01" value={quickAddData.dutyFees || ''} onChange={(e) => setQuickAddData({...quickAddData, dutyFees: e.target.value})}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:border-slate-900 transition-all" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Freight</label>
+                        <input type="number" step="0.01" value={quickAddData.freightCost || ''} onChange={(e) => setQuickAddData({...quickAddData, freightCost: e.target.value})}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:border-slate-900 transition-all" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Shipping Cost</label>
+                        <input type="number" step="0.01" value={quickAddData.shippingCost || ''} onChange={(e) => setQuickAddData({...quickAddData, shippingCost: e.target.value})}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:border-slate-900 transition-all" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Bank, D/O & Clearance</label>
+                        <input type="number" step="0.01" value={quickAddData.bankCharges || ''} onChange={(e) => setQuickAddData({...quickAddData, bankCharges: e.target.value})}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:border-slate-900 transition-all" />
+                      </div>
+                    </div>
+
+                    <div className="p-5 bg-indigo-900 rounded-3xl text-white shadow-xl shadow-indigo-900/20 relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-4 opacity-10"><TrendingUp className="w-16 h-16" /></div>
+                      <div className="relative z-10 space-y-4">
+                        <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-end">
+                          <div>
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-300 mb-1">Landed Cost per Unit</p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-2xl font-black">Rs. {quickAddData.landedCost || '0.00'}</span>
+                              <button type="button" className="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
+                                onClick={() => {
+                                  const foreign = parseFloat(quickAddData.unitCostForeign) || 0;
+                                  const rate = parseFloat(quickAddData.exchangeRate) || 0;
+                                  const qty = parseFloat(quickAddData.quantity) > 0 ? parseFloat(quickAddData.quantity) : 1;
+                                  const freight = parseFloat(quickAddData.freightCost) || 0;
+                                  const shipping = parseFloat(quickAddData.shippingCost) || 0;
+                                  const bank = parseFloat(quickAddData.bankCharges) || 0;
+                                  const duty = parseFloat(quickAddData.dutyFees) || 0;
+                                  const totalLkr = foreign * rate * qty;
+                                  const productLanded = (totalLkr + duty + freight + shipping + bank) / qty;
+                                  setQuickAddData(prev => ({
+                                    ...prev,
+                                    landedCost: productLanded.toFixed(2),
+                                    unitPrice: productLanded.toFixed(2)
+                                  }));
+                                }}>Calc</button>
+                            </div>
+                          </div>
+                          <div className="text-left sm:text-right">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-300 mb-1">Selling Price</p>
+                            <input type="number" step="0.01" value={quickAddData.sellingPrice || ''} onChange={(e) => setQuickAddData({...quickAddData, sellingPrice: e.target.value})}
+                              className="w-full sm:w-24 bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-left sm:text-right text-lg font-black outline-none focus:bg-white/20 transition-all" />
+                          </div>
+                        </div>
+                        <div className="pt-3 border-t border-white/10 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200">GP per Unit (Selling Price - Landed Cost per Unit)</p>
+                          <p className="text-xl font-black text-emerald-400">Rs. {( (parseFloat(quickAddData.sellingPrice) || 0) - (parseFloat(quickAddData.landedCost) || 0) ).toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Supplier (Optional)</label>
+                    <select value={quickAddData.supplierId || ''} onChange={(e) => setQuickAddData({...quickAddData, supplierId: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-emerald-600/10 focus:border-emerald-600 transition-all cursor-pointer">
+                      <option value="">Current / Not Specified</option>
+                      {supplierList.filter(s => s.active).map(s => <option key={s.id} value={s.id}>{s.companyName}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="pt-2 flex gap-3">
+                    <button type="button" onClick={() => setShowQuickAddModal(false)}
+                      className="flex-1 px-4 py-3.5 rounded-xl font-bold text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors text-sm">Cancel</button>
+                    <button type="submit" disabled={loading}
+                      className="flex-[2] bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black py-3.5 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 text-sm">
+                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Add Stock</span><CheckCircle2 className="w-4 h-4" /></>}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Quick Reduce Stock Modal */}
