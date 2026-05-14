@@ -345,3 +345,88 @@ const LoginPage = () => {
                 <form onSubmit={handleReset} className="space-y-6">
                   <div className="space-y-2">
                     <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">New Password</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                        <Lock className="w-5 h-5" />
+                      </div>
+                      <input 
+                        type="password" name="newPassword" required
+                        value={recoveryForm.newPassword} onChange={handleRecoveryChange}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-14 pr-6 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Confirm New Password</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                        <Lock className="w-5 h-5" />
+                      </div>
+                      <input 
+                        type="password" name="confirmPassword" required
+                        value={recoveryForm.confirmPassword} onChange={handleRecoveryChange}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-14 pr-6 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
+
+                  {recoveryError && (
+                    <p className="text-red-500 text-xs font-bold text-center bg-red-50 p-3 rounded-xl border border-red-100">{recoveryError}</p>
+                  )}
+
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    disabled={recoveryLoading}
+                    className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-4.5 rounded-2xl transition-all shadow-xl shadow-slate-900/10 flex items-center justify-center gap-3"
+                  >
+                    {recoveryLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Update Access Key <ArrowRight className="w-5 h-5" /></>}
+                  </motion.button>
+                </form>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Success Popup */}
+      <AnimatePresence>
+        {recoverySuccess && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative z-10 bg-white p-10 rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center border border-slate-100"
+            >
+              <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <CheckCircle2 className="w-10 h-10" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">Password Reset</h3>
+              <p className="text-slate-500 mt-3 font-bold">Your access credentials have been updated successfully. Please log in with your new key.</p>
+              <button 
+                onClick={closeRecovery}
+                className="w-full mt-8 bg-slate-900 text-white font-black py-4 rounded-2xl hover:bg-emerald-600 transition-all shadow-lg"
+              >
+                OK, Back to Login
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default LoginPage;
+
