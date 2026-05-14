@@ -189,3 +189,49 @@ const SignupPage = () => {
                   type={showPassword ? "text" : "password"} name="password" required
                   value={formData.password} onChange={handleChange}
                   className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3.5 pl-14 pr-12 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-5 flex items-center text-slate-400 hover:text-blue-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="bg-red-50 border border-red-100 text-red-600 text-sm py-3 px-5 rounded-xl font-bold overflow-hidden"
+                >
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              disabled={loading}
+              className="w-full bg-slate-900 hover:bg-blue-600 disabled:opacity-50 text-white font-black py-4.5 px-6 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all duration-300 shadow-xl shadow-slate-900/10 cursor-pointer"
+            >
+              {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Create Account <ArrowRight className="w-5 h-5" /></>}
+            </motion.button>
+          </form>
+
+          <p className="text-center text-slate-500 mt-10 text-sm font-bold">
+            Already have an account? <Link to="/login" className="text-blue-600 hover:underline underline-offset-4 ml-1 cursor-pointer">Sign In</Link>
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default SignupPage;
