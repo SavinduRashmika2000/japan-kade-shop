@@ -760,3 +760,384 @@ const StaffDashboard = () => {
                       )}
                     </div>
                     <button onClick={() => setActiveTab('work')} className="w-full mt-10 py-4 bg-slate-50 rounded-2xl text-slate-600 font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition-colors">
+                      Work Pipeline
+                    </button>
+                  </motion.div>
+
+                  {/* Popular Services */}
+                  <motion.div variants={itemVariants} className="bg-white border border-slate-100 rounded-[3rem] p-10 shadow-xl shadow-slate-100/50 flex flex-col">
+                    <h4 className="font-black text-2xl text-slate-900 mb-8 flex items-center gap-4 tracking-tighter">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center"><Layers className="w-6 h-6 text-indigo-600" /></div>
+                      Top Categories
+                    </h4>
+                    <div className="space-y-5 flex-1">
+                      {categoryList.slice(0, 5).map((c, i) => (
+                        <div key={i} className="flex items-center justify-between p-3 rounded-2xl hover:bg-indigo-50 transition-all group">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-black shadow-lg shadow-indigo-600/20">{i + 1}</div>
+                            <span className="text-sm font-black text-slate-700">{c.name}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <button onClick={() => setActiveTab('inventory')} className="w-full mt-6 py-4 bg-slate-50 rounded-2xl text-slate-600 font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition-colors">
+                      Inventory Catalog
+                    </button>
+                  </motion.div>
+
+                  {/* Star Customers */}
+                  <motion.div variants={itemVariants} className="bg-white border border-slate-100 rounded-[3rem] p-10 shadow-xl shadow-slate-100/50">
+                    <h4 className="font-black text-2xl text-slate-900 mb-8 flex items-center gap-4 tracking-tighter">
+                      <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center"><Shield className="w-6 h-6 text-amber-600" /></div>
+                      Star Customers
+                    </h4>
+                    <div className="space-y-6">
+                      {analyticsData.topCustomers && analyticsData.topCustomers.map((c, i) => (
+                        <div key={i} className="flex items-center gap-4 group">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${i === 0 ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>
+                            {i === 0 ? '🏆' : i + 1}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-black text-slate-900 tracking-tight">{c.name}</p>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{c.jobs} Jobs</p>
+                          </div>
+                        </div>
+                      ))}
+                      {(!analyticsData.topCustomers || analyticsData.topCustomers.length === 0) && (
+                        <p className="text-slate-400 font-bold italic text-sm text-center py-10">No customer records yet.</p>
+                      )}
+                    </div>
+                    <button onClick={() => setActiveTab('customers')} className="w-full mt-6 py-4 bg-slate-50 rounded-2xl text-slate-600 font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition-colors">
+                      Customers
+                    </button>
+                  </motion.div>
+                </div>
+              </motion.div>
+            )}
+
+
+            {activeTab === 'work' && (
+            <motion.div 
+              key="work"
+              variants={containerVariants} 
+              initial="hidden" 
+              animate="visible" 
+              exit={{ opacity: 0, x: -10 }}
+              className="space-y-8"
+            >
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Bill Management</h2>
+                  <p className="text-slate-500 font-medium">Create and track customer bills and inventory sales.</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                  <div className="flex items-center gap-1.5 mr-1">
+                    <button 
+                      onClick={() => setJobDateFilter(new Date().toISOString().split('T')[0])}
+                      className={`px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                        jobDateFilter === new Date().toISOString().split('T')[0] 
+                        ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20' 
+                        : 'bg-white text-slate-400 border border-slate-100 hover:border-slate-200'
+                      }`}
+                    >
+                      Today
+                    </button>
+                    <button 
+                      onClick={() => setJobDateFilter('')}
+                      className={`px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                        jobDateFilter === '' 
+                        ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20' 
+                        : 'bg-white text-slate-400 border border-slate-100 hover:border-slate-200'
+                      }`}
+                    >
+                      All
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm w-full sm:w-auto">
+                    <Calendar className="w-4 h-4 text-slate-400" />
+                    <input 
+                      type={jobDateFilter ? "date" : "text"}
+                      placeholder="Select Date"
+                      onFocus={(e) => e.target.type = 'date'}
+                      onBlur={(e) => { if (!jobDateFilter) e.target.type = 'text'; }}
+                      value={jobDateFilter} 
+                      onChange={(e) => setJobDateFilter(e.target.value)}
+                      className="bg-transparent text-sm font-bold outline-none text-slate-600 cursor-pointer w-full" />
+                    {jobDateFilter && (
+                      <button onClick={() => setJobDateFilter('')} className="text-slate-300 hover:text-red-500 transition-colors">
+                        <Plus className="w-4 h-4 rotate-45" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm w-full sm:w-64">
+                    <Search className="w-4 h-4 text-slate-400" />
+                    <input type="text" placeholder="Search Bill # or Customer..." value={jobSearch} onChange={(e) => setJobSearch(e.target.value)}
+                      className="bg-transparent text-sm font-bold outline-none placeholder:text-slate-500 w-full" />
+                  </div>
+                  <button onClick={() => {
+                    const now = getLocalISOString();
+                    setAddJobData({ ...initialJobData, startTime: now, endTime: now });
+                    setShowAddJobModal(true);
+                  }} className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 whitespace-nowrap">
+                    <Plus className="w-4 h-4" />
+                    <span>Create New Bill</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Work Stats */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {workStats.map((stat, i) => (
+                  <button key={i} onClick={() => setJobStatusFilter(stat.id)} className={`p-5 rounded-2xl border transition-all flex items-center gap-3 text-left ${jobStatusFilter === stat.id ? 'bg-blue-600 border-blue-600 shadow-xl' : 'bg-white border-slate-100 shadow-sm hover:border-blue-200'}`}>
+                    <div className={`w-10 h-10 rounded-xl ${jobStatusFilter === stat.id ? 'bg-white/20 text-white' : `${stat.bg} ${stat.color}`} flex items-center justify-center flex-shrink-0`}><stat.icon className="w-5 h-5" /></div>
+                    <div>
+                      <p className={`text-[10px] font-black uppercase tracking-widest ${jobStatusFilter === stat.id ? 'text-blue-100' : 'text-slate-400'}`}>{stat.label}</p>
+                      <p className={`text-xl font-black leading-none mt-1 ${jobStatusFilter === stat.id ? 'text-white' : 'text-slate-900'}`}>{stat.value}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Status Filter Tabs */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+                {['ALL', 'WAITING', 'PAID', 'CANCELLED'].map(status => (
+                  <button
+                    key={status}
+                    onClick={() => setJobStatusFilter(status)}
+                    className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
+                      jobStatusFilter === status 
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                      : 'bg-white text-slate-400 border border-slate-100 hover:border-blue-200'
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+
+              {/* Bills List */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {filteredJobs.length === 0 ? (
+                  <div className="col-span-full bg-white border border-dashed border-slate-200 rounded-[2.5rem] py-20 flex flex-col items-center">
+                    <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mb-4"><Briefcase className="w-10 h-10 text-slate-200" /></div>
+                    <p className="text-slate-400 font-bold">{jobList.length === 0 ? "No active bills found." : "No bills match your search/filter."}</p>
+                    <button onClick={() => setShowAddJobModal(true)} className="mt-4 text-blue-600 font-black text-sm hover:underline">Create a new bill</button>
+                  </div>
+                ) : (
+                  filteredJobs.map(job => (
+                    <motion.div key={job.id} variants={itemVariants} className="bg-white border border-slate-100 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all overflow-hidden group relative">
+                      {/* Bill ID Badge */}
+                      <div className="absolute top-0 right-0 p-1">
+                        <div className="bg-slate-900 text-white text-[8px] font-black px-3 py-1 rounded-bl-xl rounded-tr-xl tracking-[0.2em] uppercase">
+                          SALE-{job.id}
+                        </div>
+                      </div>
+
+                      <div className="p-7">
+                        <div className="flex justify-between items-start mb-6">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500 ${
+                              job.status === 'PAID' ? 'bg-emerald-50 text-emerald-600' : 
+                              job.status === 'CANCELLED' ? 'bg-red-50 text-red-600' : 
+                              'bg-blue-50 text-blue-600 shadow-sm'
+                            }`}>
+                              <Receipt className="w-8 h-8" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-xl font-black text-slate-900 tracking-tight">{job.vehicleNumber || `Bill #${job.id}`}</h4>
+                                <span className="text-[10px] font-bold text-slate-300 bg-slate-50 px-2 py-0.5 rounded border border-slate-100 uppercase tracking-widest">BILL</span>
+                              </div>
+                              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
+                                <User className="w-3 h-3 text-slate-300" />
+                                {job.customer?.firstName} {job.customer?.lastName}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-2 pr-8">
+                             <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${
+                               job.status === 'PAID' ? 'bg-emerald-600 text-white' : 
+                               job.status === 'CANCELLED' ? 'bg-red-600 text-white' : 
+                               'bg-amber-400 text-white'
+                             }`}>
+                              {job.status}
+                            </span>
+                            <div className="flex gap-2">
+                              <button onClick={() => openEditJob(job)} className="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white transition-all border border-slate-100 shadow-sm" title="Edit Bill">
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              {job.status === 'WAITING' && (
+                                <button onClick={() => handleUpdateJobStatus(job.id, 'PAID')} className="bg-emerald-50 text-emerald-600 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all shadow-sm">
+                                  Mark Paid
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-slate-50/50 rounded-2xl p-5 mb-6 border border-slate-50">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <Tag className="w-3 h-3" /> Sales Breakdown
+                              </p>
+                              <div className="flex flex-col gap-2">
+                                {job.items?.map(i => (
+                                  <div key={i.id} className="flex justify-between items-center group/item">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                                      <span className="text-xs font-black text-slate-700">{i.itemName}</span>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-slate-400 bg-white border border-slate-100 px-1.5 py-0.5 rounded">x{i.quantity}</span>
+                                  </div>
+                                ))}
+                                {job.items?.length === 0 && <span className="text-[10px] font-bold text-slate-300 italic">No parts added</span>}
+                              </div>
+                            </div>
+                            <div className="space-y-3">
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <Wrench className="w-3 h-3" /> Labor / Services
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {job.services?.map(s => (
+                                  <span key={s.id} className="px-3 py-1 bg-white border border-slate-100 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm">{s.serviceName}</span>
+                                ))}
+                                {job.services?.length === 0 && <span className="text-[10px] font-bold text-slate-300 italic">No services</span>}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-6 border-t border-slate-100">
+                          <div className="flex items-center gap-6">
+                             <div className="group/time cursor-help">
+                              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover/time:text-blue-500 transition-colors">Date Issued</p>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="w-3.5 h-3.5 text-slate-300" />
+                                <span className="text-xs font-black text-slate-600">{new Date(job.startTime).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Time</p>
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-3.5 h-3.5 text-slate-300" />
+                                <span className="text-xs font-bold text-slate-500">{new Date(job.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Grand Total</p>
+                            <p className="text-2xl font-black text-blue-600 tracking-tighter drop-shadow-sm">Rs. {(job.totalAmount || 0).toLocaleString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          )}
+
+            {activeTab === 'customers' && (
+              <motion.div key="customers" variants={containerVariants} initial="hidden" animate="visible" exit={{ opacity: 0, x: -10 }} className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                {/* Add Customer Card */}
+                <motion.div variants={itemVariants} className="bg-white border border-slate-100 rounded-[2rem] p-8 shadow-sm h-fit">
+                  <div className="flex justify-between items-center mb-8">
+                    <h3 className="text-xl font-black text-slate-900 tracking-tighter">Add Customer</h3>
+                  </div>
+                  <form onSubmit={handleAddCustomer} className="space-y-4">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center ml-1">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">First Name</label>
+                        <span className="text-[9px] font-bold text-red-500 uppercase tracking-wider">Required</span>
+                      </div>
+                      <input type="text" name="firstName" required value={customerFormData.firstName} onChange={handleCustomerFormChange} className="w-full bg-slate-50 hover:bg-slate-100 focus:bg-slate-100 transition-colors border border-transparent focus:border-blue-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-800 placeholder:text-slate-500 outline-none" placeholder="e.g. Jane" />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center ml-1">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Last Name</label>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Optional</span>
+                      </div>
+                      <input type="text" name="lastName" value={customerFormData.lastName} onChange={handleCustomerFormChange} className="w-full bg-slate-50 hover:bg-slate-100 focus:bg-slate-100 transition-colors border border-transparent focus:border-blue-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-800 placeholder:text-slate-500 outline-none" placeholder="e.g. Smith" />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center ml-1">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Phone</label>
+                        <span className="text-[9px] font-bold text-red-500 uppercase tracking-wider">Required</span>
+                      </div>
+                      <input type="text" name="phone" required maxLength="10" value={customerFormData.phone} onChange={handleCustomerFormChange} className="w-full bg-slate-50 hover:bg-slate-100 focus:bg-slate-100 transition-colors border border-transparent focus:border-blue-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-800 placeholder:text-slate-500 outline-none" placeholder="10-digit number" />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center ml-1">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">NIC / ID No</label>
+                        <span className="text-[9px] font-bold text-red-500 uppercase tracking-wider">Required</span>
+                      </div>
+                      <input type="text" name="idNo" required value={customerFormData.idNo} onChange={handleCustomerFormChange} className="w-full bg-slate-50 hover:bg-slate-100 focus:bg-slate-100 transition-colors border border-transparent focus:border-blue-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-800 placeholder:text-slate-500 outline-none" placeholder="e.g. 123456789V" />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center ml-1">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Email</label>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Optional</span>
+                      </div>
+                      <input type="email" name="email" value={customerFormData.email} onChange={handleCustomerFormChange} className="w-full bg-slate-50 hover:bg-slate-100 focus:bg-slate-100 transition-colors border border-transparent focus:border-blue-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-800 placeholder:text-slate-500 outline-none" placeholder="e.g. jane@example.com" />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center ml-1">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Address</label>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Optional</span>
+                      </div>
+                      <input type="text" name="address" value={customerFormData.address} onChange={handleCustomerFormChange} className="w-full bg-slate-50 hover:bg-slate-100 focus:bg-slate-100 transition-colors border border-transparent focus:border-blue-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-800 placeholder:text-slate-500 outline-none" placeholder="Full address" />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center ml-1">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Password</label>
+                        <span className="text-[9px] font-bold text-red-500 uppercase tracking-wider">Required</span>
+                      </div>
+                      <input type="password" name="password" required value={customerFormData.password} onChange={handleCustomerFormChange} className="w-full bg-slate-50 hover:bg-slate-100 focus:bg-slate-100 transition-colors border border-transparent focus:border-blue-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-800 placeholder:text-slate-500 outline-none" placeholder="Create a strong password" />
+                    </div>
+
+                    {msg.text && (
+                      <div className={`p-4 rounded-xl text-[13px] font-bold ${msg.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>{msg.text}</div>
+                    )}
+                    <button type="submit" disabled={loading} className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold py-4 rounded-xl transition-all mt-4 shadow-lg shadow-slate-900/20">
+                      {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Create Account'}
+                    </button>
+                  </form>
+                </motion.div>
+
+                {/* Customer Directory */}
+                <motion.div variants={itemVariants} className="xl:col-span-2 bg-white border border-slate-100 rounded-[2rem] p-8 shadow-sm">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                    <h3 className="text-xl font-black text-slate-900 tracking-tighter">Customer Directory</h3>
+                    <div className="flex items-center gap-2 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100 shadow-sm w-full md:w-auto">
+                      <Search className="w-4 h-4 text-slate-400" />
+                      <input type="text" placeholder="Search customers..." value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} className="bg-transparent text-sm font-bold outline-none placeholder:text-slate-500 w-full md:w-48" />
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                          <th className="py-4 px-4">USER</th>
+                          <th className="py-4 px-4">CONTACT</th>
+                          <th className="py-4 px-4">STATUS</th>
+                          <th className="py-4 px-4 text-right">EDIT</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredCustomers.map((customer, index) => {
+                          const isCustomerEnabled = customer.user?.enabled ?? customer.user?.active ?? customer.user?.isActive ?? true;
+                          return (
+                            <tr key={customer.id || customer.user?.id || `cust-key-${index}`} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors ${!isCustomerEnabled ? 'opacity-60' : ''}`}>
+                              <td className="py-4 px-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                                    {customer.firstName?.charAt(0)}{customer.lastName?.charAt(0) || ''}
+                                  </div>
+                                  <div className="flex flex-col">
