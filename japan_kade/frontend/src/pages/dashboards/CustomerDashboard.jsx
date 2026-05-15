@@ -202,3 +202,71 @@ const CustomerDashboard = () => {
             </div>
           </div>
         </div>
+
+        <div className="flex items-center gap-6 md:gap-10">
+          <div className="hidden lg:flex items-center gap-5 px-8 py-4 rounded-[2rem] bg-slate-50 border border-slate-100 group transition-all">
+            <div className="flex flex-col items-end">
+              <span className="text-lg font-black text-slate-900 tracking-tight leading-none">{user?.name || user?.username}</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3 text-amber-500" /> Verified Member
+              </span>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center font-black text-white text-xl shadow-lg ring-4 ring-white">
+              {user?.username?.[0].toUpperCase()}
+            </div>
+          </div>
+
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={logout}
+            className="flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all border border-slate-100 group shadow-sm"
+          >
+            <LogOut className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+          </motion.button>
+        </div>
+      </header>
+
+      {/* Content Space */}
+      <main className="flex-1 overflow-y-auto px-8 md:px-16 py-12 bg-white w-full">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="max-w-6xl mx-auto space-y-16"
+        >
+          {/* Section: Performance Metrics */}
+          <div className="flex flex-col md:flex-row gap-6">
+            <StatCapsule label="Active Purchases" value={activeJobsCount} icon={Activity} color="blue" />
+            <StatCapsule label="Ready for Pickup" value={paidJobsCount} icon={CheckCircle2} color="emerald" />
+          </div>
+
+          {/* Section: Operational Filters */}
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 relative group">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-200 group-focus-within:text-blue-500 transition-colors" />
+              <input 
+                type="text" 
+                placeholder="Search bill reference..." 
+                value={searchQuery} 
+                onChange={e => setSearchQuery(e.target.value)} 
+                className="w-full bg-slate-50 border border-slate-100 rounded-[2rem] pl-16 pr-8 py-5 text-base font-black tracking-tight focus:ring-8 focus:ring-blue-50/50 focus:bg-white transition-all outline-none placeholder:text-slate-500" 
+              />
+            </div>
+            
+            <div className="flex items-center gap-6 bg-slate-50 px-8 rounded-[2rem] border border-slate-100">
+              <Calendar className="w-6 h-6 text-slate-200" />
+              <input 
+                type="date" 
+                value={selectedDate} 
+                onChange={e => setSelectedDate(e.target.value)} 
+                className="bg-transparent py-5 text-sm font-black text-slate-600 outline-none cursor-pointer uppercase tracking-widest" 
+              />
+              {selectedDate && (
+                <button onClick={() => setSelectedDate('')} className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-2 hover:underline">Reset</button>
+              )}
+            </div>
+          </div>
+
+          {/* Section: Active Services (High Visibility) */}
+          {activeJobs.length > 0 && (
+            <div className="space-y-8">
