@@ -270,3 +270,70 @@ const CustomerDashboard = () => {
           {/* Section: Active Services (High Visibility) */}
           {activeJobs.length > 0 && (
             <div className="space-y-8">
+              <div className="flex items-center gap-4 px-2">
+                <div className="w-2 h-8 bg-blue-600 rounded-full" />
+                <h2 className="text-xs font-black text-blue-600 uppercase tracking-[0.4em]">Active Bills</h2>
+              </div>
+              <div className="space-y-4">
+                {activeJobs.map((job) => (
+                  <BillCard 
+                    key={job.id} 
+                    job={job} 
+                    isExpanded={expandedJobs.has(job.id)}
+                    onClick={() => toggleJob(job.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Section: Service History Archive */}
+          <div className="space-y-8">
+            <div className="flex items-center justify-between px-2">
+              <div className="flex items-center gap-4">
+                <div className="w-2 h-8 bg-slate-200 rounded-full" />
+                <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.4em]">Purchase History</h2>
+              </div>
+              <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{historyJobs.length} Records</span>
+            </div>
+            
+            <div className="pb-40">
+              {loading ? (
+                <div className="flex flex-col items-center py-40 gap-8">
+                  <div className="w-16 h-16 border-8 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-[11px] font-black text-slate-300 uppercase tracking-[0.6em]">Querying Archive</span>
+                </div>
+              ) : historyJobs.length === 0 && activeJobs.length === 0 ? (
+                <div className="py-24 text-center space-y-6">
+                  <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mx-auto">
+                    <Layers className="w-10 h-10 text-slate-100" />
+                  </div>
+                  <h3 className="text-lg font-black text-slate-900 uppercase tracking-widest">History Empty</h3>
+                  <p className="text-slate-400 text-xs font-bold px-12 leading-relaxed">No purchase records detected in your account.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {historyJobs.map((job) => (
+                    <BillCard 
+                      key={job.id} 
+                      job={job} 
+                      isExpanded={expandedJobs.has(job.id)}
+                      onClick={() => toggleJob(job.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      </main>
+
+      <style jsx global>{`
+        ::-webkit-scrollbar { width: 0px; }
+        body { background: white; -webkit-tap-highlight-color: transparent; }
+      `}</style>
+    </div>
+  );
+};
+
+export default CustomerDashboard;
