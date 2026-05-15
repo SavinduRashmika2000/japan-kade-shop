@@ -134,3 +134,71 @@ const BillCard = ({ job, isExpanded, onClick }) => {
       </AnimatePresence>
     </motion.div>
   );
+};
+
+const CustomerDashboard = () => {
+  const { user, logout } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [jobList, setJobList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedJobs, setExpandedJobs] = useState(new Set());
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      setLoading(true);
+      try {
+        const res = await jobCardService.getMyJobs();
+        setJobList(res.data || []);
+      } catch (error) {
+        console.error("Failed to fetch jobs", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJobs();
+  }, []);
+
+  const toggleJob = (id) => {
+    setExpandedJobs(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const filteredJobs = jobList.filter(job => {
+    const matchesSearch = job.vehicleNumber?.toLowerCase().includes(searchQuery.toLowerCase()) || job.id.toString().includes(searchQuery);
+    const jobDateStr = new Date(job.startTime || job.createdAt).toISOString().split('T')[0];
+    return matchesSearch && (!selectedDate || jobDateStr === selectedDate);
+  });
+
+  const activeJobs = filteredJobs.filter(j => j.status === 'WAITING');
+  const historyJobs = filteredJobs.filter(j => j.status === 'PAID' || j.status === 'CANCELLED');
+
+  const activeJobsCount = jobList.filter(j => j.status === 'WAITING').length;
+  const paidJobsCount = jobList.filter(j => j.status === 'PAID').length;
+
+  return (
+    <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+      
+      {/* Premium Header */}
+      <header className="h-24 md:h-28 flex items-center justify-between px-8 md:px-16 bg-white/95 backdrop-blur-3xl sticky top-0 z-50 border-b border-slate-50 shadow-sm">
+        <div className="flex items-center gap-6">
+          <motion.div 
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            className="w-14 h-14 md:w-16 md:h-16 rounded-[1.2rem] bg-slate-900 flex items-center justify-center shadow-xl shadow-slate-900/10"
+          >
+            <Car className="w-8 h-8 md:w-10 md:h-10 text-white" />
+          </motion.div>
+          <div className="flex flex-col">
+            <h1 className="font-black text-xl md:text-3xl tracking-tighter leading-none text-slate-900 uppercase">
+              MIND <span className="text-blue-600">SPARE PARTS</span>
+            </h1>
+            <div className="flex items-center gap-2 mt-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[9px] md:text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">Diamond Elite Portal</span>
+            </div>
+          </div>
+        </div>
