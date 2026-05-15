@@ -1522,3 +1522,383 @@ const StaffDashboard = () => {
                      <div className="space-y-6">
                        <section className="space-y-4">
                          <h5 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2">Billing</h5>
+                         <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                           <div className="space-y-4">
+                              <div className="relative mt-2" ref={partDropdownRef}>
+                                 <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm focus-within:border-emerald-600 transition-all">
+                                   <Search className="w-4 h-4 text-slate-400" />
+                                   <input type="text" placeholder="Search inventory..." value={partSearchQuery} 
+                                     onChange={e => setPartSearchQuery(e.target.value)}
+                                     onFocus={() => { if(!partSearchQuery) setPartSearchQuery(' '); }}
+                                     className="bg-transparent text-xs font-black text-slate-700 outline-none w-full" />
+                                   <button type="button" onClick={() => setPartSearchQuery(partSearchQuery.trim() === '' ? ' ' : '')} className="text-slate-400 hover:text-emerald-600"><ChevronDown className={`w-4 h-4 transition-transform ${partSearchQuery ? 'rotate-180' : ''}`} /></button>
+                                 </div>
+
+                                 {/* Part Suggestions */}
+                                 {partSearchQuery !== undefined && (partSearchQuery.length > 0 || partSearchQuery === ' ') && (
+                                   <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-48 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                                      {stockList
+                                        .filter(it => {
+                                          const q = partSearchQuery.toLowerCase().trim();
+                                          if (!q) return true;
+                                          return (it.name || '').toLowerCase().includes(q) || (it.partNumber || '').toLowerCase().includes(q);
+                                        })
+                                        .map(it => {
+                                          const isOutOfStock = it.quantity < 1 || it.fifoQuantity < 1;
+                                          return (
+                                            <button key={it.id} type="button"
+                                              onClick={() => {
+                                                if (isOutOfStock) return;
+                                                if (!addJobData.items.find(ji => ji.stockItemId === it.id)) {
+                                                   const newItem = { stockItemId: it.id, quantity: 1, priceAtTime: it.unitPrice, name: it.name };
+                                                   const newItems = [...addJobData.items, newItem];
+                                                   const newIdx = newItems.length - 1;
+                                                   setAddJobData({...addJobData, items: newItems});
+                                                   updateItemFifoPrice(newIdx, 1, 'add', newItems);
+                                                }
+                                                setPartSearchQuery("");
+                                              }}
+                                              disabled={isOutOfStock}
+                                              className={`w-full text-left px-4 py-3 rounded-lg flex justify-between items-center group transition-colors ${
+                                                isOutOfStock ? 'opacity-50 cursor-not-allowed bg-slate-50' : 'hover:bg-emerald-50 cursor-pointer'
+                                              }`}>
+                                              <div>
+                                                <p className={`text-xs font-black transition-colors ${isOutOfStock ? 'text-slate-400' : 'text-slate-700 group-hover:text-emerald-700'}`}>
+                                                  {it.name}
+                                                </p>
+                                                <p className={`text-[10px] font-bold uppercase tracking-tighter ${isOutOfStock ? 'text-slate-300' : 'text-slate-400'}`}>
+                                                  {it.partNumber} | {isOutOfStock ? 'OUT OF STOCK' : `${it.fifoQuantity} Avail.`}
+                                                </p>
+                                              </div>
+                                              {!isOutOfStock && <span className="text-xs font-black text-emerald-600">Rs. {it.unitPrice}</span>}
+                                            </button>
+                                          );
+                                        })}
+                                   </div>
+                                 )}
+                              </div>
+
+                              <div className="space-y-2">
+                                 <div className="flex items-center gap-2 mb-2 pt-2 border-t border-slate-100">
+                                   <Package className="w-4 h-4 text-emerald-600" />
+                                   <span className="text-xs font-black text-slate-900 uppercase">Inventory / Parts Used</span>
+                                 </div>
+                                 <div className="grid grid-cols-1 gap-2">
+                                    {addJobData.items.map((item, idx) => (
+                                      <div key={idx} className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+                                        <div className="flex items-center gap-2 p-2">
+                                          <span className="flex-1 text-[10px] font-bold text-slate-700 truncate">{item.name}</span>
+                                          <div className="flex items-center gap-1 bg-slate-50 rounded-lg px-1">
+                                            <button type="button" onClick={() => {
+                                              if (item.quantity > 1) updateItemFifoPrice(idx, item.quantity - 1, 'add');
+                                            }} className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-red-500"><Minus className="w-3 h-3" /></button>
+                                            <span className="text-[10px] font-black w-4 text-center">{item.quantity}</span>
+                                            <button type="button" onClick={() => {
+                                              const stockItem = stockList.find(s => s.id === item.stockItemId);
+                                              if (stockItem && item.quantity >= stockItem.quantity) {
+                                                setMsg({ type: 'error', text: `Insufficient stock! Only ${stockItem.quantity} available.` });
+                                                return;
+                                              }
+                                              updateItemFifoPrice(idx, item.quantity + 1, 'add');
+                                            }} className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-emerald-500"><Plus className="w-3 h-3" /></button>
+                                          </div>
+                                          <button type="button" onClick={() => {
+                                            setAddJobData({...addJobData, items: addJobData.items.filter((_, i) => i !== idx)});
+                                          }} className="w-6 h-6 text-slate-300 hover:text-red-500"><XCircle className="w-4 h-4" /></button>
+                                        </div>
+                                        {item.allocations && item.allocations.length > 1 && (
+                                          <div className="mx-2 mb-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 space-y-1">
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-amber-500 flex items-center gap-1">
+                                              <span>⚡</span> Price split across {item.allocations.length} stock batches
+                                            </p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                 </div>
+                              </div>
+                           </div>
+                         </div>
+
+                         <div className="bg-blue-600 p-6 rounded-2xl shadow-xl shadow-blue-600/20 text-white">
+                            <div className="flex justify-between items-center mb-4">
+                               <span className="text-xs font-black uppercase tracking-widest opacity-80">Total Bill</span>
+                               <span className="text-2xl font-black">Rs. {addJobData.items.reduce((acc, i) => acc + ((i.priceAtTime || 0) * (i.quantity || 1)), 0).toLocaleString()}</span>
+                            </div>
+                            <div className="text-[10px] font-bold uppercase tracking-widest opacity-60">
+                               <div className="flex justify-between"><span>Items Total:</span><span>Rs. {addJobData.items.reduce((acc, i) => acc + ((i.priceAtTime || 0) * (i.quantity || 1)), 0).toLocaleString()}</span></div>
+                            </div>
+                         </div>
+                       </section>
+                     </div>
+                   </form>
+                 </div>
+                 <div className="p-6 sm:p-8 bg-slate-50 border-t border-slate-100 flex gap-4 shrink-0">
+                   <button type="button" onClick={() => setShowAddJobModal(false)} className="flex-1 bg-white border border-slate-200 text-slate-500 font-black py-4 rounded-xl hover:bg-slate-100 transition-all">Cancel</button>
+                   <button type="submit" form="job-card-form" disabled={loading} className="flex-[2] sm:px-12 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-black py-4 rounded-xl shadow-2xl shadow-blue-600/20 transition-all flex items-center justify-center gap-3">
+                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><span>Assign New Work</span><ClipboardCheck className="w-5 h-5" /></>}
+                   </button>
+                 </div>
+               </motion.div>
+             </div>
+           )}
+           </AnimatePresence>
+    
+           <AnimatePresence>
+           {showEditJobModal && (
+             <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-0 sm:p-4">
+               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowEditJobModal(false)} />
+               <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 60 }}
+                 className="relative z-10 w-full sm:max-w-4xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl flex flex-col max-h-[95vh] overflow-hidden">
+                 
+                 <div className="bg-indigo-600 p-6 sm:p-8 flex items-center justify-between text-white shrink-0">
+                   <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-indigo-200 shadow-inner">
+                       <Pencil className="w-7 h-7" />
+                     </div>
+                     <div>
+                       <h3 className="text-xl font-black tracking-tight">Edit Job Card</h3>
+                       <p className="text-indigo-200 text-[10px] font-bold uppercase tracking-widest mt-0.5">Modify Work Details</p>
+                     </div>
+                   </div>
+                   <button onClick={() => setShowEditJobModal(false)} className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all">
+                     <XCircle className="w-6 h-6" />
+                   </button>
+                 </div>
+    
+                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8">
+                   <form id="edit-job-card-form" onSubmit={handleEditJob} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                     {/* Left Column: Core Info */}
+                     <div className="space-y-6">
+                       {updateMsg.text && (
+                         <div className={`p-4 rounded-xl text-xs font-black uppercase tracking-wider ${updateMsg.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>{updateMsg.text}</div>
+                       )}
+                       <section className="space-y-4">
+                         <h5 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2">Primary Details</h5>
+                         <div className="space-y-4">
+
+    
+                           <div className="relative">
+                             <label className="text-[10px] font-black uppercase text-slate-500 ml-1 mb-1.5 block">Select Customer</label>
+                             <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                                {editJobData.customerId ? (
+                                  <div className="bg-white border border-indigo-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
+                                     <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xs">
+                                          {customerList.find(c => c.id === editJobData.customerId)?.firstName?.[0]}
+                                        </div>
+                                        <div>
+                                           <p className="text-sm font-black text-slate-900">{customerList.find(c => c.id === editJobData.customerId)?.firstName} {customerList.find(c => c.id === editJobData.customerId)?.lastName}</p>
+                                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{customerList.find(c => c.id === editJobData.customerId)?.phone}</p>
+                                        </div>
+                                     </div>
+                                     <button type="button" onClick={() => { setEditJobData({...editJobData, customerId: ''}); setCustomerSearchQuery(''); }} className="text-[10px] font-black text-red-500 hover:underline uppercase tracking-widest">Change</button>
+                                  </div>
+                                ) : (
+                                  <div className="relative" ref={customerDropdownRef}>
+                                     <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm focus-within:border-indigo-600 transition-all">
+                                       <Search className="w-4 h-4 text-slate-400" />
+                                       <input type="text" placeholder="Search customer by name or phone..." value={customerSearchQuery} 
+                                         onChange={e => setCustomerSearchQuery(e.target.value)}
+                                         onFocus={() => { if(!customerSearchQuery) setCustomerSearchQuery(' '); }}
+                                         className="bg-transparent text-xs font-black text-slate-700 outline-none w-full" />
+                                       <button type="button" onClick={() => setCustomerSearchQuery(customerSearchQuery ? '' : ' ')} className="text-slate-400 hover:text-indigo-600"><ChevronDown className={`w-4 h-4 transition-transform ${customerSearchQuery ? 'rotate-180' : ''}`} /></button>
+                                     </div>
+    
+                                     {/* Customer Suggestions */}
+                                     {customerSearchQuery !== undefined && (customerSearchQuery.length > 0 || customerSearchQuery === ' ') && (
+                                       <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-48 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                                         {customerList
+                                           .filter(c => {
+                                             const isEnabled = c.user?.enabled ?? c.user?.active ?? c.user?.isActive ?? true;
+                                             return isEnabled === true;
+                                           })
+                                           .filter(c => {
+                                             const q = customerSearchQuery.toLowerCase().trim();
+                                             if (!q) return true;
+                                             return (c.firstName + ' ' + (c.lastName || '')).toLowerCase().includes(q) || 
+                                                    (c.phone || '').includes(q) || 
+                                                    (c.idNo || '').toLowerCase().includes(q);
+                                           })
+                                           .map(c => (
+                                             <button key={c.id} type="button" 
+                                               onClick={() => {
+                                                 setEditJobData({...editJobData, customerId: c.id});
+                                                 setCustomerSearchQuery("");
+                                               }}
+                                               className="w-full text-left px-4 py-3 rounded-lg hover:bg-indigo-50 transition-colors flex justify-between items-center group">
+                                               <div className="flex items-center gap-3">
+                                                 <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-all">{c.firstName[0]}</div>
+                                                 <div>
+                                                   <p className="text-xs font-black text-slate-700 group-hover:text-indigo-700 transition-colors">{c.firstName} {c.lastName}</p>
+                                                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{c.phone}</p>
+                                                 </div>
+                                               </div>
+                                             </button>
+                                           ))}
+                                       </div>
+                                     )}
+                                  </div>
+                                )}
+                             </div>
+                           </div>
+    
+                           <div className="relative">
+                             <label className="text-[10px] font-black uppercase text-slate-500 ml-1 mb-1.5 block">Job Status</label>
+                             <select value={editJobData.status} onChange={e => setEditJobData({...editJobData, status: e.target.value})}
+                               className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black text-slate-900 outline-none focus:border-indigo-600 transition-all cursor-pointer">
+                               <option value="WAITING">WAITING</option>
+                               <option value="PAID">PAID</option>
+                               <option value="CANCELLED">CANCELLED</option>
+                             </select>
+                           </div>
+                         </div>
+                       </section>
+    
+                       <section className="space-y-4">
+                         <h5 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2">Scheduling</h5>
+                         <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between">
+                           <div>
+                             <p className="text-[10px] font-black uppercase text-slate-500">Current Date</p>
+                             <p className="text-sm font-bold text-slate-900">{new Date().toLocaleDateString()}</p>
+                           </div>
+                           <div className="text-right">
+                             <p className="text-[10px] font-black uppercase text-slate-500">Current Time</p>
+                             <p className="text-sm font-bold text-slate-900">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                           </div>
+                         </div>
+                       </section>
+                     </div>
+    
+                     {/* Right Column: Items & Billing */}
+                     <div className="space-y-6">
+                       <section className="space-y-4">
+                         <h5 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2">Items & Billing</h5>
+                         <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                           
+                           <div className="space-y-4">
+                              <div className="relative mt-2" ref={partDropdownRef}>
+                                 <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm focus-within:border-indigo-600 transition-all">
+                                   <Search className="w-4 h-4 text-slate-400" />
+                                   <input type="text" placeholder="Search inventory..." value={partSearchQuery} 
+                                     onChange={e => setPartSearchQuery(e.target.value)}
+                                     onFocus={() => { if(!partSearchQuery) setPartSearchQuery(' '); }}
+                                     className="bg-transparent text-xs font-black text-slate-700 outline-none w-full" />
+                                   <button type="button" onClick={() => setPartSearchQuery(partSearchQuery ? '' : ' ')} className="text-slate-400 hover:text-indigo-600"><ChevronDown className={`w-4 h-4 transition-transform ${partSearchQuery ? 'rotate-180' : ''}`} /></button>
+                                 </div>
+
+                                 {/* Part Suggestions */}
+                                 {partSearchQuery !== undefined && (partSearchQuery.length > 0 || partSearchQuery === ' ') && (
+                                   <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-48 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                                     {stockList
+                                        .filter(it => {
+                                          const q = partSearchQuery.toLowerCase().trim();
+                                          if (!q) return true;
+                                          return (it.name || '').toLowerCase().includes(q) || (it.partNumber || '').toLowerCase().includes(q);
+                                        })
+                                        .map(it => {
+                                          const isOutOfStock = it.quantity < 1 || it.fifoQuantity < 1;
+                                          return (
+                                            <button key={it.id} type="button"
+                                              onClick={() => {
+                                                if (isOutOfStock) return;
+                                                if (!editJobData.items.find(ji => ji.stockItemId === it.id)) {
+                                                   setEditJobData({...editJobData, items: [...editJobData.items, { stockItemId: it.id, quantity: 1, priceAtTime: it.unitPrice, name: it.name }]});
+                                                }
+                                                setPartSearchQuery("");
+                                              }}
+                                              disabled={isOutOfStock}
+                                              className={`w-full text-left px-4 py-3 rounded-lg flex justify-between items-center group transition-colors ${
+                                                isOutOfStock ? 'opacity-50 cursor-not-allowed bg-slate-50' : 'hover:bg-indigo-50 cursor-pointer'
+                                              }`}>
+                                              <div>
+                                                <p className={`text-xs font-black transition-colors ${isOutOfStock ? 'text-slate-400' : 'text-slate-700 group-hover:text-indigo-700'}`}>
+                                                  {it.name}
+                                                </p>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                  <p className={`text-[9px] font-black uppercase tracking-tighter bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 ${isOutOfStock ? 'text-slate-300' : 'text-slate-400'}`}>
+                                                    {it.partNumber}
+                                                  </p>
+                                                  <p className={`text-[10px] font-black ${isOutOfStock ? 'text-red-400' : 'text-indigo-600'}`}>
+                                                    {isOutOfStock ? 'OUT OF STOCK' : `${it.fifoQuantity} Avail @ Rs. ${parseFloat(it.unitPrice || 0).toLocaleString()}`}
+                                                  </p>
+                                                </div>
+                                              </div>
+                                              {!isOutOfStock && <span className="text-xs font-black text-indigo-600">Rs. {it.unitPrice}</span>}
+                                            </button>
+                                          );
+                                        })}
+                                   </div>
+                                 )}
+                              </div>
+
+                              <div className="space-y-2">
+                                 <div className="flex items-center gap-2 mb-2 pt-2 border-t border-slate-100">
+                                   <Package className="w-4 h-4 text-emerald-600" />
+                                   <span className="text-xs font-black text-slate-900 uppercase">Inventory / Parts Used</span>
+                                 </div>
+                                 <div className="grid grid-cols-1 gap-2">
+                                    {editJobData.items.map((item, idx) => (
+                                      <div key={idx} className="flex items-center gap-2 bg-white p-2 rounded-xl border border-slate-100 shadow-sm">
+                                        <span className="flex-1 text-[10px] font-bold text-slate-700 truncate">{item.name}</span>
+                                        <div className="flex items-center gap-1 bg-slate-50 rounded-lg px-1">
+                                          <button type="button" onClick={() => {
+                                            const newItems = [...editJobData.items];
+                                            if (newItems[idx].quantity > 1) {
+                                              newItems[idx].quantity -= 1;
+                                              setEditJobData({...editJobData, items: newItems});
+                                            }
+                                          }} className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-red-500"><Minus className="w-3 h-3" /></button>
+                                          <span className="text-[10px] font-black w-4 text-center">{item.quantity}</span>
+                                          <button type="button" onClick={() => {
+                                            const stockItem = stockList.find(s => s.id === item.stockItemId);
+                                            if (stockItem && item.quantity >= stockItem.quantity) {
+                                              setMsg({ type: 'error', text: `Insufficient stock! Only ${stockItem.quantity} available.` });
+                                              return;
+                                            }
+                                            const newItems = [...editJobData.items];
+                                            newItems[idx].quantity += 1;
+                                            setEditJobData({...editJobData, items: newItems});
+                                          }} className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-emerald-500"><Plus className="w-3 h-3" /></button>
+                                        </div>
+                                        <button type="button" onClick={() => {
+                                          setEditJobData({...editJobData, items: editJobData.items.filter((_, i) => i !== idx)});
+                                        }} className="w-6 h-6 text-slate-300 hover:text-red-500"><XCircle className="w-4 h-4" /></button>
+                                      </div>
+                                    ))}
+                                 </div>
+                              </div>
+                           </div>
+                         </div>
+
+                         <div className="bg-indigo-600 p-6 rounded-2xl shadow-xl shadow-indigo-600/20 text-white">
+                            <div className="flex justify-between items-center mb-4">
+                               <span className="text-xs font-black uppercase tracking-widest opacity-80">Total Bill</span>
+                               <span className="text-2xl font-black">Rs. {editJobData.items.reduce((acc, i) => acc + ((i.priceAtTime || 0) * (i.quantity || 1)), 0).toLocaleString()}</span>
+                            </div>
+                            <div className="text-[10px] font-bold uppercase tracking-widest opacity-60">
+                               <div className="flex justify-between"><span>Items Total:</span><span>Rs. {editJobData.items.reduce((acc, i) => acc + ((i.priceAtTime || 0) * (i.quantity || 1)), 0).toLocaleString()}</span></div>
+                            </div>
+                         </div>
+                       </section>
+                     </div>
+                   </form>
+                 </div>
+    
+                 <div className="p-6 sm:p-8 bg-slate-50 border-t border-slate-100 flex gap-4 shrink-0">
+                   <button type="button" onClick={() => setShowEditJobModal(false)} className="flex-1 bg-white border border-slate-200 text-slate-500 font-black py-4 rounded-xl hover:bg-slate-100 transition-all">Cancel</button>
+                   <button type="submit" form="edit-job-card-form" disabled={loading} className="flex-[2] sm:px-12 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-black py-4 rounded-xl shadow-2xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-3">
+                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><span>Update Job Card</span><CheckCircle2 className="w-5 h-5" /></>}
+                   </button>
+                 </div>
+               </motion.div>
+             </div>
+           )}
+        </AnimatePresence>
+      </main>
+    </div>
+  );
+};
+
+export default StaffDashboard;
