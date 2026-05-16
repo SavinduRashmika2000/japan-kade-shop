@@ -23,3 +23,10 @@
 - **Logs**: Centralize logs using ELK (Elasticsearch, Logstash, Kibana) or Grafana Loki.
 
 ## 4. Soft Delete Management
+- Deleted records are preserved in the database with `is_deleted = true`.
+- To purge old records: Manually run `DELETE FROM job_cards WHERE is_deleted = true AND updated_at < DATE_SUB(NOW(), INTERVAL 1 YEAR)`.
+
+## 5. Security Maintenance
+- Regularly rotate `JWT_SECRET`.
+- Update dependencies monthly to patch vulnerabilities.
+- Ensure `/actuator/**` access is restricted to authorized personnel.
