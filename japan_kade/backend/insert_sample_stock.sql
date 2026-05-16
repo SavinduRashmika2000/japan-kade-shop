@@ -8,3 +8,6 @@ INSERT IGNORE INTO stock_items (name, part_number, quantity, unit_price, low_sto
 ('Spark Plug (Iridium)', 'SPK-IR-001', 120, 9.50, 40),
 ('Windshield Wiper Blades 22"', 'WIP-22-BLK', 30, 14.00, 15),
 ('Transmission Fluid (1L)', 'FLUID-TRANS-1L', 8, 18.75, 10),
+('Heavy Duty Car Battery', 'BATT-HD-12V', 2, 120.00, 5),
+('Halogen Headlight Bulb', 'BULB-HAL-H7', 0, 22.50, 10),
+('Engine Coolant/Antifreeze', 'COOL-ANTI-1G', 25, 16.00, 15);
