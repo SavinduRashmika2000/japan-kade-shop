@@ -15,3 +15,11 @@
 
 ## 3. Monitoring & Alerting
 - **Metrics**: Exposed via `/actuator/prometheus`.
+- **Dashboards**: Use Grafana with the standard Spring Boot dashboard template.
+- **Critical Alerts**:
+    - `RateLimitExceeded`: Monitor for brute force or DDoS attempts.
+    - `LockTimeoutException`: Monitor for high database contention.
+    - `OutOfStock`: Monitor for inventory shortages.
+- **Logs**: Centralize logs using ELK (Elasticsearch, Logstash, Kibana) or Grafana Loki.
+
+## 4. Soft Delete Management
