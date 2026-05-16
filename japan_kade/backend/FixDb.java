@@ -12,3 +12,8 @@ public class FixDb {
              Statement stmt = conn.createStatement()) {
             stmt.executeUpdate("ALTER TABLE job_cards MODIFY COLUMN status VARCHAR(20)");
             System.out.println("Successfully altered job_cards table.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
