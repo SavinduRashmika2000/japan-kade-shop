@@ -24,3 +24,16 @@ public class DataInitializer implements CommandLineRunner {
             admin.setUsername("admin");
             admin.setEmail("admin@autocare.com");
             admin.setPhone("0000000000");
+            admin.setName("System Admin");
+            admin.setPassword(encoder.encode("admin123"));
+            admin.setRole(RoleType.ROLE_ADMIN);
+            admin.setEnabled(true);
+            userRepository.save(admin);
+            System.out.println("Admin user created: admin / admin123");
+        } else {
+            System.out.println("Admin user already exists.");
+        }
+
+        if (!userRepository.existsByUsername("staff")) {
+            User staff = new User();
+            staff.setUsername("staff");
