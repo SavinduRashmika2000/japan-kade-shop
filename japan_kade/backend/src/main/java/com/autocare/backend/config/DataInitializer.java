@@ -10,3 +10,17 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder encoder;
+
+    @Override
+    public void run(String... args) throws Exception {
+        if (!userRepository.existsByUsername("admin")) {
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setEmail("admin@autocare.com");
+            admin.setPhone("0000000000");
