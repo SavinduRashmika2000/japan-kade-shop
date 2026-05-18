@@ -37,3 +37,14 @@ public class DataInitializer implements CommandLineRunner {
         if (!userRepository.existsByUsername("staff")) {
             User staff = new User();
             staff.setUsername("staff");
+            staff.setEmail("staff@autocare.com");
+            staff.setPhone("1111111111");
+            staff.setName("Demo Staff");
+            staff.setPassword(encoder.encode("staff123"));
+            staff.setRole(RoleType.ROLE_STAFF);
+            staff.setEnabled(true);
+            userRepository.save(staff);
+            System.out.println("Staff user created: staff / staff123");
+        }
+    }
+}
