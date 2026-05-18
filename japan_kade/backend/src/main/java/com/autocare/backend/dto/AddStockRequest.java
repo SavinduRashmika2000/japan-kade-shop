@@ -46,3 +46,18 @@ public class AddStockRequest {
     public void setExchangeRate(BigDecimal exchangeRate) { this.exchangeRate = exchangeRate; }
     public BigDecimal getFreightCost() { return freightCost; }
     public void setFreightCost(BigDecimal freightCost) { this.freightCost = freightCost; }
+    public BigDecimal getShippingCost() { return shippingCost; }
+    public void setShippingCost(BigDecimal shippingCost) { this.shippingCost = shippingCost; }
+    public BigDecimal getBankCharges() { return bankCharges; }
+    public void setBankCharges(BigDecimal bankCharges) { this.bankCharges = bankCharges; }
+    public BigDecimal getClearanceFees() { return clearanceFees; }
+    public void setClearanceFees(BigDecimal clearanceFees) { this.clearanceFees = clearanceFees; }
+    public BigDecimal getDutyFees() { return dutyFees; }
+    public void setDutyFees(BigDecimal dutyFees) { this.dutyFees = dutyFees; }
+    public BigDecimal getAdditionalExpenses() { return additionalExpenses; }
+    public void setAdditionalExpenses(BigDecimal additionalExpenses) { this.additionalExpenses = additionalExpenses; }
+    public BigDecimal getLandedCost() { return landedCost; }
+    public void setLandedCost(BigDecimal landedCost) { this.landedCost = landedCost; }
+    public BigDecimal getSellingPrice() { return sellingPrice; }
+    public void setSellingPrice(BigDecimal sellingPrice) { this.sellingPrice = sellingPrice; }
+}
