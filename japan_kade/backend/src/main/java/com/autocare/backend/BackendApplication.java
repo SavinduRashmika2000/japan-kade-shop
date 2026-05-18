@@ -55,3 +55,21 @@ public class BackendApplication {
 				log2.setDetails("Status: PROCESSING | Total: Rs. 0.00\nServices: Oil Change (Rs.8500), Full Body Wash (Rs.2500), \nItems: Engine Oil 10W-40 (x1), Oil Filter (x1), ");
 				log2.setPerformedBy("ADMIN");
 				log2.setTimestamp(LocalDateTime.now().minusHours(2));
+
+				JobLog log3 = new JobLog();
+				log3.setJobId(1001L);
+				log3.setVehicleNumber("CBA-4567");
+				log3.setCustomerName("Kamal Perera");
+				log3.setAction("JOB_UPSERT");
+				log3.setDetails("Status: PAID | Total: Rs. 11000.00\nServices: Oil Change (Rs.8500), Full Body Wash (Rs.2500), \nItems: Engine Oil 10W-40 (x1), Oil Filter (x1), ");
+				log3.setPerformedBy("ADMIN");
+				log3.setTimestamp(LocalDateTime.now().minusHours(1));
+
+				JobLog log4 = new JobLog();
+				log4.setJobId(1002L);
+				log4.setVehicleNumber("WP-KA-1234");
+				log4.setCustomerName("Nimal Silva");
+				log4.setAction("JOB_UPSERT");
+				log4.setDetails("Status: WAITING | Total: Rs. 4500.00\nServices: Wheel Alignment (Rs.4500), \nItems: ");
+				log4.setPerformedBy("ADMIN");
+				log4.setTimestamp(LocalDateTime.now().minusMinutes(45));
