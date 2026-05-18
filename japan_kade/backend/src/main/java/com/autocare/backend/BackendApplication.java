@@ -73,3 +73,21 @@ public class BackendApplication {
 				log4.setDetails("Status: WAITING | Total: Rs. 4500.00\nServices: Wheel Alignment (Rs.4500), \nItems: ");
 				log4.setPerformedBy("ADMIN");
 				log4.setTimestamp(LocalDateTime.now().minusMinutes(45));
+
+				JobLog log5 = new JobLog();
+				log5.setJobId(1003L);
+				log5.setVehicleNumber("SGF-8800");
+				log5.setCustomerName("Saman Fernando");
+				log5.setAction("JOB_UPSERT");
+				log5.setDetails("Status: PROCESSING | Total: Rs. 15500.00\nServices: Full Service (Rs.12000), AC Service (Rs.3500), \nItems: Air Filter (x1), Spark Plugs (x4), ");
+				log5.setPerformedBy("ADMIN");
+				log5.setTimestamp(LocalDateTime.now().minusMinutes(20));
+
+				jobLogRepository.saveAll(java.util.List.of(log1, log2, log3, log4, log5));
+				System.out.println("Sample job logs seeded successfully.");
+			} else {
+				System.out.println("Job logs already present, skipping seed.");
+			}
+		};
+	}
+}
