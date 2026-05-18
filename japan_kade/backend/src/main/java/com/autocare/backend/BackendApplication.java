@@ -36,3 +36,22 @@ public class BackendApplication {
 	public org.springframework.boot.CommandLineRunner seedJobLogs(JobLogRepository jobLogRepository) {
 		return args -> {
 			if (jobLogRepository.count() == 0) {
+				System.out.println("Seeding sample job logs...");
+
+				JobLog log1 = new JobLog();
+				log1.setJobId(1001L);
+				log1.setVehicleNumber("CBA-4567");
+				log1.setCustomerName("Kamal Perera");
+				log1.setAction("JOB_UPSERT");
+				log1.setDetails("Status: WAITING | Total: Rs. 0.00\nServices: \nItems: ");
+				log1.setPerformedBy("ADMIN");
+				log1.setTimestamp(LocalDateTime.now().minusHours(3));
+
+				JobLog log2 = new JobLog();
+				log2.setJobId(1001L);
+				log2.setVehicleNumber("CBA-4567");
+				log2.setCustomerName("Kamal Perera");
+				log2.setAction("JOB_UPSERT");
+				log2.setDetails("Status: PROCESSING | Total: Rs. 0.00\nServices: Oil Change (Rs.8500), Full Body Wash (Rs.2500), \nItems: Engine Oil 10W-40 (x1), Oil Filter (x1), ");
+				log2.setPerformedBy("ADMIN");
+				log2.setTimestamp(LocalDateTime.now().minusHours(2));
