@@ -63,4 +63,37 @@ public class DashboardStatsDTO {
     public void setEstimatedFutureProfit(BigDecimal val) { this.estimatedFutureProfit = val; }
     public BigDecimal getMonthlyRevenue() { return monthlyRevenue; }
     public void setMonthlyRevenue(BigDecimal val) { this.monthlyRevenue = val; }
-    public BigDecimal getMonthlyInventoryProfit() { return monthlyInventoryProfit; }
+    public BigDecimal getMonthlyInventoryProfit() { return monthlyInventoryProfit; }
+    public void setMonthlyInventoryProfit(BigDecimal val) { this.monthlyInventoryProfit = val; }
+    
+    public BigDecimal getTotalFreightCost() { return totalFreightCost; }
+    public void setTotalFreightCost(BigDecimal val) { this.totalFreightCost = val; }
+    public BigDecimal getTotalShippingCost() { return totalShippingCost; }
+    public void setTotalShippingCost(BigDecimal val) { this.totalShippingCost = val; }
+    public BigDecimal getTotalBankCharges() { return totalBankCharges; }
+    public void setTotalBankCharges(BigDecimal val) { this.totalBankCharges = val; }
+    public BigDecimal getTotalClearanceFees() { return totalClearanceFees; }
+    public void setTotalClearanceFees(BigDecimal val) { this.totalClearanceFees = val; }
+    public BigDecimal getTotalDutyFees() { return totalDutyFees; }
+    public void setTotalDutyFees(BigDecimal val) { this.totalDutyFees = val; }
+    public BigDecimal getTotalAdditionalExpenses() { return totalAdditionalExpenses; }
+    public void setTotalAdditionalExpenses(BigDecimal val) { this.totalAdditionalExpenses = val; }
+
+    public long getLowStockCount() { return lowStockCount; }
+    public void setLowStockCount(long lowStockCount) { this.lowStockCount = lowStockCount; }
+    public long getOutOfStockCount() { return outOfStockCount; }
+    public void setOutOfStockCount(long outOfStockCount) { this.outOfStockCount = outOfStockCount; }
+
+    public List<TopCustomerDTO> getTopCustomers() { return topCustomers; }
+    public void setTopCustomers(List<TopCustomerDTO> topCustomers) { this.topCustomers = topCustomers; }
+    public List<TopItemDTO> getTopItems() { return topItems; }
+    public void setTopItems(List<TopItemDTO> topItems) { this.topItems = topItems; }
+    public List<TopServiceDTO> getTopServices() { return topServices; }
+    public void setTopServices(List<TopServiceDTO> topServices) { this.topServices = topServices; }
+    public List<ChartDataDTO> getChartData() { return chartData; }
+    public void setChartData(List<ChartDataDTO> chartData) { this.chartData = chartData; }
+    public List<RecentActivityDTO> getRecentActivity() { return recentActivity; }
+    public void setRecentActivity(List<RecentActivityDTO> recentActivity) { this.recentActivity = recentActivity; }
+
+    @Data
+    public static class ChartDataDTO {
