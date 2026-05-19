@@ -129,4 +129,36 @@ public class DashboardStatsDTO {
         public void setName(String name) { this.name = name; }
         public long getCount() { return count; }
         public void setCount(long count) { this.count = count; }
-    }
+    }
+
+    @Data
+    public static class TopCustomerDTO {
+        private String name;
+        private BigDecimal total;
+        private long jobs;
+
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public BigDecimal getTotal() { return total; }
+        public void setTotal(BigDecimal total) { this.total = total; }
+        public long getJobs() { return jobs; }
+        public void setJobs(long jobs) { this.jobs = jobs; }
+    }
+
+    @Data
+    public static class RecentActivityDTO {
+        private Long id;
+        private String vehicleNumber;
+        private String customerName;
+        private String status;
+
+        public Long getId() { return id; }
+        public void setId(Long id) { this.id = id; }
+        public String getVehicleNumber() { return vehicleNumber; }
+        public void setVehicleNumber(String vehicleNumber) { this.vehicleNumber = vehicleNumber; }
+        public String getCustomerName() { return customerName; }
+        public void setCustomerName(String customerName) { this.customerName = customerName; }
+        public String getStatus() { return status; }
+        public void setStatus(String status) { this.status = status; }
+    }
+}
