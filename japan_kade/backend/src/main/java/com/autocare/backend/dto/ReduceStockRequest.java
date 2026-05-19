@@ -12,3 +12,9 @@ public class ReduceStockRequest {
 
     @NotNull(message = "Reason is required")
     private String reason;
+
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public String getReason() { return reason; }
+    public void setReason(String reason) { this.reason = reason; }
+}
