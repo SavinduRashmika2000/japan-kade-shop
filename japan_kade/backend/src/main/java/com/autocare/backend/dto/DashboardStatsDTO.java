@@ -96,4 +96,37 @@ public class DashboardStatsDTO {
     public void setRecentActivity(List<RecentActivityDTO> recentActivity) { this.recentActivity = recentActivity; }
 
     @Data
-    public static class ChartDataDTO {
+    public static class ChartDataDTO {
+        private String date;
+        private BigDecimal revenue;
+        private long jobs;
+
+        public String getDate() { return date; }
+        public void setDate(String date) { this.date = date; }
+        public BigDecimal getRevenue() { return revenue; }
+        public void setRevenue(BigDecimal revenue) { this.revenue = revenue; }
+        public long getJobs() { return jobs; }
+        public void setJobs(long jobs) { this.jobs = jobs; }
+    }
+
+    @Data
+    public static class TopItemDTO {
+        private String name;
+        private long qty;
+
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public long getQty() { return qty; }
+        public void setQty(long qty) { this.qty = qty; }
+    }
+
+    @Data
+    public static class TopServiceDTO {
+        private String name;
+        private long count;
+
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public long getCount() { return count; }
+        public void setCount(long count) { this.count = count; }
+    }
