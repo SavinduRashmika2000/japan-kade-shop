@@ -47,3 +47,18 @@ public class SignupRequest {
 
     public String getIdNo() { return idNo; }
     public void setIdNo(String idNo) { this.idNo = idNo; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+}
