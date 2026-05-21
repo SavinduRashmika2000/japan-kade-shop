@@ -17,3 +17,24 @@ import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler({PessimisticLockException.class, LockTimeoutException.class, CannotAcquireLockException.class, StockLockException.class})
+    public ResponseEntity<?> handleLockExceptions(Exception ex) {
+        log.warn("Lock timeout or acquisition failure occurred: {}", ex.getMessage());
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Stock is currently being used by another operation. Please retry.");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<?> handleInsufficientStock(InsufficientStockException ex) {
+        log.warn("Insufficient stock: {}", ex.getMessage());
+        Map<String, String> response = new HashMap<>();
+        response.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(InvalidJobStateException.class)
+    public ResponseEntity<?> handleInvalidJobState(InvalidJobStateException ex) {
