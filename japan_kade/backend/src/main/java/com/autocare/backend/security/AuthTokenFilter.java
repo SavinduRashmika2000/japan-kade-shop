@@ -34,3 +34,21 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 String username = jwtUtils.getUserNameFromJwtToken(jwt);
 
                 UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsService.loadUserByUsername(username);
+                
+                // Single session check: token must match the one stored in DB (if stored)
+                boolean isTokenValid = userDetails.getCurrentToken() == null || jwt.equals(userDetails.getCurrentToken());
+                
+                if (isTokenValid && userDetails.isEnabled()) {
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    logger.warn("Authentication failed: Token mismatch or account disabled for user {}", username);
+                }
+
+            }
