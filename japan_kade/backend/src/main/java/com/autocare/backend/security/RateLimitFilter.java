@@ -29,3 +29,19 @@ public class RateLimitFilter extends OncePerRequestFilter {
         Bandwidth limit = Bandwidth.classic(100, Refill.greedy(100, Duration.ofMinutes(1)));
         return Bucket4j.builder().addLimit(limit).build();
     }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        
+        String path = request.getRequestURI();
+        
+        // Apply ONLY to critical external user-facing endpoints
+        if (path.startsWith("/api/job-cards") || path.startsWith("/api/stock")) {
+            try {
+                String ip = request.getRemoteAddr();
+                Bucket bucket = buckets.computeIfAbsent(ip, k -> createNewBucket());
+
+                if (bucket.tryConsume(1)) {
+                    filterChain.doFilter(request, response);
+                } else {
