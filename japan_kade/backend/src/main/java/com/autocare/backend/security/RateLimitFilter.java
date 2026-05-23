@@ -45,3 +45,17 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 if (bucket.tryConsume(1)) {
                     filterChain.doFilter(request, response);
                 } else {
+                    log.warn("Rate limit exceeded for IP: {} on path: {}", ip, path);
+                    response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+                    response.getWriter().write("Too many requests. Please wait a minute.");
+                }
+            } catch (Exception e) {
+                // FAIL-OPEN: If rate limiter fails, allow the request
+                log.error("Rate limiter failure - allowing request (FAIL-OPEN)", e);
+                filterChain.doFilter(request, response);
+            }
+        } else {
+            filterChain.doFilter(request, response);
+        }
+    }
+}
