@@ -13,3 +13,17 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          
+          <Route 
+            path="/admin/*" 
+            element={
+              <ProtectedRoute roles={['ROLE_ADMIN']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          
