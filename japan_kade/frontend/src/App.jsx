@@ -27,3 +27,17 @@ function App() {
             } 
           />
           
+          <Route 
+            path="/staff/*" 
+            element={
+              <ProtectedRoute roles={['ROLE_STAFF']}>
+                <StaffDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/customer/*" 
+            element={
+              <ProtectedRoute roles={['ROLE_CUSTOMER']}>
+                <CustomerDashboard />
