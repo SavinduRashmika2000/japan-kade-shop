@@ -41,3 +41,16 @@ function App() {
             element={
               <ProtectedRoute roles={['ROLE_CUSTOMER']}>
                 <CustomerDashboard />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
+}
+
+export default App;
+
+
+
