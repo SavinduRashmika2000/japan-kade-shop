@@ -35,3 +35,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   const resetPassword = async (phone, idNo, newPassword) => {
+    return await authService.resetPassword(phone, idNo, newPassword);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout, signup, verifyRecovery, resetPassword, loading }}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);
