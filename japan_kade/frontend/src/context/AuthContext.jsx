@@ -23,3 +23,15 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     authService.logout();
+    setUser(null);
+  };
+
+  const signup = async (userData) => {
+    return await authService.signup(userData);
+  };
+
+  const verifyRecovery = async (phone, idNo) => {
+    return await authService.verifyRecovery(phone, idNo);
+  };
+
+  const resetPassword = async (phone, idNo, newPassword) => {
