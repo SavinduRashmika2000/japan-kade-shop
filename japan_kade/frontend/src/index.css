@@ -70,3 +70,19 @@ body {
   border-radius: 0.5rem;
   transition: all 0.2s;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-outline:hover {
+  background-color: #f3f4f6;
+}
+
+.dark .btn-outline {
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+.dark .btn-outline:hover {
+  background-color: #1f2937;
+}
