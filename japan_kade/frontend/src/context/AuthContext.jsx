@@ -11,3 +11,15 @@ export const AuthProvider = ({ children }) => {
     const savedUser = authService.getCurrentUser();
     if (savedUser) {
       setUser(savedUser);
+    }
+    setLoading(false);
+  }, []);
+
+  const login = async (identifier, password) => {
+    const data = await authService.login(identifier, password);
+    setUser(data);
+    return data;
+  };
+
+  const logout = () => {
+    authService.logout();
