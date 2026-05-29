@@ -15,4 +15,11 @@ const getAllCategories = async () => {
 
 const createCategory = async (categoryData) => {
   return axios.post(API_URL, categoryData, { headers: getAuthHeader() });
-};
+};
+
+const categoryService = {
+  getAllCategories,
+  createCategory
+};
+
+export default categoryService;
