@@ -32,3 +32,14 @@ const verifyRecovery = (phone, idNo) => {
 const resetPassword = (phone, idNo, newPassword) => {
   return axios.post(API_URL + '/reset-password/change', { phone, idNo, newPassword });
 };
+
+const authService = {
+  login,
+  signup,
+  logout,
+  getCurrentUser,
+  verifyRecovery,
+  resetPassword,
+};
+
+export default authService;
