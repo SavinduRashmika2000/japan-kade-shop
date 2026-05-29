@@ -20,3 +20,15 @@ const signup = async (userData) => {
 const logout = () => {
   localStorage.removeItem('user');
 };
+
+const getCurrentUser = () => {
+  return JSON.parse(localStorage.getItem('user'));
+};
+
+const verifyRecovery = (phone, idNo) => {
+  return axios.post(API_URL + '/reset-password/verify', { phone, idNo });
+};
+
+const resetPassword = (phone, idNo, newPassword) => {
+  return axios.post(API_URL + '/reset-password/change', { phone, idNo, newPassword });
+};
