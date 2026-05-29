@@ -18,3 +18,12 @@ const getAllCustomers = () => {
 };
 
 const updateCustomer = (id, customerData) => {
+  return axios.put(`${API_URL}/${id}`, customerData, { headers: authHeader() });
+};
+
+const customerService = {
+  getAllCustomers,
+  updateCustomer,
+};
+
+export default customerService;
