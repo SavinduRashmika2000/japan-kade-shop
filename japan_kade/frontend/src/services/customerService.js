@@ -8,3 +8,13 @@ const authHeader = () => {
   const user = authService.getCurrentUser();
   if (user && user.token) {
     return { Authorization: 'Bearer ' + user.token };
+  } else {
+    return {};
+  }
+};
+
+const getAllCustomers = () => {
+  return axios.get(API_URL, { headers: authHeader() });
+};
+
+const updateCustomer = (id, customerData) => {
