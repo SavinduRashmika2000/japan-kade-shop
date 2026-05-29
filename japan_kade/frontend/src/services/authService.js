@@ -10,3 +10,13 @@ const login = async (identifier, password) => {
   if (response.data.token) {
     localStorage.setItem('user', JSON.stringify(response.data));
   }
+  return response.data;
+};
+
+const signup = async (userData) => {
+  return axios.post(API_URL + '/signup', userData);
+};
+
+const logout = () => {
+  localStorage.removeItem('user');
+};
