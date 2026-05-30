@@ -12,3 +12,9 @@ const getAuthHeader = () => {
 const getAllLogs = () => {
     return axios.get(API_URL, { headers: getAuthHeader() });
 };
+
+const jobLogService = {
+    getAllLogs
+};
+
+export default jobLogService;
