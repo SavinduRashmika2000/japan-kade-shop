@@ -12,3 +12,9 @@ const getAuthHeader = () => {
 const getStats = () => {
   return axios.get(`${API_URL}/stats`, { headers: getAuthHeader() });
 };
+
+const dashboardService = {
+  getStats
+};
+
+export default dashboardService;
