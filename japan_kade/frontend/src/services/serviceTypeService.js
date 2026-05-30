@@ -10,3 +10,15 @@ const getAuthHeader = () => {
     const token = user.token || user.accessToken;
     if (!token) return {};
     return { Authorization: `Bearer ${token}` };
+  } catch (e) {
+    return {};
+  }
+};
+
+const getAllServiceTypes = async () => {
+  return axios.get(API_URL, { headers: getAuthHeader() });
+};
+
+const getServiceTypeById = async (id) => {
+  return axios.get(`${API_URL}/${id}`, { headers: getAuthHeader() });
+};
