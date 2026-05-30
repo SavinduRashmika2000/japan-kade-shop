@@ -24,3 +24,18 @@ const getJobById = (id) => {
 const createJob = (jobData) => {
     return axios.post(API_URL, jobData, { headers: getAuthHeader() });
 };
+
+const updateJobStatus = (id, status) => {
+    return axios.put(`${API_URL}/${id}/status`, null, { 
+        params: { status },
+        headers: getAuthHeader() 
+    });
+};
+
+const updateJob = (id, jobData) => {
+    return axios.put(`${API_URL}/${id}`, jobData, { headers: getAuthHeader() });
+};
+
+const deleteJob = (id) => {
+    return axios.delete(`${API_URL}/${id}`, { headers: getAuthHeader() });
+};
