@@ -39,3 +39,15 @@ const updateJob = (id, jobData) => {
 const deleteJob = (id) => {
     return axios.delete(`${API_URL}/${id}`, { headers: getAuthHeader() });
 };
+
+const jobCardService = {
+    getAllJobs,
+    getMyJobs,
+    getJobById,
+    createJob,
+    updateJobStatus,
+    updateJob,
+    deleteJob
+};
+
+export default jobCardService;
