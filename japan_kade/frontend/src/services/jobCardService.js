@@ -12,3 +12,15 @@ const getAuthHeader = () => {
 const getAllJobs = () => {
     return axios.get(API_URL, { headers: getAuthHeader() });
 };
+
+const getMyJobs = () => {
+    return axios.get(`${API_URL}/my-jobs`, { headers: getAuthHeader() });
+};
+
+const getJobById = (id) => {
+    return axios.get(`${API_URL}/${id}`, { headers: getAuthHeader() });
+};
+
+const createJob = (jobData) => {
+    return axios.post(API_URL, jobData, { headers: getAuthHeader() });
+};
