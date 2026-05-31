@@ -58,3 +58,21 @@ const deleteAllStock = async () => {
 
 const getInventoryAnalytics = async () => {
   return axios.get(`${API_URL}/analytics`, { headers: getAuthHeader() });
+};
+
+const stockService = {
+  getAllStockItems,
+  getStockItemById,
+  createStockItem,
+  updateStockItem,
+  deleteStockItem,
+  deleteAllStock,
+  addStock,
+  reduceStock,
+  previewFifoCost,
+  getAllTransactions,
+  getBatches,
+  getInventoryAnalytics
+};
+
+export default stockService;
