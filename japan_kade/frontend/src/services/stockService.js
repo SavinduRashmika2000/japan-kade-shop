@@ -38,3 +38,23 @@ const getAllTransactions = async () => {
 };
 
 const reduceStock = async (id, payload) => {
+  return axios.post(`${API_URL}/${id}/reduce-stock`, payload, { headers: getAuthHeader() });
+};
+
+const previewFifoCost = async (id, quantity) => {
+  return axios.get(`${API_URL}/${id}/preview-fifo-cost`, { 
+    params: { quantity },
+    headers: getAuthHeader() 
+  });
+};
+
+const getBatches = async (id) => {
+  return axios.get(`${API_URL}/${id}/batches`, { headers: getAuthHeader() });
+};
+
+const deleteAllStock = async () => {
+  return axios.delete(`${API_URL}/all`, { headers: getAuthHeader() });
+};
+
+const getInventoryAnalytics = async () => {
+  return axios.get(`${API_URL}/analytics`, { headers: getAuthHeader() });
