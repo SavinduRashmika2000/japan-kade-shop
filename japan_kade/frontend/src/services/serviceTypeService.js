@@ -34,3 +34,13 @@ const updateServiceType = async (id, data) => {
 const deleteServiceType = async (id) => {
   return axios.delete(`${API_URL}/${id}`, { headers: getAuthHeader() });
 };
+
+const serviceTypeService = {
+  getAllServiceTypes,
+  getServiceTypeById,
+  createServiceType,
+  updateServiceType,
+  deleteServiceType
+};
+
+export default serviceTypeService;
