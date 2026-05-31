@@ -22,3 +22,15 @@ const getAllServiceTypes = async () => {
 const getServiceTypeById = async (id) => {
   return axios.get(`${API_URL}/${id}`, { headers: getAuthHeader() });
 };
+
+const createServiceType = async (data) => {
+  return axios.post(API_URL, data, { headers: getAuthHeader() });
+};
+
+const updateServiceType = async (id, data) => {
+  return axios.put(`${API_URL}/${id}`, data, { headers: getAuthHeader() });
+};
+
+const deleteServiceType = async (id) => {
+  return axios.delete(`${API_URL}/${id}`, { headers: getAuthHeader() });
+};
