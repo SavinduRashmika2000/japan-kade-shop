@@ -18,3 +18,23 @@ const getStockItemById = async (id) => {
 };
 
 const createStockItem = async (stockData) => {
+  return axios.post(API_URL, stockData, { headers: getAuthHeader() });
+};
+
+const updateStockItem = async (id, stockData) => {
+  return axios.put(`${API_URL}/${id}`, stockData, { headers: getAuthHeader() });
+};
+
+const deleteStockItem = async (id) => {
+  return axios.delete(`${API_URL}/${id}`, { headers: getAuthHeader() });
+};
+
+const addStock = async (id, payload) => {
+  return axios.post(`${API_URL}/${id}/add-stock`, payload, { headers: getAuthHeader() });
+};
+
+const getAllTransactions = async () => {
+  return axios.get(`${API_URL}/transactions`, { headers: getAuthHeader() });
+};
+
+const reduceStock = async (id, payload) => {
