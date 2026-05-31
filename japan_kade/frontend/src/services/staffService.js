@@ -19,3 +19,13 @@ const toggleStaffStatus = async (id, enabled) => {
   return axios.patch(`${API_URL}users/${id}/status`, null, { 
     params: { enabled },
     headers: getAuthHeader() 
+  });
+};
+
+const getAllStaff = async () => {
+  return axios.get(API_URL + 'staff', { headers: getAuthHeader() });
+};
+
+const updateStaff = async (id, staffData) => {
+  return axios.put(`${API_URL}staff/${id}`, staffData, { headers: getAuthHeader() });
+};
