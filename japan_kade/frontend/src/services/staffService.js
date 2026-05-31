@@ -29,3 +29,12 @@ const getAllStaff = async () => {
 const updateStaff = async (id, staffData) => {
   return axios.put(`${API_URL}staff/${id}`, staffData, { headers: getAuthHeader() });
 };
+
+const staffService = {
+  createStaff,
+  toggleStaffStatus,
+  getAllStaff,
+  updateStaff,
+};
+
+export default staffService;
