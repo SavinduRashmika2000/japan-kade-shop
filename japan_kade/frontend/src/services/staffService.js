@@ -9,3 +9,13 @@ const getAuthHeader = () => {
   } else {
     return {};
   }
+};
+
+const createStaff = async (staffData) => {
+  return axios.post(API_URL + 'staff', staffData, { headers: getAuthHeader() });
+};
+
+const toggleStaffStatus = async (id, enabled) => {
+  return axios.patch(`${API_URL}users/${id}/status`, null, { 
+    params: { enabled },
+    headers: getAuthHeader() 
