@@ -28,3 +28,11 @@ const updateSupplier = (id, supplierData) => {
 const deleteSupplier = (id) => {
     return axios.delete(`${API_URL}/${id}`, { headers: getAuthHeader() });
 };
+
+export default {
+    getAllSuppliers,
+    getSupplierById,
+    createSupplier,
+    updateSupplier,
+    deleteSupplier
+};
