@@ -18,3 +18,13 @@ const getSupplierById = (id) => {
 };
 
 const createSupplier = (supplierData) => {
+    return axios.post(API_URL, supplierData, { headers: getAuthHeader() });
+};
+
+const updateSupplier = (id, supplierData) => {
+    return axios.put(`${API_URL}/${id}`, supplierData, { headers: getAuthHeader() });
+};
+
+const deleteSupplier = (id) => {
+    return axios.delete(`${API_URL}/${id}`, { headers: getAuthHeader() });
+};
