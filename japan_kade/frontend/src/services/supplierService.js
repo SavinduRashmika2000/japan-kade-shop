@@ -8,3 +8,13 @@ const getAuthHeader = () => {
     const user = JSON.parse(userStr);
     return { Authorization: `Bearer ${user.token || user.accessToken}` };
 };
+
+const getAllSuppliers = () => {
+    return axios.get(API_URL, { headers: getAuthHeader() });
+};
+
+const getSupplierById = (id) => {
+    return axios.get(`${API_URL}/${id}`, { headers: getAuthHeader() });
+};
+
+const createSupplier = (supplierData) => {
