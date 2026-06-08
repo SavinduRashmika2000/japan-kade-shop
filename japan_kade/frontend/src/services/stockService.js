@@ -104,6 +104,16 @@ const getInventoryAnalytics = async () => {
   return axios.get(`${API_URL}/analytics`, { headers: getAuthHeader(), timeout: TIMEOUT });
 };
 
+/** Fetch all items that are low in stock */
+const getLowStockItems = async () => {
+  return axios.get(`${API_URL}/low-stock`, { headers: getAuthHeader(), timeout: TIMEOUT });
+};
+
+/** Fetch all items that are completely out of stock */
+const getOutOfStockItems = async () => {
+  return axios.get(`${API_URL}/out-of-stock`, { headers: getAuthHeader(), timeout: TIMEOUT });
+};
+
 const stockService = {
   getAllStockItems,
   syncAllStock,
@@ -118,7 +128,9 @@ const stockService = {
   previewFifoCost,
   getAllTransactions,
   getBatches,
-  getInventoryAnalytics
+  getInventoryAnalytics,
+  getLowStockItems,
+  getOutOfStockItems
 };
 
 export default stockService;
