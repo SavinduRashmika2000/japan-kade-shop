@@ -3523,7 +3523,7 @@ const AdminDashboard = () => {
                   </div>
 
                   <div className="bg-white border border-slate-100 rounded-[2.5rem] overflow-hidden shadow-sm">
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto hidden md:block">
                       <table className="w-full text-left">
                         <colgroup>
                           <col style={{width: '130px'}} />
@@ -3653,7 +3653,123 @@ const AdminDashboard = () => {
                         </tbody>
                       </table>
                     </div>
-                    {renderPagination(filteredTransactions.length, txPage, setTxPage)}
+
+                    <div className="block md:hidden p-4 space-y-4 bg-slate-50/30">
+                       {paginatedTransactions.map((tx) => {
+                         const linkedJob = tx.jobId ? jobList.find(j => j.id == tx.jobId) : null;
+                         const jobStatus = linkedJob?.status || null;
+                         const isCancelled = jobStatus === 'CANCELLED';
+                         return (
+                           <div key={tx.id} className={`p-4 space-y-3 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-all ${
+                             isCancelled ? 'bg-red-50/40 border-l-4 border-l-red-400' : 
+                             tx.isGroup ? 'bg-blue-50/20' : ''
+                           }`}>
+                             <div className="flex justify-between items-start gap-2">
+                               <div>
+                                 <p className={`text-xs font-black leading-tight ${isCancelled ? 'text-red-400' : 'text-slate-900'}`}>{new Date(tx.timestamp).toLocaleDateString()}</p>
+                                 <p className="text-[10px] font-bold text-slate-400 mt-0.5">{new Date(tx.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>
+                               </div>
+                               <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                 <span className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap ${
+                                   tx.transactionType === 'ADD' ? 'bg-emerald-50 text-emerald-600' : 
+                                   tx.transactionType === 'RESTORE' ? 'bg-amber-50 text-amber-600' :
+                                   tx.isGroup ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-600'
+                                 }`}>
+                                   {tx.isGroup ? 'JOB BATCH' : tx.transactionType === 'ADD' ? 'STOCK IN' : tx.transactionType === 'RESTORE' ? 'RESTORED' : 'STOCK OUT'}
+                                 </span>
+                                 {logTab === "stock_out" && jobStatus && (
+                                   <span className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap ${
+                                     jobStatus === 'CANCELLED' ? 'bg-red-700 text-white shadow-lg' :
+                                     jobStatus === 'PAID'  ? 'bg-emerald-50 text-emerald-600' :
+                                                          'bg-slate-100 text-slate-500'
+                                   }`}>
+                                     {jobStatus === 'CANCELLED' ? '⚠ CANCELLED' : jobStatus}
+                                   </span>
+                                 )}
+                               </div>
+                             </div>
+
+                             <div className="pt-2 border-t border-slate-100 space-y-2">
+                               {tx.isGroup ? (
+                                 <div className="flex flex-col gap-2">
+                                   <div>
+                                     <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${isCancelled ? 'text-red-400' : 'text-slate-400'}`}>Services Performed</p>
+                                     <div className="flex flex-wrap gap-1">
+                                       {((tx.services && tx.services.length > 0) || (linkedJob?.services && linkedJob.services.length > 0)) ? 
+                                         (tx.services?.length > 0 ? tx.services : linkedJob.services).map((svc, idx) => (
+                                           <span key={idx} className="text-[9px] font-bold bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded text-amber-600">
+                                             {svc.serviceName}
+                                           </span>
+                                         )) : <span className="text-[9px] font-bold text-slate-300 italic">No services listed</span>}
+                                     </div>
+                                   </div>
+                                   <div>
+                                     <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${isCancelled ? 'text-red-400' : 'text-slate-400'}`}>Inventory Parts ({tx.items.length})</p>
+                                     <div className="flex flex-wrap gap-1">
+                                       {tx.items.slice(0, 5).map((it, idx) => (
+                                         <span key={idx} className="text-[9px] font-bold bg-white border border-slate-200 px-1.5 py-0.5 rounded text-slate-500">
+                                           {it.stockItem?.name}
+                                         </span>
+                                       ))}
+                                       {tx.items.length > 5 && <span className="text-[9px] font-black text-blue-400">+{tx.items.length - 5} more</span>}
+                                     </div>
+                                   </div>
+                                 </div>
+                               ) : (
+                                 <div>
+                                   <p className={`text-sm font-black ${isCancelled ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{tx.stockItem?.name}</p>
+                                   <p className="text-[10px] font-bold text-slate-400">#{tx.stockItem?.partNumber}</p>
+                                 </div>
+                               )}
+                             </div>
+
+                             <div className="pt-2 border-t border-slate-100 flex flex-col gap-0.5">
+                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                 Source/Destination: <span className="text-slate-600 normal-case font-bold">{tx.isGroup ? `JOB #${tx.jobId}` : (tx.supplier?.companyName || 'INTERNAL')}</span>
+                               </p>
+                               {tx.note && (
+                                 <p className="text-[10px] font-medium text-slate-400 italic mt-0.5 truncate">{tx.note}</p>
+                               )}
+                             </div>
+
+                             <div className="pt-2 border-t border-slate-50 flex justify-between items-center gap-2">
+                               <div>
+                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Quantity</p>
+                                 <p className="text-sm font-black text-slate-900 mt-0.5">
+                                   {tx.transactionType === 'ADD' || tx.transactionType === 'RESTORE' ? '+' : '-'}{tx.quantity} Units
+                                 </p>
+                               </div>
+                               <div className="text-right">
+                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Value</p>
+                                 <p className={`text-sm font-black mt-0.5 ${isCancelled ? 'text-red-600 font-black' : 'text-slate-900'}`}>
+                                   Rs. {tx.totalAmount.toLocaleString()}
+                                 </p>
+                                 {!tx.isGroup && (
+                                   <p className="text-[9px] text-slate-400 font-bold">@ Rs. {parseFloat(tx.unitPrice || 0).toLocaleString()}</p>
+                                 )}
+                               </div>
+                             </div>
+
+                             {tx.isGroup && (
+                               <div className="pt-2 border-t border-slate-100">
+                                 <div className={`border rounded-xl p-3 space-y-1.5 ${
+                                   isCancelled ? 'bg-red-50/50 border-red-100' : 'bg-slate-50/50 border-slate-100'
+                                 }`}>
+                                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Itemized Breakdown</p>
+                                   {tx.items.map((it, idx) => (
+                                     <div key={idx} className="flex justify-between items-center text-[10px]">
+                                       <span className={`font-bold ${isCancelled ? 'text-slate-400 line-through' : 'text-slate-600'}`}>{it.stockItem?.name} (x{it.quantity})</span>
+                                       <span className="font-black text-slate-400">Rs. {it.totalAmount.toLocaleString()}</span>
+                                     </div>
+                                   ))}
+                                 </div>
+                               </div>
+                             )}
+                           </div>
+                         );
+                       })}
+                     </div>
+                     {renderPagination(filteredTransactions.length, txPage, setTxPage)}
                   </div>
                 </div>
               ) : (
