@@ -78,6 +78,11 @@ const getLocalISOString = (date = new Date()) => {
   return localDate.toISOString().slice(0, 16);
 };
 
+const formatCurrency = (amount) => {
+  if (amount == null) return 'Rs. 0.00';
+  return 'Rs. ' + Number(amount).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
