@@ -17,7 +17,7 @@ public class StockBatch extends BaseAuditEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stock_item_id", nullable = false)
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"batches", "category", "supplier"})
     @lombok.EqualsAndHashCode.Exclude
@@ -44,8 +44,9 @@ public class StockBatch extends BaseAuditEntity {
     private BigDecimal landedCost;
     private BigDecimal sellingPrice;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supplier_id")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Supplier supplier;
 
     @Column(nullable = false)
