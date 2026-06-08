@@ -634,4 +634,12 @@ public class StockItemService {
     public List<StockTransaction> getAllTransactions() {
         return transactionRepository.findAllByOrderByTimestampDesc();
     }
+
+    public List<StockItem> getLowStockItems() {
+        return stockItemRepository.findLowStockItems();
+    }
+
+    public List<StockItem> getOutOfStockItems() {
+        return stockItemRepository.findOutOfStockItems();
+    }
 }
