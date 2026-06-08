@@ -14,7 +14,10 @@ import java.util.Set;
 @Data
 @lombok.EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "job_cards")
+@Table(name = "job_cards", indexes = {
+    @Index(name = "idx_job_cards_status", columnList = "status"),
+    @Index(name = "idx_job_cards_vehicle_number", columnList = "vehicle_number")
+})
 @SQLDelete(sql = "UPDATE job_cards SET is_deleted = true WHERE id = ?")
 @Where(clause = "is_deleted = false")
 public class JobCard extends BaseAuditEntity {
