@@ -3678,7 +3678,7 @@ const AdminDashboard = () => {
                           <col style={{width: '90px'}} />
                           <col style={{width: '140px'}} />
                           <col />
-                          <col style={{width: '120px'}} />
+                          {logTab === "stock_in" && <col style={{width: '120px'}} />}
                         </colgroup>
                         <thead>
                           <tr className="bg-slate-50 border-b border-slate-100">
@@ -3689,7 +3689,7 @@ const AdminDashboard = () => {
                             <th className="px-4 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Qty</th>
                             <th className="px-4 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Total</th>
                             <th className="px-4 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Entity/Supplier</th>
-                            <th className="px-4 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">By</th>
+                            {logTab === "stock_in" && <th className="px-4 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">By</th>}
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -3775,20 +3775,22 @@ const AdminDashboard = () => {
                                   <p className="text-xs font-black text-slate-600">{tx.isGroup ? `JOB #${tx.jobId}` : (tx.supplier?.companyName || 'INTERNAL')}</p>
                                   <p className="text-[10px] font-medium text-slate-400 italic max-w-[200px] truncate">{tx.note || '-'}</p>
                                 </td>
-                                <td className="px-4 py-3.5">
-                                  <div className="flex flex-col gap-0.5">
-                                    {(tx.performedBy || 'System').split(' ').map((word, idx) => (
-                                      <span key={idx} className="inline-block px-2 py-0.5 bg-slate-900 text-white rounded text-[9px] font-black uppercase tracking-widest w-fit">
-                                        {word}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </td>
+                                {logTab === "stock_in" && (
+                                  <td className="px-4 py-3.5">
+                                    <div className="flex flex-col gap-0.5">
+                                      {(tx.performedBy || 'System').split(' ').map((word, idx) => (
+                                        <span key={idx} className="inline-block px-2 py-0.5 bg-slate-900 text-white rounded text-[9px] font-black uppercase tracking-widest w-fit">
+                                          {word}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </td>
+                                )}
 
                               </tr>
                               {tx.isGroup && (
                                 <tr>
-                                  <td colSpan={logTab === "stock_out" ? 8 : 7} className="px-4 pb-4">
+                                  <td colSpan={7} className="px-4 pb-4">
                                     <div className={`border rounded-2xl p-4 ml-8 space-y-2 ${
                                       isCancelled ? 'bg-red-50/50 border-red-100' : 'bg-white/50 border-slate-100'
                                     }`}>
@@ -3906,12 +3908,14 @@ const AdminDashboard = () => {
                                </div>
                              </div>
                              
-                             <div className="pt-2 border-t border-slate-50 flex items-center gap-2">
-                               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">By:</p>
-                               <span className="px-2 py-0.5 bg-slate-900 text-white rounded text-[9px] font-black uppercase tracking-widest">
-                                 {tx.performedBy || 'System'}
-                               </span>
-                             </div>
+                             {logTab === "stock_in" && (
+                                <div className="pt-2 border-t border-slate-50 flex items-center gap-2">
+                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">By:</p>
+                                  <span className="px-2 py-0.5 bg-slate-900 text-white rounded text-[9px] font-black uppercase tracking-widest">
+                                    {tx.performedBy || 'System'}
+                                  </span>
+                                </div>
+                              )}
 
                              {tx.isGroup && (
                                <div className="pt-2 border-t border-slate-100">
