@@ -254,6 +254,8 @@ public class StockItemController {
         item.setUnitPrice(stockDetails.getUnitPrice());
         item.setLowStockThreshold(stockDetails.getLowStockThreshold());
         item.setSupplier(stockDetails.getSupplier());
+        item.setRemarks(stockDetails.getRemarks());
+        item.setLocation(stockDetails.getLocation());
         return ResponseEntity.ok(stockItemService.saveStockItem(item));
     }
 
