@@ -61,11 +61,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<?> handleBadCredentials(BadCredentialsException ex) {
+        log.warn("Bad credentials attempt: {}", ex.getMessage());
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Invalid username or password. Please check your credentials and try again.");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<?> handleAuthenticationException(AuthenticationException ex) {
         log.warn("Authentication failed: {}", ex.getMessage());
         Map<String, String> response = new HashMap<>();
-        response.put("message", "user name or password is invalid");
+        response.put("message", "Authentication failed. Please log in again.");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
