@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Car, Phone, Lock, User as UserIcon, ArrowRight, Loader2, Mail, ChevronRight, Eye, EyeOff, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BRANDING } from '../config/branding';
 import loginBg from '../assets/login-bg-light.png';
 
 const SignupPage = () => {
@@ -91,12 +92,12 @@ const SignupPage = () => {
             <motion.div 
               whileHover={{ scale: 1.05, rotate: 5 }}
               whileTap={{ scale: 0.95 }}
-              className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center mb-6 shadow-xl shadow-blue-600/20 cursor-pointer"
+              className="w-16 h-16 rounded-2xl bg-[#DC2626] flex items-center justify-center mb-6 shadow-xl shadow-red-600/20 cursor-pointer"
             >
               <Car className="w-8 h-8 text-white" />
             </motion.div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Join Mind Spare Parts</h1>
-            <p className="text-slate-500 mt-3 font-medium text-center">The genuine parts your vehicle deserves</p>
+            <h1 className="text-4xl font-black text-slate-900 tracking-tight font-heading">Join {BRANDING.name}</h1>
+            <p className="text-slate-500 mt-3 font-medium text-center">Access genuine Japanese parts, tools, and imports</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -219,7 +220,7 @@ const SignupPage = () => {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={loading}
-              className="w-full bg-slate-900 hover:bg-blue-600 disabled:opacity-50 text-white font-black py-4.5 px-6 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all duration-300 shadow-xl shadow-slate-900/10 cursor-pointer"
+              className="w-full bg-[#0F172A] hover:bg-[#DC2626] disabled:opacity-50 text-white font-black py-4 px-6 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all duration-300 shadow-xl shadow-slate-900/10 cursor-pointer"
             >
               {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Create Account <ArrowRight className="w-5 h-5" /></>}
             </motion.button>
