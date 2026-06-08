@@ -1,5 +1,6 @@
 package com.autocare.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "users")
 @Data
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,7 +48,7 @@ public class User {
     private String name;
 
     @jakarta.validation.constraints.Size(min = 10, max = 10)
-    @Column(unique = true)
+    @Column
     private String phone;
 
     public String getPhone() {
