@@ -41,6 +41,8 @@ public class StockTransaction {
 
     private Long jobId;
 
+    private String performedBy;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public StockItem getStockItem() { return stockItem; }
@@ -61,4 +63,6 @@ public class StockTransaction {
     public void setNote(String note) { this.note = note; }
     public Long getJobId() { return jobId; }
     public void setJobId(Long jobId) { this.jobId = jobId; }
+    public String getPerformedBy() { return performedBy; }
+    public void setPerformedBy(String performedBy) { this.performedBy = performedBy; }
 }
