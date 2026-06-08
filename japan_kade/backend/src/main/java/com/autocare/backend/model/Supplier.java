@@ -1,11 +1,13 @@
 package com.autocare.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
 @Table(name = "suppliers")
 @Data
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Supplier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
