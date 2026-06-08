@@ -70,6 +70,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell, PieChart, Pie
 } from 'recharts';
+import { BRANDING } from '../../config/branding';
 
 const getLocalISOString = (date = new Date()) => {
   const offset = date.getTimezoneOffset();
@@ -122,36 +123,7 @@ const AdminDashboard = () => {
   const [quickReduceData, setQuickReduceData] = useState({ itemId: '', quantity: '', reason: '' });
   const [selectedBatchDetail, setSelectedBatchDetail] = useState(null);
 
-  // Real-time automatic landed cost calculation
-  useEffect(() => {
-    const foreign = parseFloat(quickAddData.unitCostForeign) || 0;
-    const rate = parseFloat(quickAddData.exchangeRate) || 0;
-    const qty = parseFloat(quickAddData.quantity) > 0 ? parseFloat(quickAddData.quantity) : 1;
-    const freight = parseFloat(quickAddData.freightCost) || 0;
-    const shipping = parseFloat(quickAddData.shippingCost) || 0;
-    const bank = parseFloat(quickAddData.bankCharges) || 0;
-    const duty = parseFloat(quickAddData.dutyFees) || 0;
-
-    const totalLkr = foreign * rate * qty;
-    const productLanded = (totalLkr + duty + freight + shipping + bank) / qty;
-    const landedStr = productLanded.toFixed(2);
-
-    if (quickAddData.landedCost !== landedStr) {
-      setQuickAddData(prev => ({
-        ...prev,
-        landedCost: landedStr,
-        unitPrice: landedStr
-      }));
-    }
-  }, [
-    quickAddData.unitCostForeign,
-    quickAddData.exchangeRate,
-    quickAddData.quantity,
-    quickAddData.freightCost,
-    quickAddData.shippingCost,
-    quickAddData.bankCharges,
-    quickAddData.dutyFees
-  ]);
+  // Landed cost calculation removed per user request
   const initialStockData = {
     name: '', partNumber: '', hsCode: '', quantity: '', unitPrice: '', lowStockThreshold: 5, supplierId: '', categoryId: '',
     currencyType: 'USD', unitCostForeign: '', exchangeRate: '', freightCost: '', shippingCost: '', bankCharges: '',
@@ -175,7 +147,7 @@ const AdminDashboard = () => {
 
       doc.setFontSize(22);
       doc.setTextColor(30, 41, 59);
-      doc.text("MIND SPARE PARTS MANAGEMENT", 14, 20);
+      doc.text(`${BRANDING.name} MANAGEMENT`, 14, 20);
       
       doc.setFontSize(14);
       doc.setTextColor(71, 85, 105);
@@ -251,14 +223,14 @@ const AdminDashboard = () => {
     doc.setFontSize(24);
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.text('MIND SPARE PARTS', pageW / 2, 18, { align: 'center' });
+    doc.text(BRANDING.name, pageW / 2, 18, { align: 'center' });
 
     doc.setFontSize(10);
     doc.setTextColor(148, 163, 184);
     doc.setFont('helvetica', 'normal');
-    doc.text('Premium Genuine Spare Parts & Solutions', pageW / 2, 26, { align: 'center' });
-    doc.text('123 Auto Lane, Colombo 07  |  Tel: +94 11 234 5678', pageW / 2, 32, { align: 'center' });
-    doc.text('info@mindspareparts.lk  |  www.mindspareparts.lk', pageW / 2, 37, { align: 'center' });
+    doc.text(BRANDING.tagline, pageW / 2, 26, { align: 'center' });
+    doc.text(`${BRANDING.address}  |  Tel: ${BRANDING.phone}`, pageW / 2, 32, { align: 'center' });
+    doc.text(`${BRANDING.email}  |  ${BRANDING.websiteUrl}`, pageW / 2, 37, { align: 'center' });
 
     // Report Title
     doc.setFontSize(12);
@@ -272,8 +244,7 @@ const AdminDashboard = () => {
     
     const startY = 65;
     doc.setFont('helvetica', 'bold');
-    doc.text('CUSTOMER DETAILS', 14, startY);
-    doc.text('JOB INFORMATION', pageW / 2, startY);
+    doc.text('BILL DETAILS', pageW / 2, startY);
     
     doc.setDrawColor(226, 232, 240);
     doc.line(14, startY + 2, 90, startY + 2);
@@ -285,7 +256,7 @@ const AdminDashboard = () => {
     doc.text(`Phone: ${job?.customer?.phone || 'N/A'}`, 14, startY + 14);
     doc.text(`Bill #: ${log.jobId || log.id || 'N/A'}`, 14, startY + 20);
 
-    doc.text(`Job Reference: #${log.jobId || 'N/A'}`, pageW / 2, startY + 8);
+    doc.text(`Bill ID: #${log.jobId || 'N/A'}`, pageW / 2, startY + 8);
     doc.text(`Date: ${new Date(log.timestamp).toLocaleDateString()}`, pageW / 2, startY + 14);
     doc.text(`Status: ${job?.status || 'COMPLETED'}`, pageW / 2, startY + 20);
 
@@ -361,7 +332,7 @@ const AdminDashboard = () => {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(148, 163, 184);
-    doc.text('Thank you for choosing Mind Spare Parts. Drive safe!', pageW / 2, footerY, { align: 'center' });
+    doc.text(`Thank you for choosing ${BRANDING.name}!`, pageW / 2, footerY, { align: 'center' });
     doc.text(`Report generated on: ${new Date().toLocaleString()}`, pageW / 2, footerY + 5, { align: 'center' });
 
     const dateStr = new Date().toISOString().slice(0, 10);
@@ -387,6 +358,8 @@ const AdminDashboard = () => {
   const [rowBatches, setRowBatches] = useState({}); // { itemId: [batches] }
   const [newCategoryName, setNewCategoryName] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [editingCategoryId, setEditingCategoryId] = useState(null);
+  const [editingCategoryName, setEditingCategoryName] = useState('');
   
   // Transaction State
   const [transactionList, setTransactionList] = useState([]);
@@ -418,10 +391,9 @@ const AdminDashboard = () => {
   const [logsLoading, setLogsLoading] = useState(false);
   const [msg, setMsg] = useState({ type: '', text: '' });
   const [updateMsg, setUpdateMsg] = useState({ type: '', text: '' });
-  const [showMonthlySalesModal, setShowMonthlySalesModal] = useState(false);
-  const [selectedMonthlySalesItem, setSelectedMonthlySalesItem] = useState(null);
   // Stale-data tracking: only re-fetch if data is older than 30s on tab switch
   const lastFetchedRef = React.useRef({});
+  const contentAreaRef = React.useRef(null);
   const [staffSearch, setStaffSearch] = useState('');
 
   // Job Card / Work Management State
@@ -431,7 +403,6 @@ const AdminDashboard = () => {
   const [jobStatusFilter, setJobStatusFilter] = useState('ALL');
   const initialJobData = {
     customerId: '',
-    vehicleNumber: '',
     startTime: getLocalISOString(),
     endTime: '',
     services: [], // Array of { serviceTypeId: id, priceAtTime: val, name: val }
@@ -731,19 +702,18 @@ const AdminDashboard = () => {
   const handleAddStaff = async (e) => {
     e.preventDefault();
     if (formData.phone.length !== 10) {
-      setMsg({ type: 'error', text: 'Phone number must be exactly 10 digits.' });
+      showAlert('Phone number must be exactly 10 digits.', { title: 'Error', variant: 'danger' });
       return;
     }
     setLoading(true);
     try {
       await staffService.createStaff(formData);
       const roleName = formData.role === 'ADMIN' ? 'Admin' : 'Staff';
-      setMsg({ type: 'success', text: `${roleName} added successfully!` });
+      showAlert(`${roleName} added successfully!`, { title: 'Success', variant: 'success' });
       setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', idNo: '', username: '', address: '', role: 'STAFF' });
       fetchStaff(); // Refresh list after adding
-      setTimeout(() => setMsg({ type: '', text: '' }), 3000);
     } catch (err) {
-      setMsg({ type: 'error', text: err.response?.data?.message || 'Failed to add staff.' });
+      showAlert(err.response?.data?.message || 'Failed to add staff.', { title: 'Error', variant: 'danger' });
     } finally {
       setLoading(false);
     }
@@ -752,18 +722,17 @@ const AdminDashboard = () => {
   const handleAddCustomer = async (e) => {
     e.preventDefault();
     if (customerFormData.phone.length !== 10) {
-      setMsg({ type: 'error', text: 'Phone number must be exactly 10 digits.' });
+      showAlert('Phone number must be exactly 10 digits.', { title: 'Error', variant: 'danger' });
       return;
     }
     setLoading(true);
     try {
       await authService.signup(customerFormData);
-      setMsg({ type: 'success', text: 'Customer added successfully!' });
+      showAlert('Customer added successfully!', { title: 'Success', variant: 'success' });
       setCustomerFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', address: '', idNo: '' });
       fetchCustomers();
-      setTimeout(() => setMsg({ type: '', text: '' }), 3000);
     } catch (err) {
-      setMsg({ type: 'error', text: err.response?.data?.message || 'Failed to add customer.' });
+      showAlert(err.response?.data?.message || 'Failed to add customer.', { title: 'Error', variant: 'danger' });
     } finally {
       setLoading(false);
     }
@@ -988,6 +957,42 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUpdateCategory = async (id) => {
+    if (!editingCategoryName.trim()) {
+      setEditingCategoryId(null);
+      return;
+    }
+    setLoading(true);
+    try {
+      await categoryService.updateCategory(id, { name: editingCategoryName });
+      setEditingCategoryId(null);
+      await fetchCategories();
+      await fetchStock();
+    } catch (err) {
+      await showAlert('Failed to update category.', { title: 'Error', variant: 'danger' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCategory = async (id, name) => {
+    const ok = await showConfirm(
+      `Are you sure you want to delete the category "${name}"? Stock items in this category will not be deleted, but their category will be set to N/A.`,
+      { title: 'Delete Category', variant: 'danger', confirmText: 'Yes, Delete' }
+    );
+    if (!ok) return;
+    setLoading(true);
+    try {
+      await categoryService.deleteCategory(id);
+      await fetchCategories();
+      await fetchStock();
+    } catch (err) {
+      await showAlert('Failed to delete category.', { title: 'Error', variant: 'danger' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchTransactions = async () => {
     try {
       const res = await stockService.getAllTransactions();
@@ -1063,39 +1068,8 @@ const AdminDashboard = () => {
       if (!lastFetchedRef.current.transactions || now - lastFetchedRef.current.transactions > STALE_MS) fetchTransactions();
       if (!lastFetchedRef.current.jobLogs || now - lastFetchedRef.current.jobLogs > STALE_MS) fetchJobLogs();
     }
-    if (activeTab === 'finance') {
-      const initFinanceData = async () => {
-        if (!lastFetchedRef.current.jobs || now - lastFetchedRef.current.jobs > STALE_MS) {
-          await fetchJobs();
-        }
-        let currentStockList = stockList;
-        if (!stockList || stockList.length === 0) {
-          try {
-            const res = await stockService.getAllStockItems();
-            currentStockList = res.data;
-            setStockList(res.data);
-          } catch (err) {
-            console.error("Failed to load stock list for finance", err);
-          }
-        }
-        const updatedBatches = {};
-        await Promise.all((currentStockList || []).map(async (item) => {
-          if (!rowBatches[item.id]) {
-            try {
-              const bRes = await stockService.getBatches(item.id);
-              updatedBatches[item.id] = bRes.data;
-            } catch (err) {
-              console.error(`Failed to load batches for item ${item.id}`, err);
-            }
-          }
-        }));
-        if (Object.keys(updatedBatches).length > 0) {
-          setRowBatches(prev => ({ ...prev, ...updatedBatches }));
-        }
-      };
-      initFinanceData();
-    }
   }, [activeTab]);
+
 
 
   const [servicesLoading, setServicesLoading] = useState(false);
@@ -1153,10 +1127,12 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const now = getLocalISOString();
+      const selectedCustomer = addJobData.customerId || '__walkin__';
+      const isWalkin = selectedCustomer === '__walkin__';
       // Format data for backend
       const payload = {
-        vehicleNumber: addJobData.vehicleNumber || '',
-        customer: { id: addJobData.customerId },
+        vehicleNumber: addJobData.vehicleNumber || 'N/A',
+        customer: isWalkin ? null : { id: selectedCustomer },
         startTime: addJobData.startTime || now,
         endTime: addJobData.endTime || now,
         services: addJobData.services.map(s => ({
@@ -1178,16 +1154,15 @@ const AdminDashboard = () => {
       if (payload.endTime && payload.endTime.length === 16) payload.endTime += ":00";
 
       await jobCardService.createJob(payload);
-      setMsg({ type: 'success', text: 'Bill Created Successfully!' });
+      showAlert('Bill Created Successfully!', { title: 'Success', variant: 'success' });
       setAddJobData(initialJobData);
       setShowAddJobModal(false);
       fetchJobs();
       fetchStock(); // Always refresh stock after adding a job (might reserve items)
-      setTimeout(() => setMsg({ type: '', text: '' }), 3000);
     } catch (err) {
       console.error("Assign work error:", err.response?.data || err);
       const detail = err.response?.data?.message || err.message || 'Check all fields.';
-      setMsg({ type: 'error', text: `Failed to create bill: ${detail}` });
+      showAlert(`Failed to create bill: ${detail}`, { title: 'Error', variant: 'danger' });
     } finally {
       setLoading(false);
     }
@@ -1196,7 +1171,7 @@ const AdminDashboard = () => {
   const openEditJob = (job) => {
     setEditingJobId(job.id);
     setEditJobData({
-      customerId: job.customer?.id || '',
+      customerId: job.customer?.id || '__walkin__',
       vehicleNumber: job.vehicleNumber,
       startTime: job.startTime ? job.startTime.slice(0, 16) : getLocalISOString(),
       endTime: job.endTime ? job.endTime.slice(0, 16) : '',
@@ -1220,11 +1195,16 @@ const AdminDashboard = () => {
 
   const handleEditJob = async (e) => {
     e.preventDefault();
+    if (!editJobData.customerId) {
+      setUpdateMsg({ type: 'error', text: 'Failed to update: Please select a customer or choose Walk-in.' });
+      return;
+    }
     setLoading(true);
     try {
+      const isWalkin = editJobData.customerId === '__walkin__';
       const payload = {
-        vehicleNumber: editJobData.vehicleNumber,
-        customer: { id: editJobData.customerId },
+        vehicleNumber: editJobData.vehicleNumber || 'N/A',
+        customer: isWalkin ? null : { id: editJobData.customerId },
         startTime: editJobData.startTime || null,
         endTime: editJobData.endTime || null,
         services: editJobData.services.map(s => ({
@@ -1495,13 +1475,12 @@ const AdminDashboard = () => {
       
       await stockService.createStockItem(itemData);
       
-      setMsg({ type: 'success', text: 'Inventory item definition created successfully!' });
+      showAlert('Inventory item definition created successfully!', { title: 'Success', variant: 'success' });
       setAddStockData(initialStockData);
       fetchStock();
       setShowAddStockModal(false);
-      setTimeout(() => setMsg({ type: '', text: '' }), 3000);
     } catch (err) {
-      setMsg({ type: 'error', text: err.response?.data?.message || 'Failed to add item.' });
+      showAlert(err.response?.data?.message || 'Failed to add item.', { title: 'Error', variant: 'danger' });
     } finally {
       setLoading(false);
     }
@@ -1516,7 +1495,9 @@ const AdminDashboard = () => {
       unitPrice: item.unitPrice,
       lowStockThreshold: item.lowStockThreshold || 5,
       supplierId: item.supplier?.id || '',
-      categoryId: item.category?.id || ''
+      categoryId: item.category?.id || '',
+      remarks: item.remarks || '',
+      location: item.location || ''
     });
     setUpdateMsg({ type: '', text: '' });
     setShowEditStockModal(true);
@@ -1548,28 +1529,29 @@ const AdminDashboard = () => {
 
   const handleQuickAddSubmit = async (e) => {
     e.preventDefault();
-    if (!quickAddData.itemId || !quickAddData.quantity || !quickAddData.landedCost) return;
+    if (!quickAddData.itemId || !quickAddData.quantity || !quickAddData.sellingPrice) return;
     
     setLoading(true);
     setUpdateMsg({ type: '', text: '' });
     
     try {
+      const priceVal = parseFloat(quickAddData.sellingPrice);
       const payload = {
         quantity: parseInt(quickAddData.quantity, 10),
-        unitPrice: parseFloat(quickAddData.landedCost),
+        unitPrice: priceVal,
         supplierId: quickAddData.supplierId ? parseInt(quickAddData.supplierId) : null,
-        hsCode: quickAddData.hsCode || null,
-        currencyType: quickAddData.currencyType || null,
-        unitCostForeign: quickAddData.unitCostForeign ? parseFloat(quickAddData.unitCostForeign) : null,
-        exchangeRate: quickAddData.exchangeRate ? parseFloat(quickAddData.exchangeRate) : null,
-        freightCost: quickAddData.freightCost ? parseFloat(quickAddData.freightCost) : null,
-        shippingCost: quickAddData.shippingCost ? parseFloat(quickAddData.shippingCost) : null,
-        bankCharges: quickAddData.bankCharges ? parseFloat(quickAddData.bankCharges) : null,
-        clearanceFees: quickAddData.clearanceFees ? parseFloat(quickAddData.clearanceFees) : null,
-        dutyFees: quickAddData.dutyFees ? parseFloat(quickAddData.dutyFees) : null,
-        additionalExpenses: quickAddData.additionalExpenses ? parseFloat(quickAddData.additionalExpenses) : null,
-        landedCost: quickAddData.landedCost ? parseFloat(quickAddData.landedCost) : null,
-        sellingPrice: quickAddData.sellingPrice ? parseFloat(quickAddData.sellingPrice) : null,
+        hsCode: null,
+        currencyType: null,
+        unitCostForeign: null,
+        exchangeRate: null,
+        freightCost: null,
+        shippingCost: null,
+        bankCharges: null,
+        clearanceFees: null,
+        dutyFees: null,
+        additionalExpenses: null,
+        landedCost: priceVal,
+        sellingPrice: priceVal,
       };
       
       await stockService.addStock(quickAddData.itemId, payload);
@@ -1590,13 +1572,11 @@ const AdminDashboard = () => {
 
       fetchStock();
       fetchTransactions();
-      setTimeout(() => { 
-        setShowQuickAddModal(false); 
-        setUpdateMsg({ type: '', text: '' });
-        setQuickAddData({ itemId: '', quantity: '', hsCode: '', currencyType: '', unitCostForeign: '', exchangeRate: '', freightCost: '', shippingCost: '', bankCharges: '', clearanceFees: '', dutyFees: '', additionalExpenses: '', landedCost: '', unitPrice: '', sellingPrice: '', supplierId: '' });
-      }, 1000);
+      showAlert('Stock added successfully!', { title: 'Success', variant: 'success' });
+      setShowQuickAddModal(false);
+      setQuickAddData({ itemId: '', quantity: '', hsCode: '', currencyType: '', unitCostForeign: '', exchangeRate: '', freightCost: '', shippingCost: '', bankCharges: '', clearanceFees: '', dutyFees: '', additionalExpenses: '', landedCost: '', unitPrice: '', sellingPrice: '', supplierId: '' });
     } catch (err) {
-      setUpdateMsg({ type: 'error', text: err.response?.data?.message || 'Failed to add stock.' });
+      showAlert(err.response?.data?.message || 'Failed to add stock.', { title: 'Error', variant: 'danger' });
     } finally {
       setLoading(false);
     }
@@ -1721,12 +1701,7 @@ const AdminDashboard = () => {
     return Object.values(salesByMonth).sort((a, b) => b.monthStr.localeCompare(a.monthStr));
   };
 
-  const PREDEFINED_EXPENSE_FIELDS = useMemo(() => [
-    "Monthly Expenses", "GD Ferdinand Salary", "Com Bank Loan 5Mn", "S Wickramasinghe", 
-    "Other Loan Instalments", "N T M Wickramage", "Housing Loan", "Vehicle Maintanance", 
-    "LP", "Cheque Payment", "Employment Salary", "Duty", "Clearance", 
-    "Vihicle lease", "Vehicle Lease", "Fuel Allowance", "Building Rent 1st Floor"
-  ], []);
+  const PREDEFINED_EXPENSE_FIELDS = useMemo(() => [], []);
 
   const getMonthGrossProfit = (monthStr) => {
     let totalProfit = 0;
@@ -1840,14 +1815,18 @@ const AdminDashboard = () => {
   };
 
   const currentMonthExpenses = useMemo(() => {
-    const defaultFields = PREDEFINED_EXPENSE_FIELDS.map(name => ({ name, amount: 0 }));
-    return expensesData[selectedFinanceMonth] || defaultFields;
-  }, [expensesData, selectedFinanceMonth, PREDEFINED_EXPENSE_FIELDS]);
+    const list = expensesData[selectedFinanceMonth] || [];
+    const OLD_STANDARD_NAMES = [
+      "Monthly Expenses", "GD Ferdinand Salary", "Com Bank Loan 5Mn", "S Wickramasinghe", 
+      "Other Loan Instalments", "N T M Wickramage", "Housing Loan", "Vehicle Maintanance", 
+      "LP", "Cheque Payment", "Employment Salary", "Duty", "Clearance", 
+      "Vihicle lease", "Vehicle Lease", "Fuel Allowance", "Building Rent 1st Floor"
+    ];
+    return list.filter(exp => !(OLD_STANDARD_NAMES.includes(exp.name) && (exp.amount === 0 || exp.amount === '0' || !exp.amount)));
+  }, [expensesData, selectedFinanceMonth]);
 
   const handleUpdateExpense = (index, value) => {
-    const defaultFields = PREDEFINED_EXPENSE_FIELDS.map(name => ({ name, amount: 0 }));
-    const currentList = expensesData[selectedFinanceMonth] || defaultFields;
-    const updated = [...currentList];
+    const updated = [...currentMonthExpenses];
     
     if (updated[index]) {
       updated[index].amount = value === '' ? '' : parseFloat(value) || 0;
@@ -1863,10 +1842,9 @@ const AdminDashboard = () => {
 
   const handleAddExpenseField = (e) => {
     e.preventDefault();
-    const defaultFields = PREDEFINED_EXPENSE_FIELDS.map(name => ({ name, amount: 0 }));
-    const currentList = expensesData[selectedFinanceMonth] || defaultFields;
+    const currentList = currentMonthExpenses;
     
-    const fieldName = newExpenseField === 'Custom Expense' ? customExpenseName.trim() : newExpenseField;
+    const fieldName = customExpenseName.trim();
     if (!fieldName) {
       alert("Please enter a valid expense name.");
       return;
@@ -1895,8 +1873,7 @@ const AdminDashboard = () => {
   const handleDeleteExpenseField = async (index) => {
     const ok = await showConfirm('Are you sure you want to delete this expense field?', { title: 'Delete Expense Field', variant: 'danger', confirmText: 'Yes, Delete' });
     if (ok) {
-      const defaultFields = PREDEFINED_EXPENSE_FIELDS.map(name => ({ name, amount: 0 }));
-      const currentList = expensesData[selectedFinanceMonth] || defaultFields;
+      const currentList = currentMonthExpenses;
       const updated = currentList.filter((_, idx) => idx !== index);
       const newExpensesData = { ...expensesData, [selectedFinanceMonth]: updated };
       setExpensesData(newExpensesData);
@@ -1904,11 +1881,10 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleInitializeDefaultFields = async () => {
-    const ok = await showConfirm('This will reset all expense fields for this month to the standard list with Rs. 0. Are you sure?', { title: 'Reset Expense Fields', variant: 'warning', confirmText: 'Yes, Reset' });
+  const handleClearAllExpenses = async () => {
+    const ok = await showConfirm('Are you sure you want to clear all expenses for this month?', { title: 'Clear Expenses', variant: 'warning', confirmText: 'Yes, Clear All' });
     if (ok) {
-      const defaultFields = PREDEFINED_EXPENSE_FIELDS.map(name => ({ name, amount: 0 }));
-      const newExpensesData = { ...expensesData, [selectedFinanceMonth]: defaultFields };
+      const newExpensesData = { ...expensesData, [selectedFinanceMonth]: [] };
       setExpensesData(newExpensesData);
       localStorage.setItem('mind_spareparts_monthly_expenses', JSON.stringify(newExpensesData));
     }
@@ -1942,7 +1918,7 @@ const AdminDashboard = () => {
       doc.setFontSize(18);
       doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'bold');
-      doc.text('Mind Service Center', 14, 15);
+      doc.text(BRANDING.name, 14, 15);
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.text('Inventory Audit Report', 14, 24);
@@ -2000,7 +1976,7 @@ const AdminDashboard = () => {
 
       yPos += 26;
 
-      const columns = ['DATE', 'TIME', 'ITEM', 'TYPE', 'QTY', 'UNIT PRICE', 'TOTAL', 'SUPPLIER', 'NOTE'];
+      const columns = ['DATE', 'TIME', 'ITEM', 'TYPE', 'QTY', 'UNIT PRICE', 'TOTAL', 'SUPPLIER', 'BY', 'NOTE'];
       const rows = filteredTransactions.map(tx => [
         tx.timestamp ? new Date(tx.timestamp).toLocaleDateString() : '-',
         tx.timestamp ? new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-',
@@ -2010,6 +1986,7 @@ const AdminDashboard = () => {
         tx.isGroup ? 'Batch Total' : (tx.unitPrice != null ? 'Rs.' + parseFloat(tx.unitPrice).toFixed(2) : '-'),
         tx.totalAmount != null ? 'Rs.' + parseFloat(tx.totalAmount).toFixed(2) : '-',
         tx.isGroup ? `JOB #${tx.jobId}` : (tx.supplier?.companyName || 'INTERNAL'),
+        tx.performedBy || 'System',
         tx.note || '-'
       ]);
 
@@ -2023,15 +2000,16 @@ const AdminDashboard = () => {
         bodyStyles: { fontSize: 7, cellPadding: 2 },
         alternateRowStyles: { fillColor: [248, 250, 252] },
         columnStyles: {
-          0: { cellWidth: 20 },
-          1: { cellWidth: 15 },
-          2: { cellWidth: 30 },
-          3: { cellWidth: 15, halign: 'center' },
-          4: { cellWidth: 11, halign: 'center' },
-          5: { cellWidth: 23, halign: 'right' },
-          6: { cellWidth: 23, halign: 'right' },
-          7: { cellWidth: 22 },
-          8: { cellWidth: 23 }
+          0: { cellWidth: 18 },
+          1: { cellWidth: 14 },
+          2: { cellWidth: 28 },
+          3: { cellWidth: 14, halign: 'center' },
+          4: { cellWidth: 10, halign: 'center' },
+          5: { cellWidth: 20, halign: 'right' },
+          6: { cellWidth: 20, halign: 'right' },
+          7: { cellWidth: 20 },
+          8: { cellWidth: 18 },
+          9: { cellWidth: 20 }
         },
         didParseCell: (data) => {
           if (data.section === 'body' && data.column.index === 3) {
@@ -2053,7 +2031,7 @@ const AdminDashboard = () => {
         doc.setFontSize(7);
         doc.setTextColor(160);
         doc.text(
-          'Mind Service Center | Inventory Audit | Page ' + i + ' of ' + pageCount + ' | Confidential',
+          BRANDING.name + ' | Inventory Audit | Page ' + i + ' of ' + pageCount + ' | Confidential',
           105,
           doc.internal.pageSize.getHeight() - 8,
           { align: 'center' }
@@ -2254,12 +2232,12 @@ const AdminDashboard = () => {
   }, [jobList]);
 
   const filteredJobs = useMemo(() => {
-    const q = deferredJobSearch.toLowerCase();
+    const q = deferredJobSearch.toLowerCase().trim();
     const filtered = jobList.filter(j => {
-      const vNum = (j.vehicleNumber || '').toLowerCase();
+      const billId = `bill #${j.id}`;
       const cName = (j.customer ? `${j.customer.firstName || ''} ${j.customer.lastName || ''}` : '').toLowerCase();
       
-      const matchesSearch = vNum.includes(q) || cName.includes(q);
+      const matchesSearch = billId.includes(q) || cName.includes(q) || j.id.toString() === q;
       const matchesStatus = jobStatusFilter === 'ALL' || j.status === jobStatusFilter;
       const matchesDate = !jobDateFilter || (j.startTime && new Date(j.startTime).toISOString().split('T')[0] === jobDateFilter);
       return matchesSearch && matchesStatus && matchesDate;
@@ -2267,20 +2245,178 @@ const AdminDashboard = () => {
     return filtered.sort((a,b) => new Date(b.startTime) - new Date(a.startTime));
   }, [jobList, deferredJobSearch, jobStatusFilter, jobDateFilter]);
 
+  // ===== PAGINATION =====
+  const PAGE_SIZE = 20;
+  const [stockPage, setStockPage]       = useState(1);
+  const [txPage, setTxPage]             = useState(1);
+  const [jobLogPage, setJobLogPage]     = useState(1);
+  const [jobPage, setJobPage]           = useState(1);
+  const [staffPage, setStaffPage]       = useState(1);
+  const [customerPage, setCustomerPage] = useState(1);
+  const [supplierPage, setSupplierPage] = useState(1);
+
+  // Reset pages whenever the underlying filter changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setStockPage(1); },    [stockSearch, categoryFilter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setTxPage(1); },       [logTab, deferredTransactionSearch, transactionSupplierFilter, transactionDateFrom, transactionDateTo]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setJobLogPage(1); },   [logTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setJobPage(1); },      [deferredJobSearch, jobStatusFilter, jobDateFilter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setStaffPage(1); },    [staffSearch, roleFilter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setCustomerPage(1); }, [customerSearch]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setSupplierPage(1); }, [supplierSearch]);
+
+  useEffect(() => {
+    // Scroll to top whenever the tab, sub-tab, or pagination changes
+    if (contentAreaRef.current) {
+      contentAreaRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [activeTab, logTab, jobPage, staffPage, customerPage, supplierPage, stockPage, txPage, jobLogPage]);
+
+  // Paginated slices
+  const paginatedStock       = useMemo(() => filteredStock.slice((stockPage - 1) * PAGE_SIZE, stockPage * PAGE_SIZE), [filteredStock, stockPage]);
+  const paginatedTransactions = useMemo(() => filteredTransactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE), [filteredTransactions, txPage]);
+  const paginatedJobLogs     = useMemo(() => jobLogs.slice((jobLogPage - 1) * PAGE_SIZE, jobLogPage * PAGE_SIZE), [jobLogs, jobLogPage]);
+  const paginatedJobs        = useMemo(() => filteredJobs.slice((jobPage - 1) * PAGE_SIZE, jobPage * PAGE_SIZE), [filteredJobs, jobPage]);
+  const paginatedStaff       = useMemo(() => filteredStaff.slice((staffPage - 1) * PAGE_SIZE, staffPage * PAGE_SIZE), [filteredStaff, staffPage]);
+  const paginatedCustomers   = useMemo(() => filteredCustomers.slice((customerPage - 1) * PAGE_SIZE, customerPage * PAGE_SIZE), [filteredCustomers, customerPage]);
+  const paginatedSuppliers   = useMemo(() => filteredSuppliers.slice((supplierPage - 1) * PAGE_SIZE, supplierPage * PAGE_SIZE), [filteredSuppliers, supplierPage]);
+
+  // Memoize grouped inventory — avoids inline reduce on every render
+  const groupedPaginatedStock = useMemo(() =>
+    Object.entries(
+      paginatedStock.reduce((acc, item) => {
+        const catName = item.category?.name || 'Uncategorized';
+        if (!acc[catName]) acc[catName] = [];
+        acc[catName].push(item);
+        return acc;
+      }, {})
+    ),
+    [paginatedStock]
+  );
+
+  /** Renders a compact pagination bar. */
+  const renderPagination = (total, page, setPage, pageSize = PAGE_SIZE) => {
+    const totalPages = Math.ceil(total / pageSize);
+    if (totalPages <= 1) return null;
+    const start = (page - 1) * pageSize + 1;
+    const end   = Math.min(page * pageSize, total);
+    // Build a compact window of page numbers
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (page <= 4) {
+        for (let i = 1; i <= 5; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (page >= totalPages - 3) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = page - 1; i <= page + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          Showing <span className="text-slate-700 font-black">{start}–{end}</span> of <span className="text-slate-700 font-black">{total}</span> records
+        </p>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-sm font-black"
+          >‹</button>
+          {pages.map((p, i) =>
+            p === '...' ? (
+              <span key={`ellipsis-${i}`} className="w-8 h-8 flex items-center justify-center text-slate-300 text-xs font-bold">…</span>
+            ) : (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`w-8 h-8 rounded-lg text-[11px] font-black transition-all border ${
+                  page === p
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-md'
+                    : 'text-slate-500 border-transparent hover:border-slate-200 hover:bg-white hover:text-slate-900'
+                }`}
+              >{p}</button>
+            )
+          )}
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-sm font-black"
+          >›</button>
+        </div>
+      </div>
+    );
+  };
+  // ===== END PAGINATION =====
+
+  const topCustomers = useMemo(() => {
+    const freqMap = {};
+    jobList.forEach(job => {
+      if (job.status !== 'CANCELLED' && job.customerId) {
+        freqMap[job.customerId] = (freqMap[job.customerId] || 0) + 1;
+      }
+    });
+    return [...customerList]
+      .filter(c => (c.user?.enabled ?? c.user?.active ?? c.user?.isActive ?? true) === true)
+      .sort((a, b) => (freqMap[b.id] || 0) - (freqMap[a.id] || 0))
+      .slice(0, 5);
+  }, [customerList, jobList]);
+
   const filteredCustomerDropdown = useMemo(() => {
     const q = customerSearchQuery.toLowerCase().trim();
-    if (!q) return customerList.filter(c => (c.user?.enabled ?? c.user?.active ?? c.user?.isActive ?? true) === true);
+    if (!q) return topCustomers;
     return customerList
       .filter(c => (c.user?.enabled ?? c.user?.active ?? c.user?.isActive ?? true) === true)
-      .filter(c => (c.firstName + ' ' + (c.lastName || '')).toLowerCase().includes(q) || (c.phone || '').includes(q) || (c.idNo || '').toLowerCase().includes(q));
-  }, [customerList, customerSearchQuery]);
+      .filter(c => (c.firstName + ' ' + (c.lastName || '')).toLowerCase().includes(q) || (c.phone || '').includes(q) || (c.idNo || '').toLowerCase().includes(q))
+      .slice(0, 5);
+  }, [customerList, customerSearchQuery, topCustomers]);
 
+
+  const topSellingItems = useMemo(() => {
+    const salesMap = {};
+    jobList.forEach(job => {
+      if (job.status !== 'CANCELLED' && job.items) {
+        job.items.forEach(ji => {
+          const itemId = ji.stockItem?.id || ji.stockItemId;
+          if (itemId) {
+            salesMap[itemId] = (salesMap[itemId] || 0) + (ji.quantity || 0);
+          }
+        });
+      }
+    });
+
+    return [...stockList]
+      .sort((a, b) => {
+        const salesA = salesMap[a.id] || 0;
+        const salesB = salesMap[b.id] || 0;
+        if (salesB !== salesA) return salesB - salesA;
+        return (b.quantity || 0) - (a.quantity || 0);
+      })
+      .slice(0, 5);
+  }, [stockList, jobList]);
 
   const filteredPartDropdown = useMemo(() => {
     const q = partSearchQuery.toLowerCase().trim();
-    if (!q) return stockList;
-    return stockList.filter(it => (it.name || '').toLowerCase().includes(q) || (it.partNumber || '').toLowerCase().includes(q));
-  }, [stockList, partSearchQuery]);
+    if (!q) return topSellingItems;
+    return stockList
+      .filter(it => (it.name || '').toLowerCase().includes(q) || (it.partNumber || '').toLowerCase().includes(q))
+      .slice(0, 5);
+  }, [stockList, partSearchQuery, topSellingItems]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -2321,7 +2457,7 @@ const AdminDashboard = () => {
             <Package className="w-5 h-5 text-white" />
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-xl tracking-tighter text-slate-900 leading-none">Mind Spare Parts</span>
+            <span className="font-black text-xl tracking-tighter text-slate-900 leading-none">{BRANDING.name}</span>
             <span className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-600 mt-0.5">Inventory Central</span>
           </div>
         </div>
@@ -2334,25 +2470,17 @@ const AdminDashboard = () => {
             { id: 'suppliers', icon: Truck, label: 'Supplier Management' },
             { id: 'inventory', icon: Package, label: 'Inventory Management' },
             { id: 'work', icon: Briefcase, label: 'Bill Management' },
-            { id: 'finance', icon: DollarSign, label: 'Money Management' },
             { id: 'audit', icon: ClipboardList, label: 'Logs' },
           ].map((item) => (
             <button
               key={item.id}
               onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-              className={`w-full relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
+              className={`w-full relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 activeTab === item.id
-                  ? 'text-white'
+                  ? 'text-white bg-blue-600 shadow-lg shadow-blue-600/20'
                   : 'hover:bg-slate-50 text-slate-500 font-bold'
               }`}
             >
-              {activeTab === item.id && (
-                <motion.div
-                  layoutId="sidebar-active"
-                  className="absolute inset-0 bg-blue-600 rounded-xl -z-10 shadow-lg shadow-blue-600/20"
-                  transition={{ type: 'spring', bounce: 0.15, duration: 0.6 }}
-                />
-              )}
               <item.icon className={`w-5 h-5 flex-shrink-0 ${activeTab === item.id ? 'text-white' : 'text-slate-400'}`} />
               <span className="text-sm font-bold tracking-tight">{item.label}</span>
               {activeTab === item.id && <ChevronRight className="w-4 h-4 text-white/70 ml-auto" />}
@@ -2408,7 +2536,7 @@ const AdminDashboard = () => {
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10 space-y-8 bg-white relative">
+        <div ref={contentAreaRef} className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10 space-y-8 bg-white relative">
           
           {/* Global Notification Banner */}
           <AnimatePresence>
@@ -2452,18 +2580,16 @@ const AdminDashboard = () => {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                 <motion.div variants={itemVariants}>
                   <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter">System Pulse</h2>
-                  <p className="text-slate-500 mt-2 md:mt-3 font-bold text-sm md:text-lg tracking-tight">Real-time performance analytics for <span className="text-blue-600">Mind Spare Parts</span>.</p>
+                  <p className="text-slate-500 mt-2 md:mt-3 font-bold text-sm md:text-lg tracking-tight">Real-time performance analytics for <span className="text-blue-600">{BRANDING.name}</span>.</p>
                 </motion.div>
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
                   { label: "Monthly Revenue", value: 'Rs. ' + (analyticsData.monthlyRevenue || 0).toLocaleString(), growth: 'Last 30d', icon: Activity, color: 'blue', accent: 'bg-blue-600' },
-                  { label: 'Monthly Profit', value: 'Rs. ' + (analyticsData.monthlyInventoryProfit || 0).toLocaleString(), growth: 'Inventory', icon: CreditCard, color: 'emerald', accent: 'bg-emerald-500' },
                   { label: 'Stock Value (COGS)', value: 'Rs. ' + (analyticsData.remainingStockValue || 0).toLocaleString(), growth: 'Asset', icon: Package, color: 'indigo', accent: 'bg-indigo-600' },
                   { label: 'Stock Value (Retail)', value: 'Rs. ' + (analyticsData.estimatedSellingValue || 0).toLocaleString(), growth: 'Market', icon: Layers, color: 'blue', accent: 'bg-blue-500' },
-                  { label: 'Est. Future Profit', value: 'Rs. ' + (analyticsData.estimatedFutureProfit || 0).toLocaleString(), growth: 'Forecast', icon: DollarSign, color: 'emerald', accent: 'bg-emerald-500' },
                   { label: 'Low Stock Items', value: (analyticsData.lowStockCount || 0).toString(), growth: 'Alert', icon: AlertTriangle, color: 'amber', accent: 'bg-amber-500' },
                 ].map((stat, i) => (
                   <motion.div 
@@ -2486,8 +2612,8 @@ const AdminDashboard = () => {
                       </span>
                     </div>
                     
-                    <div>
-                      <h3 className="text-2xl font-black text-slate-900 tracking-tighter truncate">{stat.value}</h3>
+                    <div className="min-w-0">
+                      <h3 className="text-lg font-black text-slate-900 tracking-tighter break-words leading-tight">{stat.value}</h3>
                       <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1 truncate">{stat.label}</p>
                     </div>
                   </motion.div>
@@ -2566,71 +2692,7 @@ const AdminDashboard = () => {
                 </motion.div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                <motion.div variants={itemVariants} className="bg-white border border-slate-100 rounded-[3rem] p-10 shadow-xl shadow-slate-100/50">
-                   <h4 className="font-black text-2xl text-slate-900 mb-8 flex items-center gap-4 tracking-tighter">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center"><Activity className="w-6 h-6 text-blue-600" /></div>
-                    Recent Activity
-                  </h4>
-                  <div className="space-y-8">
-                    {(analyticsData.recentActivity || []).slice(0, 4).map((job, i) => (
-                      <div key={job.id} className="flex gap-6 group cursor-pointer" onClick={() => setActiveTab('work')}>
-                        <div className="w-1.5 h-12 rounded-full bg-slate-100 relative overflow-hidden group-hover:bg-blue-100 transition-colors">
-                          <div 
-                            className={`absolute top-0 left-0 w-full shadow-[0_0_8px_rgba(37,99,235,0.5)] ${
-                              job.status === 'PAID' ? 'bg-emerald-500 h-full' : 
-                              'bg-amber-500 h-1/3'
-                            }`} 
-                          />
-                        </div>
-                        <div className="group-hover:translate-x-1 transition-transform duration-300 flex-1">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-[15px] font-black text-slate-900 tracking-tight">{job.vehicleNumber || `Bill #${job.id}`}</p>
-                              <p className="text-xs text-slate-400 font-bold mt-0.5 tracking-tight">{job.customerName || (job.customer ? `${job.customer.firstName} ${job.customer.lastName}` : 'Unknown')}</p>
-                            </div>
-                            <span className={`text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-widest ${
-                              job.status === 'PAID' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'
-                            }`}>{job.status}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <button onClick={() => setActiveTab('work')} className="w-full mt-10 py-4 bg-slate-50 rounded-2xl text-slate-600 font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition-colors">
-                    Work Management
-                  </button>
-                </motion.div>
 
-
-                <motion.div variants={itemVariants} className="bg-white border border-slate-100 rounded-[3rem] p-10 shadow-xl shadow-slate-100/50">
-                   <h4 className="font-black text-2xl text-slate-900 mb-8 flex items-center gap-4 tracking-tighter">
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center"><Shield className="w-6 h-6 text-amber-600" /></div>
-                    Star Customers
-                  </h4>
-                  <div className="space-y-6">
-                    {analyticsData.topCustomers.map((c, i) => (
-                      <div key={i} className="flex items-center gap-4 group">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${
-                          i === 0 ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'
-                        }`}>
-                          {i === 0 ? '🏆' : i + 1}
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-black text-slate-900 tracking-tight">{c.name}</p>
-                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{c.jobs} Bills</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-black text-slate-900 leading-none">Rs. {c.total.toLocaleString()}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <button onClick={() => setActiveTab('customers')} className="w-full mt-6 py-4 bg-slate-50 rounded-2xl text-slate-600 font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition-colors">
-                    Customers
-                  </button>
-                </motion.div>
-              </div>
             </motion.div>
           )}
 
@@ -2771,7 +2833,7 @@ const AdminDashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredStaff.map((staff, index) => {
+                      {paginatedStaff.map((staff, index) => {
                         const isStaffEnabled = staff.enabled ?? staff.active ?? staff.isActive ?? true;
                         const staffRole = staff.role || staff.userRole || 'ROLE_STAFF';
                         
@@ -2808,7 +2870,7 @@ const AdminDashboard = () => {
                         );
                       })}
                       
-                      {filteredStaff.length === 0 && (
+                      {paginatedStaff.length === 0 && (
                         <tr>
                           <td colSpan="4" className="py-20 text-center">
                             <div className="flex flex-col items-center gap-3">
@@ -2823,6 +2885,7 @@ const AdminDashboard = () => {
                     </tbody>
                   </table>
                 </div>
+                {renderPagination(filteredStaff.length, staffPage, setStaffPage)}
               </motion.div>
             </motion.div>
           )}
@@ -2933,7 +2996,7 @@ const AdminDashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredCustomers.map((customer, index) => {
+                      {paginatedCustomers.map((customer, index) => {
                         const isCustomerEnabled = customer.user?.enabled ?? customer.user?.active ?? customer.user?.isActive ?? true;
                         
                         return (
@@ -2967,7 +3030,7 @@ const AdminDashboard = () => {
                         );
                       })}
                       
-                      {filteredCustomers.length === 0 && (
+                      {paginatedCustomers.length === 0 && (
                         <tr>
                           <td colSpan="4" className="py-20 text-center">
                             <div className="flex flex-col items-center gap-3">
@@ -2982,6 +3045,7 @@ const AdminDashboard = () => {
                     </tbody>
                   </table>
                 </div>
+                {renderPagination(filteredCustomers.length, customerPage, setCustomerPage)}
               </motion.div>
             </motion.div>
           )}
@@ -3031,7 +3095,7 @@ const AdminDashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredSuppliers.map((supplier, index) => (
+                      {paginatedSuppliers.map((supplier, index) => (
                         <tr key={supplier.id || `supp-key-${index}`} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors ${!supplier.active ? 'opacity-60' : ''}`}>
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-3">
@@ -3058,7 +3122,7 @@ const AdminDashboard = () => {
                           </td>
                         </tr>
                       ))}
-                      {filteredSuppliers.length === 0 && (
+                      {paginatedSuppliers.length === 0 && (
                         <tr>
                           <td colSpan="5" className="py-20 text-center text-slate-400 font-bold">No suppliers found.</td>
                         </tr>
@@ -3066,6 +3130,7 @@ const AdminDashboard = () => {
                     </tbody>
                   </table>
                 </div>
+                {renderPagination(filteredSuppliers.length, supplierPage, setSupplierPage)}
               </motion.div>
             </motion.div>
           )}
@@ -3130,28 +3195,21 @@ const AdminDashboard = () => {
 
 
               {/* Smart Metrics Dashboard */}
-              <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+              <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8">
                 {[
                   {
-                    label: 'COGS Value',
-                    value: 'Rs. ' + (analyticsData.remainingStockValue || 0).toLocaleString(undefined, {minimumFractionDigits: 2}),
-                    icon: DollarSign,
-                    color: 'text-emerald-600',
-                    bg: 'bg-emerald-50'
-                  },
-                  {
-                    label: 'Market Value',
-                    value: 'Rs. ' + (analyticsData.estimatedSellingValue || 0).toLocaleString(undefined, {minimumFractionDigits: 2}),
-                    icon: TrendingUp,
+                    label: 'Item Count',
+                    value: (stockList || []).length.toString(),
+                    icon: Layers,
                     color: 'text-blue-600',
                     bg: 'bg-blue-50'
                   },
                   {
-                    label: 'Future Profit',
-                    value: 'Rs. ' + (analyticsData.estimatedFutureProfit || 0).toLocaleString(undefined, {minimumFractionDigits: 2}),
-                    icon: CreditCard,
-                    color: 'text-indigo-600',
-                    bg: 'bg-indigo-50'
+                    label: 'Full Value',
+                    value: 'Rs. ' + (analyticsData.remainingStockValue || 0).toLocaleString(undefined, {minimumFractionDigits: 2}),
+                    icon: DollarSign,
+                    color: 'text-emerald-600',
+                    bg: 'bg-emerald-50'
                   },
                   {
                     label: 'Low Stock',
@@ -3161,13 +3219,13 @@ const AdminDashboard = () => {
                     bg: 'bg-amber-50'
                   }
                 ].map((stat, idx) => (
-                  <div key={idx} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center gap-4">
+                  <div key={idx} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center gap-3 min-w-0">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${stat.bg} ${stat.color}`}>
                       <stat.icon className="w-6 h-6" />
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{stat.label}</p>
-                      <h4 className="text-2xl font-black text-slate-900 mt-0.5">{stat.value}</h4>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider truncate">{stat.label}</p>
+                      <h4 className="text-lg font-black text-slate-900 mt-0.5 break-words leading-tight">{stat.value}</h4>
                     </div>
                   </div>
                 ))}
@@ -3187,26 +3245,17 @@ const AdminDashboard = () => {
                     <thead>
                       <tr className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
                         <th className="py-4 px-4 sm:px-6">PART SPECIFICATIONS</th>
+                        <th className="py-4 px-3">LOCATION / REMARKS</th>
                         <th className="py-4 px-3">STOCK STATUS</th>
-                        <th className="py-4 px-3">VALUATION (LANDED / SELLING)</th>
-                        <th className="py-4 px-3 text-right whitespace-nowrap">GP / UNIT</th>
-                        <th className="py-4 px-3 text-right">FUTURE VALUE</th>
-                        <th className="py-4 px-3 text-right">CURRENT MONTH</th>
+                        <th className="py-4 px-3 text-right">PRICE (RS.)</th>
                         <th className="py-4 px-4 sm:px-6 text-right">ACTIONS</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {Object.entries(
-                        filteredStock.reduce((acc, item) => {
-                          const catName = item.category?.name || 'Uncategorized';
-                          if (!acc[catName]) acc[catName] = [];
-                          acc[catName].push(item);
-                          return acc;
-                        }, {})
-                      ).map(([categoryName, items]) => (
+                      {groupedPaginatedStock.map(([categoryName, items]) => (
                         <React.Fragment key={categoryName}>
                           <tr className="bg-slate-50/40">
-                            <td colSpan="7" className="py-3 px-8">
+                            <td colSpan="5" className="py-3 px-8">
                               <div className="flex items-center gap-3">
                                 <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{categoryName}</span>
@@ -3240,6 +3289,25 @@ const AdminDashboard = () => {
                                       </div>
                                     </div>
                                   </td>
+                                  <td className="py-5 px-3 max-w-[180px]">
+                                    <div className="flex flex-col gap-1">
+                                      {item.location && (
+                                        <div className="flex items-start gap-1.5">
+                                          <span className="text-[9px] font-black uppercase tracking-widest text-indigo-400 mt-0.5 shrink-0">📍</span>
+                                          <span className="text-[11px] font-semibold text-slate-700 leading-tight">{item.location}</span>
+                                        </div>
+                                      )}
+                                      {item.remarks && (
+                                        <div className="flex items-start gap-1.5">
+                                          <span className="text-[9px] font-black uppercase tracking-widest text-amber-400 mt-0.5 shrink-0">📝</span>
+                                          <span className="text-[11px] text-slate-500 italic leading-tight">{item.remarks}</span>
+                                        </div>
+                                      )}
+                                      {!item.location && !item.remarks && (
+                                        <span className="text-[10px] text-slate-300">—</span>
+                                      )}
+                                    </div>
+                                  </td>
                                   <td className="py-5 px-3">
                                     <div className="flex flex-col gap-1.5">
                                       <div className="flex items-center justify-between">
@@ -3253,37 +3321,13 @@ const AdminDashboard = () => {
                                       </div>
                                     </div>
                                   </td>
-                                  <td className="py-5 px-3">
-                                    <div className="flex flex-col">
-                                       <div className="flex items-center gap-2">
-                                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-8">LDD:</span>
-                                          <span className="text-xs font-black text-slate-700">Rs. {parseFloat(analytic.landedCostPerUnit || item.unitPrice || 0).toLocaleString()}</span>
-                                       </div>
-                                       <div className="flex items-center gap-2 mt-0.5">
-                                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-8">RTL:</span>
-                                          <span className="text-xs font-black text-blue-600">Rs. {parseFloat(analytic.sellingPricePerUnit || item.unitPrice || 0).toLocaleString()}</span>
-                                       </div>
-                                    </div>
-                                  </td>
-                                  <td className="py-5 px-3 text-right whitespace-nowrap">
-                                    <span className={`text-[11px] font-black px-2.5 py-1 rounded-lg ${parseFloat(analytic.gpPerUnit || 0) >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'} whitespace-nowrap`}>
-                                      {parseFloat(analytic.gpPerUnit || 0) >= 0 ? '+' : ''}Rs. {parseFloat(analytic.gpPerUnit || 0).toLocaleString()}
-                                    </span>
-                                  </td>
                                   <td className="py-5 px-3 text-right">
-                                    <p className="text-xs font-black text-slate-900">Rs. {parseFloat(analytic.remainingValue || 0).toLocaleString()}</p>
-                                    <p className={`text-[10px] font-black uppercase tracking-tighter ${parseFloat(analytic.estimatedFutureProfit || 0) >= 0 ? 'text-indigo-500' : 'text-red-500'}`}>
-                                      Fut. Prof: Rs. {parseFloat(analytic.estimatedFutureProfit || 0).toLocaleString()}
-                                    </p>
-                                  </td>
-                                  <td className="py-5 px-3 text-right">
-                                    <p className="text-xs font-black text-slate-900">Rs. {parseFloat(analytic.monthlyRevenue || 0).toLocaleString()}</p>
-                                    <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-tighter">Prof: Rs. {parseFloat(analytic.monthlyProfit || 0).toLocaleString()}</p>
+                                    <span className="text-sm font-black text-slate-900">Rs. {parseFloat(item.unitPrice || 0).toLocaleString()}</span>
                                   </td>
                                   <td className="py-5 px-4 sm:px-6 text-right">
                                     <div className="flex items-center justify-end gap-2.5">
                                       <button onClick={() => {
-                                        setQuickAddData({ itemId: item.id, quantity: '', hsCode: item.hsCode || '', currencyType: 'USD', unitCostForeign: '', exchangeRate: '', freightCost: '', shippingCost: '', bankCharges: '', clearanceFees: '', dutyFees: '', additionalExpenses: '', landedCost: '', unitPrice: '', sellingPrice: '', supplierId: item.supplier?.id || '' });
+                                        setQuickAddData({ itemId: item.id, quantity: '', hsCode: '', currencyType: '', unitCostForeign: '', exchangeRate: '', freightCost: '', shippingCost: '', bankCharges: '', clearanceFees: '', dutyFees: '', additionalExpenses: '', landedCost: '', unitPrice: item.unitPrice || '', sellingPrice: item.unitPrice || '', supplierId: item.supplier?.id || '' });
                                         setShowQuickAddModal(true);
                                       }} className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-emerald-600 hover:text-white transition-all border border-slate-100 hover:border-emerald-600 group">
                                         <PlusCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
@@ -3294,20 +3338,7 @@ const AdminDashboard = () => {
                                       }} className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-rose-600 hover:text-white transition-all border border-slate-100 hover:border-rose-600 group">
                                         <MinusCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
                                       </button>
-                                      <button onClick={async () => {
-                                        setSelectedMonthlySalesItem(item);
-                                        setShowMonthlySalesModal(true);
-                                        if (!rowBatches[item.id]) {
-                                          try {
-                                            const res = await stockService.getBatches(item.id);
-                                            setRowBatches(prev => ({ ...prev, [item.id]: res.data }));
-                                          } catch (err) {
-                                            console.error("Failed to load batches for analytics", err);
-                                          }
-                                        }
-                                      }} className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all border border-slate-100 hover:border-indigo-600 group" title="View Monthly Sales Breakdown">
-                                        <TrendingUp className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                                      </button>
+
                                       <button onClick={() => openEditStock(item)} className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white transition-all border border-slate-100 hover:border-blue-600 group">
                                         <Pencil className="w-4 h-4 group-hover:scale-110 transition-transform" />
                                       </button>
@@ -3323,7 +3354,7 @@ const AdminDashboard = () => {
                                       exit={{ opacity: 0, height: 0 }}
                                       className="bg-slate-50/60"
                                     >
-                                      <td colSpan="7" className="p-0 overflow-hidden">
+                                      <td colSpan="5" className="p-0 overflow-hidden">
                                         <div className="p-6 md:pl-20 md:pr-12">
                                            <div className="bg-white rounded-[1.5rem] border border-slate-100 shadow-sm overflow-hidden">
                                               <div className="px-6 py-4 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
@@ -3336,23 +3367,13 @@ const AdminDashboard = () => {
                                                       <tr className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
                                                         <th className="py-3 px-6">ENTRY DATE</th>
                                                         <th className="py-3 px-4">SUPPLIER</th>
-                                                        <th className="py-3 px-2 text-right">FOREIGN COST</th>
-                                                        <th className="py-3 px-2 text-right">EXCH. RATE</th>
-                                                        <th className="py-3 px-2 text-right">TOTAL EXPENSES</th>
-                                                        <th className="py-3 px-4 text-right">UNIT LANDED</th>
-                                                        <th className="py-3 px-4 text-right">UNIT RETAIL</th>
+                                                        <th className="py-3 px-4 text-right">PRICE (RS.)</th>
                                                         <th className="py-3 px-6 text-right">REMAINING QTY</th>
                                                         <th className="py-3 px-4 text-center">ACTION</th>
                                                       </tr>
                                                    </thead>
                                                    <tbody className="divide-y divide-slate-50">
                                                       {(rowBatches[item.id] || []).map((batch, bi) => {
-                                                        const expenses = (parseFloat(batch.freightCost || 0) + 
-                                                                         parseFloat(batch.shippingCost || 0) + 
-                                                                         parseFloat(batch.bankCharges || 0) + 
-                                                                         parseFloat(batch.clearanceFees || 0) + 
-                                                                         parseFloat(batch.dutyFees || 0)).toLocaleString();
-                                                        
                                                         return (
                                                           <tr key={batch.id || bi} className="hover:bg-slate-50/50 transition-colors">
                                                             <td className="py-3 px-6 text-[10px] font-black text-slate-600">
@@ -3360,11 +3381,7 @@ const AdminDashboard = () => {
                                                               <span className="block text-[8px] font-bold text-slate-400">{new Date(batch.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                             </td>
                                                             <td className="py-3 px-4 text-[9px] font-black text-slate-500 uppercase">{batch.supplier?.companyName || 'N/A'}</td>
-                                                            <td className="py-3 px-2 text-right text-[10px] font-bold text-slate-500">{batch.unitCostForeign ? `${batch.currencyType || ''} ${batch.unitCostForeign}` : '-'}</td>
-                                                            <td className="py-3 px-2 text-right text-[10px] font-bold text-slate-500">{batch.exchangeRate || '-'}</td>
-                                                            <td className="py-3 px-2 text-right text-[10px] font-bold text-slate-400">Rs. {expenses}</td>
-                                                            <td className="py-3 px-4 text-right text-[10px] font-black text-slate-900">Rs. {(batch.landedCost || 0).toLocaleString()}</td>
-                                                            <td className="py-3 px-4 text-right text-[10px] font-black text-blue-600">Rs. {(batch.sellingPrice || batch.unitPrice || 0).toLocaleString()}</td>
+                                                            <td className="py-3 px-4 text-right text-[10px] font-black text-slate-900">Rs. {(batch.sellingPrice || batch.unitPrice || 0).toLocaleString()}</td>
                                                             <td className="py-3 px-6 text-right">
                                                               <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${batch.currentQuantity === 0 ? 'bg-slate-100 text-slate-400' : 'bg-blue-50 text-blue-600'}`}>
                                                                 {batch.currentQuantity} / {batch.initialQuantity}
@@ -3383,7 +3400,7 @@ const AdminDashboard = () => {
                                                         );
                                                       })}
                                                       {(!rowBatches[item.id] || rowBatches[item.id].length === 0) && (
-                                                        <tr><td colSpan="9" className="py-6 text-center text-[10px] font-bold text-slate-300 italic">No batch history found for this item.</td></tr>
+                                                        <tr><td colSpan="5" className="py-6 text-center text-[10px] font-bold text-slate-300 italic">No batch history found for this item.</td></tr>
                                                       )}
                                                    </tbody>
                                                 </table>
@@ -3399,12 +3416,13 @@ const AdminDashboard = () => {
                           })}
                         </React.Fragment>
                       ))}
-                      {filteredStock.length === 0 && (
-                        <tr><td colSpan="7" className="py-20 text-center text-slate-400 font-bold italic">No inventory records found.</td></tr>
+                      {paginatedStock.length === 0 && (
+                        <tr><td colSpan="4" className="py-20 text-center text-slate-400 font-bold italic">No inventory records found.</td></tr>
                       )}
                     </tbody>
                   </table>
                 </div>
+                {renderPagination(filteredStock.length, stockPage, setStockPage)}
               </motion.div>
             </motion.div>
           )}
@@ -3502,19 +3520,30 @@ const AdminDashboard = () => {
                   <div className="bg-white border border-slate-100 rounded-[2.5rem] overflow-hidden shadow-sm">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left">
+                        <colgroup>
+                          <col style={{width: '130px'}} />
+                          <col />
+                          <col style={{width: '120px'}} />
+                          {logTab === "stock_out" && <col style={{width: '120px'}} />}
+                          <col style={{width: '90px'}} />
+                          <col style={{width: '140px'}} />
+                          <col style={{width: '180px'}} />
+                          <col style={{width: '120px'}} />
+                        </colgroup>
                         <thead>
                           <tr className="bg-slate-50 border-b border-slate-100">
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Date & Time</th>
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Item Specification</th>
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Type</th>
-                             {logTab === "stock_out" && <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Job Status</th>}
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Qty</th>
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Total</th>
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Entity/Supplier</th>
+                            <th className="px-4 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Date & Time</th>
+                            <th className="px-4 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Item Specification</th>
+                            <th className="px-4 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Type</th>
+                             {logTab === "stock_out" && <th className="px-4 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Job Status</th>}
+                            <th className="px-4 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Qty</th>
+                            <th className="px-4 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Total</th>
+                            <th className="px-4 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Entity/Supplier</th>
+                            <th className="px-4 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">By</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                          {filteredTransactions.map((tx) => {
+                          {paginatedTransactions.map((tx) => {
                             const linkedJob = tx.jobId ? jobList.find(j => j.id == tx.jobId) : null;
                             const jobStatus = linkedJob?.status || null;
                             const isCancelled = jobStatus === 'CANCELLED';
@@ -3524,11 +3553,11 @@ const AdminDashboard = () => {
                                 isCancelled ? 'bg-red-50/40 border-l-4 border-l-red-400' :
                                 tx.isGroup ? 'bg-blue-50/20' : ''
                               }`}>
-                                <td className="px-8 py-5">
+                                <td className="px-4 py-3.5">
                                   <p className={`text-sm font-black ${isCancelled ? 'text-red-400 line-through' : 'text-slate-900'}`}>{new Date(tx.timestamp).toLocaleDateString()}</p>
                                   <p className="text-[10px] font-bold text-slate-400">{new Date(tx.timestamp).toLocaleTimeString()}</p>
                                 </td>
-                                <td className="px-8 py-5">
+                                <td className="px-4 py-3.5">
                                   {tx.isGroup ? (
                                     <div className="flex flex-col gap-2">
                                       <div>
@@ -3561,7 +3590,7 @@ const AdminDashboard = () => {
                                     </>
                                   )}
                                 </td>
-                                <td className="px-8 py-5">
+                                <td className="px-4 py-3.5">
                                   <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${
                                     tx.transactionType === 'ADD' ? 'bg-emerald-50 text-emerald-600' : 
                                     tx.transactionType === 'RESTORE' ? 'bg-amber-50 text-amber-600' :
@@ -3571,12 +3600,12 @@ const AdminDashboard = () => {
                                   </span>
                                 </td>
                                 {logTab === "stock_out" && (
-                                  <td className="px-8 py-5 whitespace-nowrap">
+                                  <td className="px-4 py-3.5 whitespace-nowrap">
                                     {jobStatus ? (
                                       <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${
                                         jobStatus === 'CANCELLED' ? 'bg-red-700 text-white shadow-lg ring-2 ring-red-100' :
                                         jobStatus === 'PAID'  ? 'bg-emerald-50 text-emerald-600' :
-                                                                     'bg-slate-100 text-slate-500'
+                                                             'bg-slate-100 text-slate-500'
                                       }`}>
                                         {jobStatus === 'CANCELLED' ? '⚠ CANCELLED' : jobStatus}
                                       </span>
@@ -3585,21 +3614,30 @@ const AdminDashboard = () => {
                                     )}
                                   </td>
                                 )}
-                                <td className="px-8 py-5 text-right font-black text-slate-900 whitespace-nowrap">
+                                <td className="px-4 py-3.5 text-right font-black text-slate-900 whitespace-nowrap">
                                   {tx.transactionType === 'ADD' || tx.transactionType === 'RESTORE' ? '+' : '-'}{tx.quantity}
                                 </td>
-                                <td className="px-8 py-5 text-right whitespace-nowrap">
+                                <td className="px-4 py-3.5 text-right whitespace-nowrap">
                                   <p className={`text-sm font-black ${isCancelled ? 'text-red-600 font-black' : 'text-slate-900'}`}>Rs. {tx.totalAmount.toLocaleString()}</p>
                                   {!tx.isGroup && <p className="text-[10px] text-slate-400 font-bold">@ Rs. {parseFloat(tx.unitPrice || 0).toLocaleString()}</p>}
                                 </td>
-                                <td className="px-8 py-5">
+                                <td className="px-4 py-3.5">
                                   <p className="text-xs font-black text-slate-600">{tx.isGroup ? `JOB #${tx.jobId}` : (tx.supplier?.companyName || 'INTERNAL')}</p>
                                   <p className="text-[10px] font-medium text-slate-400 italic max-w-[200px] truncate">{tx.note || '-'}</p>
+                                </td>
+                                <td className="px-4 py-3.5">
+                                  <div className="flex flex-col gap-0.5">
+                                    {(tx.performedBy || 'System').split(' ').map((word, idx) => (
+                                      <span key={idx} className="inline-block px-2 py-0.5 bg-slate-900 text-white rounded text-[9px] font-black uppercase tracking-widest w-fit">
+                                        {word}
+                                      </span>
+                                    ))}
+                                  </div>
                                 </td>
                               </tr>
                               {tx.isGroup && (
                                 <tr>
-                                  <td colSpan="7" className="px-8 pb-4">
+                                  <td colSpan={logTab === "stock_out" ? 8 : 7} className="px-4 pb-4">
                                     <div className={`border rounded-2xl p-4 ml-8 space-y-2 ${
                                       isCancelled ? 'bg-red-50/50 border-red-100' : 'bg-white/50 border-slate-100'
                                     }`}>
@@ -3620,12 +3658,13 @@ const AdminDashboard = () => {
                         </tbody>
                       </table>
                     </div>
+                    {renderPagination(filteredTransactions.length, txPage, setTxPage)}
                   </div>
                 </div>
               ) : (
                 <div className="space-y-6">
                    <div className="bg-white border border-slate-100 rounded-[2.5rem] overflow-hidden shadow-sm">
-                    <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+                    <div className="p-6 border-b border-slate-50 flex items-center justify-between">
                       <div>
                         <h3 className="text-xl font-black text-slate-900 tracking-tight">Sales & Billing Log</h3>
                         <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Comprehensive Transaction History</p>
@@ -3634,53 +3673,59 @@ const AdminDashboard = () => {
                         <History className="w-4 h-4" /> LIVE AUDIT
                       </div>
                     </div>
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto hidden md:block">
                       <table className="w-full text-left">
+                        <colgroup>
+                          <col style={{width: '120px'}} />
+                          <col style={{width: '130px'}} />
+                          <col style={{width: '110px'}} />
+                          <col />
+                          <col style={{width: '100px'}} />
+                          <col style={{width: '140px'}} />
+                        </colgroup>
                         <thead>
                           <tr className="bg-slate-50 border-b border-slate-100">
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timestamp</th>
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Job Reference</th>
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Action</th>
-                             <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Job Status</th>
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Detailed Activity Log</th>
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Report</th>
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">By</th>
+                            <th className="px-4 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Date / Time</th>
+                            <th className="px-4 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Action</th>
+                            <th className="px-4 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                            <th className="px-4 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Details</th>
+                            <th className="px-4 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Report</th>
+                            <th className="px-4 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest">By</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                          {jobLogs.map((log) => {
+                          {paginatedJobLogs.map((log) => {
                             const linkedJob = log.jobId ? jobList.find(j => j.id == log.jobId) : null;
                             const jobStatus = linkedJob?.status || (log.action === 'JOB_CANCELLED' ? 'CANCELLED' : log.action === 'JOB_PAID' ? 'PAID' : null);
                             const isCancelled = jobStatus === 'CANCELLED';
                             return (
-                            <tr key={log.id} className={`hover:bg-slate-50/50 transition-colors ${
+                            <tr key={log.id} className={`hover:bg-slate-50/50 transition-colors text-sm ${
                               isCancelled ? 'bg-red-50/40 border-l-4 border-l-red-400' : ''
                             }`}>
-                              <td className="px-8 py-5">
-                                <p className={`text-sm font-black ${isCancelled ? 'text-red-400' : 'text-slate-900'}`}>{new Date(log.timestamp).toLocaleDateString()}</p>
-                                <p className="text-[10px] font-bold text-slate-400">{new Date(log.timestamp).toLocaleTimeString()}</p>
+                              {/* Date / Time */}
+                              <td className="px-4 py-3.5 align-top">
+                                <p className={`text-xs font-black leading-tight ${isCancelled ? 'text-red-400' : 'text-slate-900'}`}>{new Date(log.timestamp).toLocaleDateString()}</p>
+                                <p className="text-[10px] font-bold text-slate-400 mt-0.5">{new Date(log.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>
                               </td>
-                              <td className="px-8 py-5">
-                                <p className={`text-sm font-black ${isCancelled ? 'text-red-500' : 'text-blue-600'}`}>{log.vehicleNumber || `Bill #${log.jobId}`}</p>
-                                <p className="text-[10px] text-slate-400 font-bold">Job #{log.jobId}</p>
-                              </td>
-                              <td className="px-8 py-5">
-                                  <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${
-                                  log.action === 'DELETED' ? 'bg-red-50 text-red-600' : 
-                                  log.action === 'STOCK_OUT' ? 'bg-blue-600 text-white shadow-sm' :
-                                  log.action === 'JOB_PAID' ? 'bg-emerald-600 text-white shadow-sm' :
-                                  log.action === 'JOB_CANCELLED' ? 'bg-red-600 text-white shadow-sm' :
+                              {/* Action */}
+                              <td className="px-4 py-3.5 align-top">
+                                <span className={`inline-block px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap ${
+                                  log.action === 'DELETED' ? 'bg-red-50 text-red-600' :
+                                  log.action === 'STOCK_OUT' ? 'bg-blue-600 text-white' :
+                                  log.action === 'JOB_PAID' ? 'bg-emerald-600 text-white' :
+                                  log.action === 'JOB_CANCELLED' ? 'bg-red-600 text-white' :
                                   log.action === 'STATUS_CHANGED' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'
                                 }`}>
                                   {log.action.replace(/_/g, ' ')}
                                 </span>
                               </td>
-                              <td className="px-8 py-5 whitespace-nowrap">
+                              {/* Job Status */}
+                              <td className="px-4 py-3.5 align-top whitespace-nowrap">
                                 {jobStatus ? (
-                                  <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${
-                                    jobStatus === 'CANCELLED'  ? 'bg-red-700 text-white shadow-lg ring-2 ring-red-100' :
-                                    jobStatus === 'PAID'   ? 'bg-emerald-50 text-emerald-600' :
-                                                                  'bg-slate-100 text-slate-500'
+                                  <span className={`inline-block px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${
+                                    jobStatus === 'CANCELLED' ? 'bg-red-700 text-white' :
+                                    jobStatus === 'PAID' ? 'bg-emerald-50 text-emerald-600' :
+                                    'bg-slate-100 text-slate-500'
                                   }`}>
                                     {jobStatus === 'CANCELLED' ? '⚠ CANCELLED' : jobStatus}
                                   </span>
@@ -3688,33 +3733,35 @@ const AdminDashboard = () => {
                                   <span className="text-[10px] text-slate-300 font-bold">—</span>
                                 )}
                               </td>
-                              <td className="px-8 py-5">
-                                <div className={`p-4 rounded-2xl border max-w-lg ${
-                                  isCancelled ? 'bg-red-50/50 border-red-100' : 'bg-slate-50 border-slate-100'
-                                }`}>
-                                  <p className={`text-[13px] font-bold whitespace-pre-wrap leading-relaxed ${
-                                    isCancelled ? 'text-red-400' : 'text-slate-700'
-                                  }`}>{log.details}</p>
-                                  <div className="mt-3 pt-3 border-t border-slate-200/60">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Customer: <span className="text-slate-600 ml-1">{log.customerName}</span></p>
-                                  </div>
-                                </div>
+                              {/* Details */}
+                              <td className="px-4 py-3.5 align-top">
+                                <p className={`text-[11px] font-bold whitespace-pre-wrap leading-relaxed ${isCancelled ? 'text-red-400' : 'text-slate-600'}`}>
+                                  <span className="text-blue-600 font-black">Bill #{log.jobId}: </span>
+                                  {log.details}
+                                </p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Customer: <span className="text-slate-600 normal-case font-bold">{log.customerName}</span></p>
                               </td>
-                              <td className="px-8 py-5 text-center">
-                                {!isCancelled && (
+                              {/* Report */}
+                              <td className="px-4 py-3.5 align-top">
+                                {jobStatus === 'PAID' && (
                                   <button
                                     onClick={() => generateCustomerReport(log)}
                                     title={`Generate report for ${log.customerName}`}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-blue-100 hover:border-blue-600"
+                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-blue-100 hover:border-blue-600"
                                   >
-                                    <FileDown className="w-3.5 h-3.5" /> Report
+                                    <FileDown className="w-3 h-3" /> PDF
                                   </button>
                                 )}
                               </td>
-                              <td className="px-8 py-5 text-right">
-                                <span className="px-3 py-1 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
-                                  {log.performedBy}
-                                </span>
+                              {/* By */}
+                              <td className="px-4 py-3.5 align-top">
+                                <div className="flex flex-col gap-0.5">
+                                  {(log.performedBy || 'System').split(' ').map((word, idx) => (
+                                    <span key={idx} className="inline-block px-2 py-0.5 bg-slate-900 text-white rounded text-[9px] font-black uppercase tracking-widest w-fit">
+                                      {word}
+                                    </span>
+                                  ))}
+                                </div>
                               </td>
                             </tr>
                             );
@@ -3722,6 +3769,68 @@ const AdminDashboard = () => {
                         </tbody>
                       </table>
                     </div>
+                    <div className="block md:hidden p-4 space-y-4 bg-slate-50/30">
+                      {paginatedJobLogs.map((log) => {
+                        const linkedJob = log.jobId ? jobList.find(j => j.id == log.jobId) : null;
+                        const jobStatus = linkedJob?.status || (log.action === 'JOB_CANCELLED' ? 'CANCELLED' : log.action === 'JOB_PAID' ? 'PAID' : null);
+                        const isCancelled = jobStatus === 'CANCELLED';
+                        return (
+                          <div key={log.id} className={`p-4 space-y-3 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-all ${
+                            isCancelled ? 'bg-red-50/40 border-l-4 border-l-red-400' : ''
+                          }`}>
+                            <div className="flex justify-between items-start gap-2">
+                              <div>
+                                <p className={`text-xs font-black leading-tight ${isCancelled ? 'text-red-400' : 'text-slate-900'}`}>{new Date(log.timestamp).toLocaleDateString()}</p>
+                                <p className="text-[10px] font-bold text-slate-400 mt-0.5">{new Date(log.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>
+                              </div>
+                              <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                <span className={`inline-block px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap ${
+                                  log.action === 'DELETED' ? 'bg-red-50 text-red-600' :
+                                  log.action === 'STOCK_OUT' ? 'bg-blue-600 text-white' :
+                                  log.action === 'JOB_PAID' ? 'bg-emerald-600 text-white' :
+                                  log.action === 'JOB_CANCELLED' ? 'bg-red-600 text-white' :
+                                  log.action === 'STATUS_CHANGED' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'
+                                }`}>
+                                  {log.action.replace(/_/g, ' ')}
+                                </span>
+                                {jobStatus && (
+                                  <span className={`inline-block px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${
+                                    jobStatus === 'CANCELLED' ? 'bg-red-700 text-white' :
+                                    jobStatus === 'PAID' ? 'bg-emerald-50 text-emerald-600' :
+                                    'bg-slate-100 text-slate-500'
+                                  }`}>
+                                    {jobStatus === 'CANCELLED' ? '⚠ CANCELLED' : jobStatus}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="pt-2 border-t border-slate-100 space-y-1">
+                              <p className={`text-[11px] font-bold whitespace-pre-wrap leading-relaxed ${isCancelled ? 'text-red-400' : 'text-slate-600'}`}>
+                                <span className="text-blue-600 font-black">Bill #{log.jobId}: </span>
+                                {log.details}
+                              </p>
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Customer: <span className="text-slate-600 normal-case font-bold">{log.customerName}</span></p>
+                            </div>
+                            
+                            <div className="flex justify-between items-center pt-2 border-t border-slate-50 gap-2">
+                              <span className="px-2 py-1 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap">
+                                By {log.performedBy}
+                              </span>
+                              {jobStatus === 'PAID' && (
+                                <button
+                                  onClick={() => generateCustomerReport(log)}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-blue-100"
+                                >
+                                  <FileDown className="w-3 h-3" /> PDF
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {renderPagination(jobLogs.length, jobLogPage, setJobLogPage)}
                   </div>
                 </div>
               )}
@@ -3831,15 +3940,15 @@ const AdminDashboard = () => {
 
               {/* Bills List */}
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                {filteredJobs.length === 0 ? (
+                {paginatedJobs.length === 0 ? (
                   <div className="col-span-full bg-white border border-dashed border-slate-200 rounded-[2.5rem] py-20 flex flex-col items-center">
                     <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mb-4"><Briefcase className="w-10 h-10 text-slate-200" /></div>
                     <p className="text-slate-400 font-bold">{jobList.length === 0 ? "No active jobs found." : "No jobs match your search/filter."}</p>
                     <button onClick={() => setShowAddJobModal(true)} className="mt-4 text-blue-600 font-black text-sm hover:underline">Assign a new job</button>
                   </div>
                 ) : (
-                  filteredJobs.map(job => (
-                    <motion.div key={job.id} variants={itemVariants} className="bg-white border border-slate-100 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all overflow-hidden group relative">
+                  paginatedJobs.map(job => (
+                    <div key={job.id} className="bg-white border border-slate-100 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group relative">
                       {/* Bill ID Badge */}
                       <div className="absolute top-0 right-0 p-1">
                         <div className="bg-slate-900 text-white text-[8px] font-black px-3 py-1 rounded-bl-xl rounded-tr-xl tracking-[0.2em] uppercase">
@@ -3859,7 +3968,7 @@ const AdminDashboard = () => {
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <h4 className="text-xl font-black text-slate-900 tracking-tight">{job.vehicleNumber || `Bill #${job.id}`}</h4>
+                                <h4 className="text-xl font-black text-slate-900 tracking-tight">{`Bill #${job.id}`}</h4>
                                 <span className="text-[10px] font-bold text-slate-300 bg-slate-50 px-2 py-0.5 rounded border border-slate-100 uppercase tracking-widest">BILL</span>
                               </div>
                               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
@@ -3890,34 +3999,21 @@ const AdminDashboard = () => {
                         </div>
 
                         <div className="bg-slate-50/50 rounded-2xl p-5 mb-6 border border-slate-50">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-3">
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                                <Tag className="w-3 h-3" /> Sales Breakdown
-                              </p>
-                              <div className="flex flex-col gap-2">
-                                {job.items?.map(i => (
-                                  <div key={i.id} className="flex justify-between items-center group/item">
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                                      <span className="text-xs font-black text-slate-700">{i.itemName}</span>
-                                    </div>
-                                    <span className="text-[10px] font-bold text-slate-400 bg-white border border-slate-100 px-1.5 py-0.5 rounded">x{i.quantity}</span>
+                          <div className="space-y-3">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                              <Tag className="w-3 h-3" /> Sales Breakdown
+                            </p>
+                            <div className="flex flex-col gap-2">
+                              {job.items?.map(i => (
+                                <div key={i.id} className="flex justify-between items-center group/item">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                                    <span className="text-xs font-black text-slate-700">{i.itemName}</span>
                                   </div>
-                                ))}
-                                {job.items?.length === 0 && <span className="text-[10px] font-bold text-slate-300 italic">No parts added</span>}
-                              </div>
-                            </div>
-                            <div className="space-y-3">
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                                <Wrench className="w-3 h-3" /> Labor / Services
-                              </p>
-                              <div className="flex flex-wrap gap-2">
-                                {job.services?.map(s => (
-                                  <span key={s.id} className="px-3 py-1 bg-white border border-slate-100 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm">{s.serviceName}</span>
-                                ))}
-                                {job.services?.length === 0 && <span className="text-[10px] font-bold text-slate-300 italic">No services</span>}
-                              </div>
+                                  <span className="text-[10px] font-bold text-slate-400 bg-white border border-slate-100 px-1.5 py-0.5 rounded">x{i.quantity}</span>
+                                </div>
+                              ))}
+                              {job.items?.length === 0 && <span className="text-[10px] font-bold text-slate-300 italic">No parts added</span>}
                             </div>
                           </div>
                         </div>
@@ -3945,286 +4041,15 @@ const AdminDashboard = () => {
                           </div>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   ))
                 )}
               </div>
+              {renderPagination(filteredJobs.length, jobPage, setJobPage)}
             </motion.div>
           )}
 
-          {activeTab === 'finance' && (
-            <motion.div 
-              key="finance"
-              variants={containerVariants} 
-              initial="hidden" 
-              animate="visible" 
-              exit={{ opacity: 0, x: -10 }}
-              className="space-y-8"
-            >
-              {/* Header and Title */}
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                <div>
-                  <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Money Management</h2>
-                  <p className="text-slate-500 font-medium">Track your monthly expenses, view gross profits, and monitor overall profitability.</p>
-                </div>
-              </div>
 
-              {/* Overall Performance Card */}
-              {(() => {
-                const summary = getOverallFinanceSummary();
-                const isOverallProfit = summary.overallNet >= 0;
-                return (
-                  <motion.div 
-                    variants={itemVariants}
-                    className={`relative overflow-hidden rounded-[2.5rem] p-8 border ${
-                      isOverallProfit 
-                        ? 'bg-gradient-to-br from-emerald-600 to-teal-800 text-white border-emerald-500 shadow-xl shadow-emerald-950/20' 
-                        : 'bg-gradient-to-br from-rose-600 to-red-800 text-white border-rose-500 shadow-xl shadow-rose-950/20'
-                    }`}
-                  >
-                    <div className="absolute right-0 bottom-0 translate-x-10 translate-y-10 opacity-10">
-                      <DollarSign className="w-80 h-80 text-white" />
-                    </div>
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-                      <div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.25em] bg-white/10 px-3 py-1.5 rounded-lg">Overall Performance Ledger</span>
-                        <h3 className="text-5xl font-black tracking-tight mt-4">
-                          {isOverallProfit ? '' : '-'}Rs. {Math.abs(summary.overallNet).toLocaleString(undefined, {minimumFractionDigits: 2})}
-                        </h3>
-                        <p className="text-white/80 text-xs font-bold uppercase tracking-widest mt-2">
-                          Cumulative Net Result: <span className="underline font-black">{isOverallProfit ? 'Profit' : 'Loss'}</span>
-                        </p>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4 md:border-l md:border-white/15 md:pl-8">
-                        <div>
-                          <p className="text-[10px] text-white/60 font-black uppercase tracking-wider">Total Sales GP</p>
-                          <p className="text-lg font-black text-white mt-1">Rs. {summary.overallGrossProfit.toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-white/60 font-black uppercase tracking-wider">Total Expenses</p>
-                          <p className="text-lg font-black text-white/90 mt-1">Rs. {summary.overallExpenses.toLocaleString()}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })()}
-
-              {/* Monthly Ledger Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                {/* Monthly Metrics Left Panel (1 column) */}
-                <div className="space-y-6">
-                  <div className="bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm space-y-6">
-                    <h4 className="font-black text-lg text-slate-900 tracking-tight">Select Accounting Period</h4>
-                    
-                    <div>
-                      <label className="text-[10px] text-slate-400 font-black uppercase tracking-widest block mb-2">Month & Year</label>
-                      <input 
-                        type="month"
-                        value={selectedFinanceMonth}
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            setSelectedFinanceMonth(e.target.value);
-                          }
-                        }}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 font-bold text-slate-700 bg-slate-50 hover:bg-slate-100/50 transition-colors"
-                      />
-                    </div>
-                  </div>
-
-                  {(() => {
-                    const grossProfit = getMonthGrossProfit(selectedFinanceMonth);
-                    const revenue = getMonthRevenue(selectedFinanceMonth);
-                    const totalExp = currentMonthExpenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
-                    const netResult = grossProfit - totalExp;
-                    const isProfit = netResult >= 0;
-
-                    const [year, month] = selectedFinanceMonth.split('-');
-                    const monthName = new Date(year, parseInt(month) - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
-
-                    return (
-                      <div className="bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm space-y-6">
-                        <h4 className="font-black text-lg text-slate-900 tracking-tight flex items-center justify-between">
-                          <span>{monthName} Recap</span>
-                          <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${
-                            isProfit ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'
-                          }`}>
-                            {isProfit ? 'Profit' : 'Loss'}
-                          </span>
-                        </h4>
-
-                        <div className="space-y-4">
-                          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex justify-between items-center">
-                            <div>
-                              <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Monthly Sales (GP)</p>
-                              <p className="text-base font-black text-slate-800 mt-0.5">Rs. {grossProfit.toLocaleString()}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-[8px] text-slate-400 font-bold uppercase">Revenue</p>
-                              <p className="text-xs font-bold text-slate-500">Rs. {revenue.toLocaleString()}</p>
-                            </div>
-                          </div>
-
-                          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                            <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Total Operating Expenses</p>
-                            <p className="text-base font-black text-slate-800 mt-0.5">Rs. {totalExp.toLocaleString()}</p>
-                          </div>
-
-                          <div className={`p-5 rounded-2xl border ${
-                            isProfit 
-                              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-950' 
-                              : 'bg-red-500/10 border-red-500/20 text-red-950'
-                          }`}>
-                            <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Net Profit/Loss Deduction</p>
-                            <p className="text-xl font-black mt-1">
-                              {isProfit ? '+' : '-'}Rs. {Math.abs(netResult).toLocaleString(undefined, {minimumFractionDigits: 2})}
-                            </p>
-                            <p className="text-[9px] font-bold mt-2 opacity-80 leading-relaxed">
-                              {isProfit 
-                                ? 'Your spare parts store made a positive net profit after reducing all operating expenses.' 
-                                : 'Operating expenses exceeded the gross profit earned from billing. Showed as loss.'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* Expenses Details Table Panel (2 columns) */}
-                <div className="lg:col-span-2 space-y-6">
-                  <div className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-sm space-y-6">
-                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                      <div>
-                        <h4 className="font-black text-lg text-slate-900 tracking-tight">Manually Managed Operating Expenses</h4>
-                        <p className="text-slate-400 text-xs font-medium mt-1">Enter your expenses below. All changes auto-save instantly.</p>
-                      </div>
-                      <button 
-                        type="button"
-                        onClick={handleInitializeDefaultFields}
-                        className="px-4 py-2.5 rounded-xl border border-slate-200 hover:border-slate-900 hover:bg-slate-900 hover:text-white font-black text-[10px] uppercase tracking-widest transition-all text-slate-500 shrink-0"
-                      >
-                        Reset Standard Fields
-                      </button>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
-                        <thead>
-                          <tr className="border-b border-slate-100 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                            <th className="pb-4 pr-4">Expense Item</th>
-                            <th className="pb-4 px-4 w-44 text-right">Amount (LKR)</th>
-                            <th className="pb-4 pl-4 w-16 text-center">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {currentMonthExpenses.length > 0 ? (
-                            currentMonthExpenses.map((exp, idx) => (
-                              <tr key={idx} className="group hover:bg-slate-50/50 transition-colors">
-                                <td className="py-3 pr-4 text-xs font-black text-slate-700">
-                                  {exp.name}
-                                </td>
-                                <td className="py-3 px-4">
-                                  <div className="flex items-center justify-end gap-2 bg-slate-50 group-hover:bg-white border border-slate-200 focus-within:border-indigo-500 rounded-xl px-3 py-1.5 transition-all w-full max-w-[11rem] ml-auto">
-                                    <span className="text-[10px] text-slate-400 font-bold">Rs.</span>
-                                    <input 
-                                      type="number"
-                                      value={exp.amount === 0 ? '' : exp.amount}
-                                      placeholder="0"
-                                      onChange={(e) => handleUpdateExpense(idx, e.target.value)}
-                                      className="bg-transparent border-none outline-none focus:ring-0 w-full text-right font-black text-xs text-slate-800 placeholder-slate-300"
-                                    />
-                                  </div>
-                                </td>
-                                <td className="py-3 pl-4 text-center">
-                                  <button 
-                                    type="button"
-                                    onClick={() => handleDeleteExpenseField(idx)}
-                                    className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition-all border border-slate-100 hover:border-red-100"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))
-                          ) : (
-                            <tr>
-                              <td colSpan="3" className="py-12 text-center text-xs font-bold text-slate-400 italic">
-                                No expenses initialized or entered for this month.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* Add Custom Expense Field Form */}
-                    <div className="pt-6 border-t border-slate-100 space-y-4">
-                      <h5 className="text-xs font-black text-slate-900 uppercase tracking-wider">Add Custom or Standard Expense Item</h5>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                        <div>
-                          <label className="text-[9px] text-slate-400 font-black uppercase tracking-widest block mb-1.5">Expense Name / Field</label>
-                          <select 
-                            value={newExpenseField}
-                            onChange={(e) => setNewExpenseField(e.target.value)}
-                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 font-bold text-xs text-slate-700 bg-slate-50"
-                          >
-                            {PREDEFINED_EXPENSE_FIELDS.map((name, i) => (
-                              <option key={i} value={name}>{name}</option>
-                            ))}
-                            <option value="Custom Expense">Other / Custom Field...</option>
-                          </select>
-                        </div>
-
-                        {newExpenseField === 'Custom Expense' && (
-                          <div className="animate-in slide-in-from-left duration-200">
-                            <label className="text-[9px] text-slate-400 font-black uppercase tracking-widest block mb-1.5">Enter Custom Name</label>
-                            <input 
-                              type="text"
-                              placeholder="e.g. Electric Bill"
-                              value={customExpenseName}
-                              onChange={(e) => setCustomExpenseName(e.target.value)}
-                              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 font-bold text-xs text-slate-700 placeholder-slate-400"
-                            />
-                          </div>
-                        )}
-
-                        <div>
-                          <label className="text-[9px] text-slate-400 font-black uppercase tracking-widest block mb-1.5">Amount (LKR)</label>
-                          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 focus-within:border-indigo-500 rounded-xl px-3 py-2 transition-all">
-                            <span className="text-[10px] text-slate-400 font-bold">Rs.</span>
-                            <input 
-                              type="number"
-                              min="0"
-                              placeholder="0"
-                              value={newExpenseAmount}
-                              onChange={(e) => setNewExpenseAmount(e.target.value)}
-                              className="bg-transparent border-none outline-none focus:ring-0 w-full font-black text-xs text-slate-800 placeholder-slate-300"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <button 
-                            type="button"
-                            onClick={(e) => handleAddExpenseField(e)}
-                            className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-indigo-600/10 shrink-0"
-                          >
-                            <Plus className="w-4 h-4" />
-                            <span>Add Field</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-            </motion.div>
-          )}
           </AnimatePresence>
         </div>
       </main>
@@ -4589,6 +4414,16 @@ const AdminDashboard = () => {
                       </button>
                     </div>
                   </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">📍 Location</label>
+                    <input type="text" name="location" value={editStockData.location || ''} onChange={handleEditStockChange}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" placeholder="e.g. Basement (2-Block)" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">📝 Remarks</label>
+                    <input type="text" name="remarks" value={editStockData.remarks || ''} onChange={handleEditStockChange}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all" placeholder="e.g. Diesel, Damaged, etc." />
+                  </div>
 
                   {updateMsg.text && (
                     <div className={`p-3 rounded-xl text-sm font-bold text-center ${
@@ -4656,97 +4491,9 @@ const AdminDashboard = () => {
                           className="w-full bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 text-emerald-900 font-black text-sm outline-none focus:border-emerald-600 transition-all" />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-600">Unit Cost GBP</label>
-                        <input type="number" step="0.01" value={quickAddData.unitCostForeign || ''} onChange={(e) => setQuickAddData({...quickAddData, unitCostForeign: e.target.value})}
-                          className="w-full bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-blue-900 font-black text-sm outline-none focus:border-blue-600 transition-all" placeholder="0.00" />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                      <div>
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Value in GBP</p>
-                        <p className="text-sm font-black text-slate-700">£ {( (parseFloat(quickAddData.unitCostForeign) || 0) * (parseFloat(quickAddData.quantity) || 0) ).toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Exchange Rate</p>
-                        <input type="number" step="0.01" value={quickAddData.exchangeRate || ''} onChange={(e) => setQuickAddData({...quickAddData, exchangeRate: e.target.value})}
-                          className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold outline-none" />
-                      </div>
-                      <div className="text-left sm:text-right">
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Total in LKR</p>
-                        <p className="text-sm font-black text-emerald-600">Rs. {( (parseFloat(quickAddData.unitCostForeign) || 0) * (parseFloat(quickAddData.quantity) || 0) * (parseFloat(quickAddData.exchangeRate) || 0) ).toLocaleString()}</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">LKR Price per Unit</label>
-                        <div className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-slate-600 font-black text-sm">
-                          Rs. {( (parseFloat(quickAddData.unitCostForeign) || 0) * (parseFloat(quickAddData.exchangeRate) || 0) ).toLocaleString()}
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Duty/Tax</label>
-                        <input type="number" step="0.01" value={quickAddData.dutyFees || ''} onChange={(e) => setQuickAddData({...quickAddData, dutyFees: e.target.value})}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:border-slate-900 transition-all" />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Freight</label>
-                        <input type="number" step="0.01" value={quickAddData.freightCost || ''} onChange={(e) => setQuickAddData({...quickAddData, freightCost: e.target.value})}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:border-slate-900 transition-all" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Shipping Cost</label>
-                        <input type="number" step="0.01" value={quickAddData.shippingCost || ''} onChange={(e) => setQuickAddData({...quickAddData, shippingCost: e.target.value})}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:border-slate-900 transition-all" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Bank, D/O & Clearance</label>
-                        <input type="number" step="0.01" value={quickAddData.bankCharges || ''} onChange={(e) => setQuickAddData({...quickAddData, bankCharges: e.target.value})}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:border-slate-900 transition-all" />
-                      </div>
-                    </div>
-
-                    <div className="p-5 bg-indigo-900 rounded-3xl text-white shadow-xl shadow-indigo-900/20 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 p-4 opacity-10"><TrendingUp className="w-16 h-16" /></div>
-                      <div className="relative z-10 space-y-4">
-                        <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-end">
-                          <div>
-                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-300 mb-1">Landed Cost per Unit</p>
-                            <div className="flex items-center gap-2">
-                              <span className="text-2xl font-black">Rs. {quickAddData.landedCost || '0.00'}</span>
-                              <button type="button" className="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
-                                onClick={() => {
-                                  const foreign = parseFloat(quickAddData.unitCostForeign) || 0;
-                                  const rate = parseFloat(quickAddData.exchangeRate) || 0;
-                                  const qty = parseFloat(quickAddData.quantity) > 0 ? parseFloat(quickAddData.quantity) : 1;
-                                  const freight = parseFloat(quickAddData.freightCost) || 0;
-                                  const shipping = parseFloat(quickAddData.shippingCost) || 0;
-                                  const bank = parseFloat(quickAddData.bankCharges) || 0;
-                                  const duty = parseFloat(quickAddData.dutyFees) || 0;
-                                  const totalLkr = foreign * rate * qty;
-                                  const productLanded = (totalLkr + duty + freight + shipping + bank) / qty;
-                                  setQuickAddData(prev => ({
-                                    ...prev,
-                                    landedCost: productLanded.toFixed(2),
-                                    unitPrice: productLanded.toFixed(2)
-                                  }));
-                                }}>Calc</button>
-                            </div>
-                          </div>
-                          <div className="text-left sm:text-right">
-                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-300 mb-1">Selling Price</p>
-                            <input type="number" step="0.01" value={quickAddData.sellingPrice || ''} onChange={(e) => setQuickAddData({...quickAddData, sellingPrice: e.target.value})}
-                              className="w-full sm:w-24 bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-left sm:text-right text-lg font-black outline-none focus:bg-white/20 transition-all" />
-                          </div>
-                        </div>
-                        <div className="pt-3 border-t border-white/10 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200">GP per Unit (Selling Price - Landed Cost per Unit)</p>
-                          <p className="text-xl font-black text-emerald-400">Rs. {( (parseFloat(quickAddData.sellingPrice) || 0) - (parseFloat(quickAddData.landedCost) || 0) ).toLocaleString()}</p>
-                        </div>
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Retail Price (Rs.)</label>
+                        <input type="number" step="0.01" required value={quickAddData.sellingPrice || ''} onChange={(e) => setQuickAddData({...quickAddData, sellingPrice: e.target.value})}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:border-slate-900 transition-all" placeholder="0.00" />
                       </div>
                     </div>
                   </div>
@@ -5087,9 +4834,43 @@ const AdminDashboard = () => {
                 </form>
                 <div className="mt-8 pt-6 border-t border-slate-50">
                   <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Existing</p>
-                  <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto custom-scrollbar">
+                  <div className="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
                     {categoryList.map(cat => (
-                      <span key={cat.id} className="px-3 py-1.5 bg-slate-50 text-slate-600 text-[10px] font-black rounded-lg border border-slate-100 uppercase">{cat.name}</span>
+                      <div key={cat.id} className="flex items-center justify-between gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">
+                        {editingCategoryId === cat.id ? (
+                          <input
+                            type="text"
+                            value={editingCategoryName}
+                            onChange={(e) => setEditingCategoryName(e.target.value)}
+                            onBlur={() => handleUpdateCategory(cat.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleUpdateCategory(cat.id);
+                              else if (e.key === 'Escape') setEditingCategoryId(null);
+                            }}
+                            className="bg-white px-2 py-0.5 text-[10px] font-black rounded border border-indigo-600 text-slate-900 outline-none uppercase w-full"
+                            autoFocus
+                          />
+                        ) : (
+                          <span 
+                            onClick={() => {
+                              setEditingCategoryId(cat.id);
+                              setEditingCategoryName(cat.name);
+                            }}
+                            className="text-slate-600 text-[10px] font-black uppercase cursor-pointer hover:text-indigo-600 flex-1 truncate"
+                            title="Click to rename"
+                          >
+                            {cat.name}
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCategory(cat.id, cat.name)}
+                          className="text-slate-400 hover:text-red-500 transition-all p-0.5 rounded shrink-0"
+                          title="Delete category"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     ))}
                     {categoryList.length === 0 && <p className="text-xs font-bold text-slate-300 py-2">No categories yet.</p>}
                   </div>
@@ -5132,7 +4913,18 @@ const AdminDashboard = () => {
                         <div className="relative">
                           <label className="text-[10px] font-black uppercase text-slate-500 ml-1 mb-1.5 block">Select Customer</label>
                           <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
-                              {addJobData.customerId ? (
+                              {addJobData.customerId === '__walkin__' ? (
+                                <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-center justify-between shadow-sm">
+                                   <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-black text-lg">🚶</div>
+                                      <div>
+                                         <p className="text-sm font-black text-slate-900">Walk-in Customer</p>
+                                         <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">No account linked</p>
+                                      </div>
+                                   </div>
+                                   <button type="button" onClick={() => { setAddJobData({...addJobData, customerId: ''}); setCustomerSearchQuery(''); }} className="text-[10px] font-black text-red-500 hover:underline uppercase tracking-widest">Change</button>
+                                </div>
+                              ) : addJobData.customerId ? (
                                 <div className="bg-white border border-blue-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
                                    <div className="flex items-center gap-3">
                                       <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-black text-xs">
@@ -5158,25 +4950,37 @@ const AdminDashboard = () => {
 
                                   {/* Customer Suggestions */}
                                   {customerSearchQuery !== undefined && (customerSearchQuery.length > 0 || customerSearchQuery === ' ') && (
-                                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-48 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                                      {customerList
-                                        .filter(c => (c.firstName + ' ' + (c.lastName || '')).toLowerCase().includes(customerSearchQuery.toLowerCase().trim()) || (c.phone || '').includes(customerSearchQuery.trim()))
-                                        .map(c => (
-                                          <button key={c.id} type="button" 
-                                            onClick={() => {
-                                              setAddJobData({...addJobData, customerId: c.id});
-                                              setCustomerSearchQuery("");
-                                            }}
-                                            className="w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 transition-colors flex justify-between items-center group">
-                                            <div className="flex items-center gap-3">
-                                              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-all">{c.firstName[0]}</div>
-                                              <div>
-                                                <p className="text-xs font-black text-slate-700 group-hover:text-blue-700 transition-colors">{c.firstName} {c.lastName}</p>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{c.phone}</p>
-                                              </div>
+                                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-56 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                                      {/* Walk-in option always at top */}
+                                      <button type="button"
+                                        onClick={() => { setAddJobData({...addJobData, customerId: '__walkin__'}); setCustomerSearchQuery(''); }}
+                                        className="w-full text-left px-4 py-3 rounded-lg hover:bg-amber-50 transition-colors flex items-center gap-3 group border-b border-slate-50 mb-1">
+                                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-base">🚶</div>
+                                        <div>
+                                          <p className="text-xs font-black text-slate-700 group-hover:text-amber-700 transition-colors">Walk-in Customer</p>
+                                          <p className="text-[10px] font-bold text-amber-400 uppercase tracking-tighter">No account</p>
+                                        </div>
+                                      </button>
+                                      {/* Header */}
+                                      {!customerSearchQuery.trim() && (
+                                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 px-3 py-1">⭐ Top Customers (5)</p>
+                                      )}
+                                      {filteredCustomerDropdown.map(c => (
+                                        <button key={c.id} type="button" 
+                                          onClick={() => {
+                                            setAddJobData({...addJobData, customerId: c.id});
+                                            setCustomerSearchQuery("");
+                                          }}
+                                          className="w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 transition-colors flex justify-between items-center group">
+                                          <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-all">{c.firstName[0]}</div>
+                                            <div>
+                                              <p className="text-xs font-black text-slate-700 group-hover:text-blue-700 transition-colors">{c.firstName} {c.lastName}</p>
+                                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{c.phone}</p>
                                             </div>
-                                          </button>
-                                        ))}
+                                          </div>
+                                        </button>
+                                      ))}
                                     </div>
                                   )}
                                 </div>
@@ -5214,40 +5018,48 @@ const AdminDashboard = () => {
                                   onChange={e => setPartSearchQuery(e.target.value)}
                                   onFocus={() => { if(!partSearchQuery) setPartSearchQuery(' '); }}
                                   className="bg-transparent text-xs font-black text-slate-700 outline-none w-full" />
-                                <button type="button" onClick={() => setPartSearchQuery(partSearchQuery.trim() === '' ? ' ' : '')} className="text-slate-400 hover:text-emerald-600"><ChevronDown className={`w-4 h-4 transition-transform ${partSearchQuery ? 'rotate-180' : ''}`} /></button>
+                                <button type="button" onClick={() => setPartSearchQuery(partSearchQuery ? '' : ' ')} className="text-slate-400 hover:text-emerald-600"><ChevronDown className={`w-4 h-4 transition-transform ${partSearchQuery ? 'rotate-180' : ''}`} /></button>
                               </div>
 
                               {/* Part Suggestions */}
                               {partSearchQuery !== undefined && (partSearchQuery.length > 0 || partSearchQuery === ' ') && (
                                 <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-48 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                                   {filteredPartDropdown
-                                      .map(it => {
-                                         const isOutOfStock = it.quantity < 1 || it.fifoQuantity < 1;
-                                         return (
-                                         <button key={it.id} type="button"
-                                           onClick={() => {
-                                             if (isOutOfStock) return;
-                                             if (!addJobData.items.find(ji => ji.stockItemId === it.id)) {
-                                                const newItem = { stockItemId: it.id, quantity: 1, priceAtTime: it.unitPrice, name: it.name };
-                                                const newItems = [...addJobData.items, newItem];
-                                                const newIdx = newItems.length - 1;
-                                                setAddJobData({...addJobData, items: newItems});
-                                                updateItemFifoPrice(newIdx, 1, 'add', newItems);
-                                             }
-                                             setPartSearchQuery("");
-                                           }}
-                                           disabled={isOutOfStock}
-                                           className={`w-full text-left px-4 py-3 rounded-lg flex justify-between items-center group transition-colors ${
-                                             isOutOfStock ? 'opacity-50 cursor-not-allowed bg-slate-50' : 'hover:bg-emerald-50 cursor-pointer'
-                                           }`}>
-                                           <div>
-                                             <p className={`text-xs font-black transition-colors ${isOutOfStock ? 'text-slate-400' : 'text-slate-700 group-hover:text-emerald-700'}`}>{it.name}</p>
-                                             <p className={`text-[10px] font-bold uppercase tracking-tighter ${isOutOfStock ? 'text-slate-300' : 'text-slate-400'}`}>{it.partNumber} | {isOutOfStock ? 'OUT OF STOCK' : `${it.fifoQuantity} Avail.`}</p>
-                                           </div>
-                                           {!isOutOfStock && <span className="text-xs font-black text-emerald-600">Rs. {it.unitPrice}</span>}
-                                         </button>
-                                       );
-                                     })}
+                                   {!partSearchQuery.trim() && (
+                                     <div className="px-3 py-1.5 text-[9px] font-black uppercase text-amber-600 tracking-wider border-b border-slate-50 mb-1 flex items-center gap-1.5">
+                                       <span>🔥</span> Top Selling Items (5)
+                                     </div>
+                                   )}
+                                   {filteredPartDropdown.length === 0 ? (
+                                     <div className="px-4 py-3 text-xs text-slate-400 text-center font-bold">No matching items</div>
+                                   ) : (
+                                     filteredPartDropdown.map(it => {
+                                        const isOutOfStock = it.quantity < 1 || it.fifoQuantity < 1;
+                                        return (
+                                          <button key={it.id} type="button"
+                                            onClick={() => {
+                                              if (isOutOfStock) return;
+                                              if (!addJobData.items.find(ji => ji.stockItemId === it.id)) {
+                                                 const newItem = { stockItemId: it.id, quantity: 1, priceAtTime: it.unitPrice, name: it.name };
+                                                 const newItems = [...addJobData.items, newItem];
+                                                 const newIdx = newItems.length - 1;
+                                                 setAddJobData({...addJobData, items: newItems});
+                                                 updateItemFifoPrice(newIdx, 1, 'add', newItems);
+                                              }
+                                              setPartSearchQuery("");
+                                            }}
+                                            disabled={isOutOfStock}
+                                            className={`w-full text-left px-4 py-3 rounded-lg flex justify-between items-center group transition-colors ${
+                                              isOutOfStock ? 'opacity-50 cursor-not-allowed bg-slate-50' : 'hover:bg-emerald-50 cursor-pointer'
+                                            }`}>
+                                            <div>
+                                              <p className={`text-xs font-black transition-colors ${isOutOfStock ? 'text-slate-400' : 'text-slate-700 group-hover:text-emerald-700'}`}>{it.name}</p>
+                                              <p className={`text-[10px] font-bold uppercase tracking-tighter ${isOutOfStock ? 'text-slate-300' : 'text-slate-400'}`}>{it.partNumber} | {isOutOfStock ? 'OUT OF STOCK' : `${it.fifoQuantity} Avail.`}</p>
+                                            </div>
+                                            {!isOutOfStock && <span className="text-xs font-black text-emerald-600">Rs. {it.unitPrice}</span>}
+                                          </button>
+                                        );
+                                     })
+                                   )}
                                 </div>
                               )}
                            </div>
@@ -5370,7 +5182,18 @@ const AdminDashboard = () => {
                         <div className="relative">
                           <label className="text-[10px] font-black uppercase text-slate-500 ml-1 mb-1.5 block">Select Customer</label>
                           <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
-                             {editJobData.customerId ? (
+                             {editJobData.customerId === '__walkin__' ? (
+                               <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-center justify-between shadow-sm">
+                                  <div className="flex items-center gap-3">
+                                     <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-black text-lg">🚶</div>
+                                     <div>
+                                        <p className="text-sm font-black text-slate-900">Walk-in Customer</p>
+                                        <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">No account linked</p>
+                                     </div>
+                                  </div>
+                                  <button type="button" onClick={() => { setEditJobData({...editJobData, customerId: ''}); setCustomerSearchQuery(''); }} className="text-[10px] font-black text-red-500 hover:underline uppercase tracking-widest">Change</button>
+                               </div>
+                             ) : editJobData.customerId ? (
                                <div className="bg-white border border-indigo-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
                                   <div className="flex items-center gap-3">
                                      <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xs">
@@ -5383,7 +5206,7 @@ const AdminDashboard = () => {
                                   </div>
                                   <button type="button" onClick={() => { setEditJobData({...editJobData, customerId: ''}); setCustomerSearchQuery(''); }} className="text-[10px] font-black text-red-500 hover:underline uppercase tracking-widest">Change</button>
                                </div>
-                             ) : (
+                              ) : (
                                <div className="relative" ref={customerDropdownRef}>
                                   <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm focus-within:border-indigo-600 transition-all">
                                     <Search className="w-4 h-4 text-slate-400" />
@@ -5396,24 +5219,37 @@ const AdminDashboard = () => {
 
                                   {/* Customer Suggestions */}
                                   {customerSearchQuery !== undefined && (customerSearchQuery.length > 0 || customerSearchQuery === ' ') && (
-                                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-48 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                                      {filteredCustomerDropdown
-                                        .map(c => (
-                                          <button key={c.id} type="button" 
-                                            onClick={() => {
-                                              setEditJobData({...editJobData, customerId: c.id});
-                                              setCustomerSearchQuery("");
-                                            }}
-                                            className="w-full text-left px-4 py-3 rounded-lg hover:bg-indigo-50 transition-colors flex justify-between items-center group">
-                                            <div className="flex items-center gap-3">
-                                              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-all">{c.firstName[0]}</div>
-                                              <div>
-                                                <p className="text-xs font-black text-slate-700 group-hover:text-indigo-700 transition-colors">{c.firstName} {c.lastName}</p>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{c.phone}</p>
-                                                 </div>
-                                               </div>
-                                             </button>
-                                        ))}
+                                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-56 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                                      {/* Walk-in option always at top */}
+                                      <button type="button"
+                                        onClick={() => { setEditJobData({...editJobData, customerId: '__walkin__'}); setCustomerSearchQuery(''); }}
+                                        className="w-full text-left px-4 py-3 rounded-lg hover:bg-amber-50 transition-colors flex items-center gap-3 group border-b border-slate-50 mb-1">
+                                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-base">🚶</div>
+                                        <div>
+                                          <p className="text-xs font-black text-slate-700 group-hover:text-amber-700 transition-colors">Walk-in Customer</p>
+                                          <p className="text-[10px] font-bold text-amber-400 uppercase tracking-tighter">No account</p>
+                                        </div>
+                                      </button>
+                                      {/* Header */}
+                                      {!customerSearchQuery.trim() && (
+                                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 px-3 py-1">⭐ Top Customers (5)</p>
+                                      )}
+                                      {filteredCustomerDropdown.map(c => (
+                                        <button key={c.id} type="button" 
+                                          onClick={() => {
+                                            setEditJobData({...editJobData, customerId: c.id});
+                                            setCustomerSearchQuery("");
+                                          }}
+                                          className="w-full text-left px-4 py-3 rounded-lg hover:bg-indigo-50 transition-colors flex justify-between items-center group">
+                                          <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-all">{c.firstName[0]}</div>
+                                            <div>
+                                              <p className="text-xs font-black text-slate-700 group-hover:text-indigo-700 transition-colors">{c.firstName} {c.lastName}</p>
+                                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{c.phone}</p>
+                                            </div>
+                                          </div>
+                                        </button>
+                                      ))}
                                     </div>
                                   )}
                                </div>
@@ -5467,8 +5303,15 @@ const AdminDashboard = () => {
                                {/* Part Suggestions */}
                                {partSearchQuery !== undefined && (partSearchQuery.length > 0 || partSearchQuery === ' ') && (
                                  <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-48 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                                    {filteredPartDropdown
-                                      .map(it => {
+                                    {!partSearchQuery.trim() && (
+                                      <div className="px-3 py-1.5 text-[9px] font-black uppercase text-amber-600 tracking-wider border-b border-slate-50 mb-1 flex items-center gap-1.5">
+                                        <span>🔥</span> Top Selling Items (5)
+                                      </div>
+                                    )}
+                                    {filteredPartDropdown.length === 0 ? (
+                                      <div className="px-4 py-3 text-xs text-slate-400 text-center font-bold">No matching items</div>
+                                    ) : (
+                                      filteredPartDropdown.map(it => {
                                          const isOutOfStock = it.quantity < 1 || it.fifoQuantity < 1;
                                          return (
                                          <button key={it.id} type="button"
@@ -5495,7 +5338,8 @@ const AdminDashboard = () => {
                                            {!isOutOfStock && <span className="text-xs font-black text-indigo-600">Rs. {it.unitPrice}</span>}
                                          </button>
                                        );
-                                      })}
+                                      })
+                                    )}
                                  </div>
                                )}
                             </div>
@@ -5632,115 +5476,10 @@ const AdminDashboard = () => {
                         {selectedBatchDetail.currentQuantity} / {selectedBatchDetail.initialQuantity} Units
                       </p>
                     </div>
-                  </div>
-                </div>
-
-                {/* Section 2: Import & Foreign Currency Details */}
-                <div>
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Foreign Exchange & Import Valuation</h4>
-                  <div className="grid grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <div>
-                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Foreign Cost</p>
-                      <p className="text-xs font-black text-slate-800 mt-0.5">
-                        {selectedBatchDetail.unitCostForeign ? `${selectedBatchDetail.currencyType || ''} ${parseFloat(selectedBatchDetail.unitCostForeign).toLocaleString([], {minimumFractionDigits: 2})}` : '-'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Exchange Rate</p>
-                      <p className="text-xs font-black text-slate-800 mt-0.5">
-                        {selectedBatchDetail.exchangeRate ? `Rs. ${parseFloat(selectedBatchDetail.exchangeRate).toLocaleString()}` : '-'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">FOB Value (LKR)</p>
-                      <p className="text-xs font-black text-slate-800 mt-0.5">
-                        Rs. {( (parseFloat(selectedBatchDetail.unitCostForeign) || 0) * (parseFloat(selectedBatchDetail.exchangeRate) || 0) * (parseFloat(selectedBatchDetail.initialQuantity) || 0) ).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section 3: Overhead Expenses Breakdown */}
-                <div>
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Overhead Expenses Breakdown (LKR)</h4>
-                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2">
-                    <div className="flex items-center justify-between text-xs border-b border-slate-200/50 pb-1.5">
-                      <span className="font-bold text-slate-400">Freight Cost:</span>
-                      <span className="font-black text-slate-700">Rs. {parseFloat(selectedBatchDetail.freightCost || 0).toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs border-b border-slate-200/50 pb-1.5">
-                      <span className="font-bold text-slate-400">Shipping Cost:</span>
-                      <span className="font-black text-slate-700">Rs. {parseFloat(selectedBatchDetail.shippingCost || 0).toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs border-b border-slate-200/50 pb-1.5">
-                      <span className="font-bold text-slate-400">Bank, D/O & Clearance:</span>
-                      <span className="font-black text-slate-700">Rs. { (parseFloat(selectedBatchDetail.bankCharges || 0) + parseFloat(selectedBatchDetail.clearanceFees || 0)).toLocaleString() }</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs border-b border-slate-200/50 pb-1.5">
-                      <span className="font-bold text-slate-400">Duty / Tax:</span>
-                      <span className="font-black text-slate-700">Rs. {parseFloat(selectedBatchDetail.dutyFees || 0).toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs pt-1">
-                      <span className="font-black text-slate-800">Total Batch Overhead:</span>
-                      <span className="font-black text-indigo-600">
-                        Rs. { (
-                          parseFloat(selectedBatchDetail.freightCost || 0) + 
-                          parseFloat(selectedBatchDetail.shippingCost || 0) + 
-                          parseFloat(selectedBatchDetail.bankCharges || 0) + 
-                          parseFloat(selectedBatchDetail.clearanceFees || 0) + 
-                          parseFloat(selectedBatchDetail.dutyFees || 0)
-                        ).toLocaleString() }
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section 4: Unit Economics */}
-                <div>
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Landed Cost & Profitability Economics</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-xl flex flex-col justify-between">
-                      <div>
-                        <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">Landed Cost Per Unit</p>
-                        <p className="text-base font-black mt-1">Rs. {parseFloat(selectedBatchDetail.landedCost || 0).toLocaleString([], {minimumFractionDigits: 2})}</p>
-                      </div>
-                      <div className="mt-4 pt-4 border-t border-white/5 text-[8px] text-slate-400 font-bold leading-relaxed">
-                        FOB Cost + duty + freight + shipping + bank / quantity
-                      </div>
-                    </div>
-                    
-                    <div className="bg-blue-600 text-white p-5 rounded-2xl shadow-xl flex flex-col justify-between">
-                      <div>
-                        <p className="text-[9px] font-black uppercase tracking-wider text-blue-100">Selling Price / RTL</p>
-                        <p className="text-base font-black mt-1">Rs. {parseFloat(selectedBatchDetail.sellingPrice || selectedBatchDetail.unitPrice || 0).toLocaleString([], {minimumFractionDigits: 2})}</p>
-                      </div>
-                      <div className="mt-4 pt-4 border-t border-white/10 text-[8px] text-blue-100 font-bold leading-relaxed">
-                        Standard retail price charged to customer
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section 5: Profit Performance */}
-                <div>
-                  <div className="bg-emerald-50 border border-emerald-100 rounded-3xl p-5 sm:p-6 flex items-center justify-between">
-                    <div>
-                      <p className="text-[9px] font-black uppercase tracking-[0.15em] text-emerald-600">Gross Profit (GP) Per Unit</p>
-                      <p className="text-xl font-black text-emerald-950 mt-1">
-                        +Rs. {(
-                          (parseFloat(selectedBatchDetail.sellingPrice || selectedBatchDetail.unitPrice || 0)) - 
-                          (parseFloat(selectedBatchDetail.landedCost || 0))
-                        ).toLocaleString([], {minimumFractionDigits: 2})}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[9px] font-black uppercase tracking-[0.15em] text-emerald-600">Batch Profit Potential</p>
-                      <p className="text-lg font-black text-emerald-950 mt-1">
-                        Rs. {(
-                          ((parseFloat(selectedBatchDetail.sellingPrice || selectedBatchDetail.unitPrice || 0)) - 
-                          (parseFloat(selectedBatchDetail.landedCost || 0))) * 
-                          (parseFloat(selectedBatchDetail.currentQuantity) || 0)
-                        ).toLocaleString()}
+                    <div className="col-span-2 pt-2 border-t border-slate-200/50">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Retail Price (LKR)</p>
+                      <p className="text-lg font-black text-blue-600 mt-0.5">
+                        Rs. {parseFloat(selectedBatchDetail.sellingPrice || selectedBatchDetail.unitPrice || 0).toLocaleString([], {minimumFractionDigits: 2})}
                       </p>
                     </div>
                   </div>
@@ -5762,136 +5501,7 @@ const AdminDashboard = () => {
         )}
       </AnimatePresence>
 
-      {/* Monthly Sales Breakdown Modal */}
-      <AnimatePresence>
-        {showMonthlySalesModal && selectedMonthlySalesItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-[2.5rem] w-full max-w-2xl max-h-[85vh] shadow-2xl border border-slate-100 flex flex-col overflow-hidden"
-            >
-              <div className="p-8 border-b border-slate-100 flex justify-between items-start shrink-0">
-                <div>
-                  <span className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] bg-indigo-50 px-2.5 py-1 rounded-lg">Performance Analytics</span>
-                  <h3 className="text-xl font-black text-slate-900 tracking-tight mt-2.5">{selectedMonthlySalesItem.name}</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Part Number: {selectedMonthlySalesItem.partNumber}</p>
-                </div>
-                <button 
-                  onClick={() => {
-                    setShowMonthlySalesModal(false);
-                    setSelectedMonthlySalesItem(null);
-                  }}
-                  className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all"
-                >
-                  <XCircle className="w-5 h-5" />
-                </button>
-              </div>
 
-              <div className="p-8 overflow-y-auto space-y-6">
-                {(() => {
-                  const monthlySalesData = getMonthlySalesForItem(selectedMonthlySalesItem.id);
-                  const totalItemSale = monthlySalesData.reduce((sum, s) => sum + s.sold, 0);
-                  const totalLandedCost = monthlySalesData.reduce((sum, s) => sum + (s.landedCost || 0), 0);
-                  const totalSellingValue = monthlySalesData.reduce((sum, s) => sum + s.revenue, 0);
-                  const totalProfit = monthlySalesData.reduce((sum, s) => sum + s.profit, 0);
-
-                  return (
-                    <>
-                      {/* Overall Totals Section */}
-                      <div>
-                        <h4 className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-400 mb-4">Overall Performance Summary</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Total Item Sale</p>
-                            <p className="text-sm font-black text-slate-800 mt-1">{totalItemSale} units</p>
-                          </div>
-                          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Total Landed Cost</p>
-                            <p className="text-sm font-black text-slate-800 mt-1">Rs. {totalLandedCost.toLocaleString()}</p>
-                          </div>
-                          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 bg-indigo-50/20 border-indigo-100/50">
-                            <p className="text-[8px] font-bold text-indigo-500 uppercase tracking-widest">Total Selling Value</p>
-                            <p className="text-sm font-black text-indigo-600 mt-1">Rs. {totalSellingValue.toLocaleString()}</p>
-                          </div>
-                          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 bg-emerald-50/20 border-emerald-100/50">
-                            <p className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest">Total Profit</p>
-                            <p className="text-sm font-black text-emerald-600 mt-1">Rs. {totalProfit.toLocaleString()}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Monthly Sales Breakdown Table */}
-                      <div>
-                        <h4 className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-400 mb-4">Monthly Sales & Profit Breakdown</h4>
-                        <div className="overflow-hidden border border-slate-100 rounded-3xl shadow-sm">
-                          <table className="w-full text-left border-collapse">
-                            <thead>
-                              <tr className="bg-slate-50 border-b border-slate-100 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                <th className="py-4 px-6">Month</th>
-                                <th className="py-4 px-4 text-center">Units Sold</th>
-                                <th className="py-4 px-4 text-right">Landed Cost (Rs.)</th>
-                                <th className="py-4 px-4 text-right">Revenue (Rs.)</th>
-                                <th className="py-4 px-6 text-right text-emerald-600 font-black">Net Profit (Rs.)</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-50">
-                              {monthlySalesData.length > 0 ? (
-                                monthlySalesData.map((monthSales, idx) => {
-                                  const [year, month] = monthSales.monthStr.split('-');
-                                  const monthName = new Date(year, parseInt(month) - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
-                                  return (
-                                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                                      <td className="py-4 px-6 text-xs font-black text-slate-800">{monthName}</td>
-                                      <td className="py-4 px-4 text-center text-xs font-bold text-slate-600">{monthSales.sold} units</td>
-                                      <td className="py-4 px-4 text-right text-xs font-black text-slate-800">Rs. {(monthSales.landedCost || 0).toLocaleString()}</td>
-                                      <td className="py-4 px-4 text-right text-xs font-black text-slate-800">Rs. {monthSales.revenue.toLocaleString()}</td>
-                                      <td className="py-4 px-6 text-right text-xs font-black text-emerald-600 bg-emerald-50/20">Rs. {monthSales.profit.toLocaleString()}</td>
-                                    </tr>
-                                  );
-                                })
-                              ) : (
-                                <tr>
-                                  <td colSpan="5" className="py-8 text-center text-xs font-bold text-slate-400 italic">No sales recorded for this part in any month.</td>
-                                </tr>
-                              )}
-                            </tbody>
-                            {monthlySalesData.length > 0 && (
-                              <tfoot>
-                                <tr className="bg-slate-50 border-t border-slate-100 font-black text-[11px] text-slate-800">
-                                  <td className="py-4 px-6">Total</td>
-                                  <td className="py-4 px-4 text-center">{totalItemSale} units</td>
-                                  <td className="py-4 px-4 text-right">Rs. {totalLandedCost.toLocaleString()}</td>
-                                  <td className="py-4 px-4 text-right">Rs. {totalSellingValue.toLocaleString()}</td>
-                                  <td className="py-4 px-6 text-right text-emerald-600 bg-emerald-50/20">Rs. {totalProfit.toLocaleString()}</td>
-                                </tr>
-                              </tfoot>
-                            )}
-                          </table>
-                        </div>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
-
-              <div className="p-6 border-t border-slate-100 flex gap-3 shrink-0">
-                <button 
-                  type="button" 
-                  onClick={() => {
-                    setShowMonthlySalesModal(false);
-                    setSelectedMonthlySalesItem(null);
-                  }}
-                  className="w-full px-5 py-4 rounded-2xl font-black text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors text-xs uppercase tracking-widest"
-                >
-                  Close Analysis
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* ===== CUSTOM DIALOG MODAL ===== */}
       <AnimatePresence>
