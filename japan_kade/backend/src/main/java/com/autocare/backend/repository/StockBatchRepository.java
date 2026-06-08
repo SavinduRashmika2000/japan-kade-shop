@@ -14,7 +14,8 @@ import java.util.List;
 
 @Repository
 public interface StockBatchRepository extends JpaRepository<StockBatch, Long> {
-    List<StockBatch> findByStockItemOrderByCreatedAtAsc(StockItem stockItem);
+    @Query("SELECT b FROM StockBatch b LEFT JOIN FETCH b.stockItem LEFT JOIN FETCH b.supplier WHERE b.stockItem = :stockItem ORDER BY b.createdAt ASC")
+    List<StockBatch> findByStockItemOrderByCreatedAtAsc(@Param("stockItem") StockItem stockItem);
     
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000")})
@@ -29,4 +30,8 @@ public interface StockBatchRepository extends JpaRepository<StockBatch, Long> {
     List<StockBatch> findByStockItemOrderByIsRestoredDescCreatedAtAsc(StockItem stockItem);
     
     List<StockBatch> findByCurrentQuantityGreaterThan(Integer currentQuantity);
+
+    // Bulk fetch all active batches across ALL items in one query (for efficient sync)
+    @Query("SELECT b FROM StockBatch b WHERE b.currentQuantity > 0 ORDER BY b.stockItem.id ASC, b.createdAt ASC")
+    List<StockBatch> findAllActiveBatchesOrdered();
 }
