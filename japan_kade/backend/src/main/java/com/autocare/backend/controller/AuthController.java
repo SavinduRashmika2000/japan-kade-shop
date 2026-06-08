@@ -53,8 +53,18 @@ public class AuthController {
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+        // If the login identifier is a customer's phone number, resolve their actual stored username.
+        // Customers are stored with username = "CUST_{phone}" to avoid DB conflicts with staff.
+        // Old customers (pre-fix) may still have username = phone — both cases are handled.
+        String resolvedUsername = loginRequest.getUsername();
+        java.util.Optional<User> customerByPhone = userRepository.findByPhoneAndRole(
+                loginRequest.getUsername(), RoleType.ROLE_CUSTOMER);
+        if (customerByPhone.isPresent()) {
+            resolvedUsername = customerByPhone.get().getUsername();
+        }
+
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+                new UsernamePasswordAuthenticationToken(resolvedUsername, loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
@@ -90,8 +100,10 @@ public class AuthController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Phone number is required!"));
         }
 
-        // Check if phone number is already registered (either as username or in phone column)
-        if (userRepository.existsByUsername(phone) || userRepository.existsByPhone(phone)) {
+        // Check if phone number is already registered as a CUSTOMER account only.
+        // Staff/supplier accounts with the same number should not block customer registration.
+        if (userRepository.existsByUsernameAndRole(phone, RoleType.ROLE_CUSTOMER)
+                || userRepository.existsByPhoneAndRole(phone, RoleType.ROLE_CUSTOMER)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Phone number is already registered!"));
         }
 
@@ -109,8 +121,9 @@ public class AuthController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: ID Number is already registered!"));
         }
 
-        // Internal username for Spring Security is set to the phone number
-        String username = phone;
+        // Internal username for customers is prefixed with CUST_ to avoid DB unique constraint
+        // collisions with staff/admin accounts that may share the same phone number.
+        String username = "CUST_" + phone;
 
         // Create new user's account
         User user = new User();
