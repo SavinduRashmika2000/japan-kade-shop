@@ -25,8 +25,8 @@ public class JobCard extends BaseAuditEntity {
     @Column(nullable = false)
     private String vehicleNumber;
 
-    @ManyToOne
-    @JoinColumn(name = "customer_id", nullable = false)
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "customer_id", nullable = true)
     private Customer customer;
 
     @Column(nullable = false)
