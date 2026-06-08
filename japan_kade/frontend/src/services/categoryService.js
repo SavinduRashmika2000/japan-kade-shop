@@ -17,9 +17,19 @@ const createCategory = async (categoryData) => {
   return axios.post(API_URL, categoryData, { headers: getAuthHeader() });
 };
 
+const updateCategory = async (id, categoryData) => {
+  return axios.put(`${API_URL}/${id}`, categoryData, { headers: getAuthHeader() });
+};
+
+const deleteCategory = async (id) => {
+  return axios.delete(`${API_URL}/${id}`, { headers: getAuthHeader() });
+};
+
 const categoryService = {
   getAllCategories,
-  createCategory
+  createCategory,
+  updateCategory,
+  deleteCategory
 };
 
 export default categoryService;
