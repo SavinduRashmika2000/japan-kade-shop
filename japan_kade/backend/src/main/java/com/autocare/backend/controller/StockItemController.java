@@ -79,6 +79,18 @@ public class StockItemController {
         return ResponseEntity.ok(stockItemService.getAllTransactions());
     }
 
+    @GetMapping("/low-stock")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<List<StockItem>> getLowStockItems() {
+        return ResponseEntity.ok(stockItemService.getLowStockItems());
+    }
+
+    @GetMapping("/out-of-stock")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<List<StockItem>> getOutOfStockItems() {
+        return ResponseEntity.ok(stockItemService.getOutOfStockItems());
+    }
+
     @PostMapping("/{id}/add-stock")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<StockItem> addStock(
