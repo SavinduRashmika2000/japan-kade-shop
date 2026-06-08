@@ -23,7 +23,7 @@ public class JobItem {
     @lombok.EqualsAndHashCode.Exclude
     private JobCard jobCard;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stock_item_id", nullable = false)
     @NotNull(message = "Stock item is required")
     private StockItem stockItem;
