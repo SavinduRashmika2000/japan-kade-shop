@@ -15,10 +15,15 @@ public class JobLog {
     private Long jobId;
     private String vehicleNumber;
     private String customerName;
-    private String action; // e.g., CREATED, STATUS_CHANGED, DELETED
+    private String action; // e.g., JOB_CREATED, JOB_PAID, JOB_CANCELLED, DELETED
     private String details;
     private String performedBy;
-    private LocalDateTime timestamp = LocalDateTime.now();
+    private LocalDateTime timestamp;
+
+    @PrePersist
+    protected void onCreate() {
+        if (timestamp == null) timestamp = LocalDateTime.now();
+    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
