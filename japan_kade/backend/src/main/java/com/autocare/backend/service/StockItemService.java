@@ -11,11 +11,14 @@ import com.autocare.backend.repository.StockBatchRepository;
 import com.autocare.backend.model.StockMovement;
 import com.autocare.backend.repository.StockMovementRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import jakarta.annotation.PostConstruct;
 import com.autocare.backend.model.Category;
 import com.autocare.backend.repository.CategoryRepository;
+import com.autocare.backend.repository.UserRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -46,6 +49,31 @@ public class StockItemService {
 
     @Autowired
     private StockMovementRepository movementRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    /**
+     * Resolves the full name of the currently authenticated user.
+     * Falls back to "System" if no authentication context is present.
+     */
+    private String getCurrentUserFullName() {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+                String username = auth.getName();
+                return userRepository.findByUsername(username)
+                        .map(user -> {
+                            if (user.getName() != null && !user.getName().trim().isEmpty()) {
+                                return user.getName();
+                            }
+                            return username;
+                        })
+                        .orElse(username);
+            }
+        } catch (Exception ignored) {}
+        return "System";
+    }
 
     @PostConstruct
     @Transactional
@@ -107,33 +135,46 @@ public class StockItemService {
     }
 
     public List<StockItem> getAllStockItems() {
-        return stockItemRepository.findAll();
+        return stockItemRepository.findAllWithDetails();
     }
 
     public StockItem getStockItemById(Long id) {
-        return stockItemRepository.findById(id).orElseThrow(() -> new RuntimeException("Stock item not found"));
+        return stockItemRepository.findByIdWithDetails(id).orElseThrow(() -> new RuntimeException("Stock item not found"));
     }
 
     @Transactional
     public void syncAllStock() {
+        // Bulk fetch: 1 query for all items, 1 query for all active batches
         List<StockItem> items = stockItemRepository.findAll();
+        if (items.isEmpty()) return;
+
+        List<StockBatch> allActiveBatches = batchRepository.findAllActiveBatchesOrdered();
+
+        // Group batches by stockItem ID (already sorted oldest-first)
+        java.util.Map<Long, List<StockBatch>> batchesByItem = new java.util.LinkedHashMap<>();
+        for (StockBatch b : allActiveBatches) {
+            Long itemId = b.getStockItem().getId();
+            batchesByItem.computeIfAbsent(itemId, k -> new java.util.ArrayList<>()).add(b);
+        }
+
+        // Update each item using a direct JPQL UPDATE (no cascade load triggered)
         for (StockItem item : items) {
-            List<StockBatch> activeBatches = batchRepository.findByStockItemAndCurrentQuantityGreaterThanOrderByCreatedAtAsc(item, 0);
-            
+            List<StockBatch> activeBatches = batchesByItem.getOrDefault(item.getId(), java.util.Collections.emptyList());
             int totalActiveQty = activeBatches.stream().mapToInt(StockBatch::getCurrentQuantity).sum();
-            item.setQuantity(totalActiveQty);
-            
+
+            java.math.BigDecimal unitPrice = java.math.BigDecimal.ZERO;
+            int fifoQty = 0;
             if (!activeBatches.isEmpty()) {
                 StockBatch oldest = activeBatches.get(0);
-                item.setUnitPrice(oldest.getSellingPrice() != null ? oldest.getSellingPrice() : (oldest.getUnitPrice() != null ? oldest.getUnitPrice() : BigDecimal.ZERO));
-                item.setFifoQuantity(oldest.getCurrentQuantity());
-            } else {
-                item.setUnitPrice(BigDecimal.ZERO);
-                item.setFifoQuantity(0);
+                unitPrice = oldest.getSellingPrice() != null ? oldest.getSellingPrice()
+                        : (oldest.getUnitPrice() != null ? oldest.getUnitPrice() : java.math.BigDecimal.ZERO);
+                fifoQty = oldest.getCurrentQuantity();
             }
-            stockItemRepository.save(item);
+
+            stockItemRepository.updateStockSummary(item.getId(), totalActiveQty, unitPrice, fifoQty);
         }
     }
+
 
     @Transactional
     public StockItem saveStockItem(StockItem stockItem) {
@@ -164,6 +205,7 @@ public class StockItemService {
             tx.setSupplier(saved.getSupplier());
             tx.setNote("Initial Stock Entry");
             tx.setTimestamp(java.time.LocalDateTime.now());
+            tx.setPerformedBy(getCurrentUserFullName());
             transactionRepository.save(tx);
         }
         
@@ -263,9 +305,13 @@ public class StockItemService {
         tx.setTotalAmount(normalizedPrice.multiply(new BigDecimal(additionalQty)));
         tx.setSupplier(batch.getSupplier());
         tx.setJobId(null);
+        tx.setPerformedBy(getCurrentUserFullName());
         
         transactionRepository.save(tx);
-        return stockItemRepository.save(item);
+        stockItemRepository.save(item);
+        // Re-fetch with all lazy associations initialized to avoid LazyInitializationException during serialization
+        return stockItemRepository.findByIdWithDetails(item.getId())
+            .orElse(item);
     }
 
     @Transactional
@@ -365,6 +411,7 @@ public class StockItemService {
                     tx.setTotalAmount(batch.getUnitPrice().multiply(new BigDecimal(toTake)));
                     tx.setNote(reason);
                     tx.setJobId(jobId);
+                    tx.setPerformedBy(getCurrentUserFullName());
                     transactionRepository.save(tx);
                 }
                 
@@ -439,6 +486,7 @@ public class StockItemService {
             tx.setTotalAmount(normalizedPrice.multiply(new BigDecimal(restoreQty)));
             tx.setNote(reason + " (Batch " + batchId + ")");
             tx.setJobId(jobId);
+            tx.setPerformedBy(getCurrentUserFullName());
             transactionRepository.save(tx);
             
             if (jobId == null || !movementRepository.existsByReferenceIdAndStockBatchIdAndType(jobId, batch.getId(), StockMovement.MovementType.RESTORE)) {
@@ -456,7 +504,8 @@ public class StockItemService {
         }
 
         item.setQuantity(item.getQuantity() + restoreQty);
-        item.setReservedQuantity(item.getReservedQuantity() - restoreQty);
+        int currentReserved = item.getReservedQuantity() != null ? item.getReservedQuantity() : 0;
+        item.setReservedQuantity(Math.max(0, currentReserved - restoreQty));
         
         List<StockBatch> remainingBatches = batchRepository.findByStockItemAndCurrentQuantityGreaterThanOrderByCreatedAtAsc(item, 0);
         if (!remainingBatches.isEmpty()) {
@@ -474,11 +523,13 @@ public class StockItemService {
             throw new IllegalArgumentException("Invalid quantity: " + releaseQty);
         }
         StockItem item = getStockItemById(itemId);
-        if (item.getReservedQuantity() == null || item.getReservedQuantity() < releaseQty) {
-            log.warn("Invalid reserved quantity state for itemId={}, reserved={}, release={}", itemId, item.getReservedQuantity(), releaseQty);
-            throw new InsufficientStockException("Invalid reserved quantity state for item: " + itemId);
+        int currentReserved = item.getReservedQuantity() != null ? item.getReservedQuantity() : 0;
+        if (currentReserved < releaseQty) {
+            log.warn("Invalid reserved quantity state for itemId={}, reserved={}, release={}. Auto-correcting to 0.", itemId, currentReserved, releaseQty);
+            item.setReservedQuantity(0);
+        } else {
+            item.setReservedQuantity(currentReserved - releaseQty);
         }
-        item.setReservedQuantity(item.getReservedQuantity() - releaseQty);
         stockItemRepository.save(item);
         
         if (jobId == null || !movementRepository.existsByReferenceIdAndStockBatchIdAndType(jobId, null, StockMovement.MovementType.CONSUME)) {
@@ -505,6 +556,8 @@ public class StockItemService {
             throw new IllegalArgumentException("Invalid quantity: " + restoreQty);
         }
         item.setQuantity(item.getQuantity() + restoreQty);
+        int currentReserved = item.getReservedQuantity() != null ? item.getReservedQuantity() : 0;
+        item.setReservedQuantity(Math.max(0, currentReserved - restoreQty));
         item.setLastRestockedAt(java.time.LocalDateTime.now());
         
         // Use rounded price for matching
@@ -546,6 +599,7 @@ public class StockItemService {
         tx.setTotalAmount(normalizedPrice.multiply(new BigDecimal(restoreQty)));
         tx.setNote(reason);
         tx.setJobId(jobId);
+        tx.setPerformedBy(getCurrentUserFullName());
         
         transactionRepository.save(tx);
         return stockItemRepository.save(item);
