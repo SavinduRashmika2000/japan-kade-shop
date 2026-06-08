@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Car, Phone, Lock, User as UserIcon, ArrowRight, Loader2, Shield, ChevronRight, Eye, EyeOff, CreditCard, CheckCircle2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BRANDING } from '../config/branding';
 import loginBg from '../assets/login-bg-light.png';
 
 const LoginPage = () => {
@@ -133,10 +134,10 @@ const LoginPage = () => {
 
           <div className="flex justify-between items-start mb-10">
             <div>
-              <h1 className="text-4xl font-black text-slate-900 tracking-tight">Security Portal</h1>
-              <p className="text-slate-500 mt-2 font-medium italic">Identity Verification & Access</p>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight font-heading">{BRANDING.name}</h1>
+              <p className="text-slate-500 mt-2 font-medium italic">Secure Access Portal</p>
             </div>
-            <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20 rotate-3">
+            <div className="w-14 h-14 rounded-2xl bg-[#DC2626] flex items-center justify-center shadow-lg shadow-red-600/20 rotate-3">
               <Shield className="w-8 h-8 text-white" />
             </div>
           </div>
@@ -145,13 +146,13 @@ const LoginPage = () => {
           <div className="flex p-1.5 bg-slate-100 rounded-2xl mb-10">
             <button 
               onClick={() => setIsCustomer(true)}
-              className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 cursor-pointer ${isCustomer ? 'bg-white text-blue-600 shadow-md' : 'text-slate-500 hover:text-slate-900'}`}
+              className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 cursor-pointer ${isCustomer ? 'bg-[#0F172A] text-white shadow-md' : 'text-slate-500 hover:text-slate-900'}`}
             >
               Customer
             </button>
             <button 
               onClick={() => setIsCustomer(false)}
-              className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 cursor-pointer ${!isCustomer ? 'bg-white text-blue-600 shadow-md' : 'text-slate-500 hover:text-slate-900'}`}
+              className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 cursor-pointer ${!isCustomer ? 'bg-[#0F172A] text-white shadow-md' : 'text-slate-500 hover:text-slate-900'}`}
             >
               Staff / Admin
             </button>
@@ -241,7 +242,7 @@ const LoginPage = () => {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={loading}
-              className="w-full bg-slate-900 hover:bg-blue-600 disabled:opacity-50 text-white font-black py-4.5 px-6 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all duration-300 shadow-xl shadow-slate-900/10"
+              className="w-full bg-[#0F172A] hover:bg-[#DC2626] disabled:opacity-50 text-white font-black py-4 px-6 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all duration-300 shadow-xl shadow-slate-900/10"
             >
               {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Sign In <ArrowRight className="w-5 h-5" /></>}
             </motion.button>
