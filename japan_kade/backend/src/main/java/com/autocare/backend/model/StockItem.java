@@ -61,6 +61,20 @@ public class StockItem extends BaseAuditEntity {
     private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
     private java.time.LocalDateTime lastRestockedAt;
 
+    private boolean isDeleted = false;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) createdAt = java.time.LocalDateTime.now();
+        if (reservedQuantity == null) reservedQuantity = 0;
+    }
+
+    /** @return true if available quantity is at or below the low-stock threshold */
+    public boolean isLowStock() {
+        if (lowStockThreshold == null || quantity == null) return false;
+        return quantity <= lowStockThreshold;
+    }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
