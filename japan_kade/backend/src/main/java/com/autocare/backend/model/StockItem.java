@@ -1,5 +1,6 @@
 package com.autocare.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ import org.hibernate.annotations.Where;
 @Where(clause = "is_deleted = false")
 @Data
 @lombok.EqualsAndHashCode(callSuper = true)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class StockItem extends BaseAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +27,11 @@ public class StockItem extends BaseAuditEntity {
     private String partNumber;
 
     private String hsCode;
+
+    @Column(length = 500)
+    private String remarks;
+
+    private String location;
 
     @Column(nullable = false)
     private Integer quantity;
@@ -39,11 +46,11 @@ public class StockItem extends BaseAuditEntity {
 
     private Integer lowStockThreshold;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supplier_id")
     private Supplier supplier;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
 
@@ -62,6 +69,10 @@ public class StockItem extends BaseAuditEntity {
     public void setPartNumber(String partNumber) { this.partNumber = partNumber; }
     public String getHsCode() { return hsCode; }
     public void setHsCode(String hsCode) { this.hsCode = hsCode; }
+    public String getRemarks() { return remarks; }
+    public void setRemarks(String remarks) { this.remarks = remarks; }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
     public Integer getQuantity() { return quantity; }
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
     public BigDecimal getUnitPrice() { return unitPrice; }
