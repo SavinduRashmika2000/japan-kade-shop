@@ -33,8 +33,13 @@ public class JobItem {
     @Positive(message = "Quantity must be positive")
     private Integer quantity;
 
+    @Column(name = "price_at_time", nullable = false, precision = 12, scale = 2)
     private BigDecimal priceAtTime; // Snapshotted unit price
+
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal subtotal; // Snapshotted subtotal
+
+    @Column(name = "item_name", length = 150)
     private String itemName; // Snapshotted name
 
     @Column(name = "stock_batch_id")
