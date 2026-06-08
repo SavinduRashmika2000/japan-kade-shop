@@ -25,4 +25,17 @@ public class CategoryController {
     public Category createCategory(@RequestBody Category category) {
         return categoryService.saveCategory(category);
     }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Category updateCategory(@PathVariable Long id, @RequestBody Category categoryDetails) {
+        return categoryService.updateCategory(id, categoryDetails);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
+        categoryService.deleteCategory(id);
+        return ResponseEntity.ok().build();
+    }
 }
