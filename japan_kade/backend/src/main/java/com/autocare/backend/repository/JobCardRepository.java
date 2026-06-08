@@ -7,13 +7,13 @@ import java.util.List;
 
 @Repository
 public interface JobCardRepository extends JpaRepository<JobCard, Long> {
-    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT j FROM JobCard j LEFT JOIN FETCH j.services LEFT JOIN FETCH j.items LEFT JOIN FETCH j.customer c LEFT JOIN FETCH c.user ORDER BY j.startTime DESC")
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT j FROM JobCard j LEFT JOIN FETCH j.services s LEFT JOIN FETCH s.serviceType LEFT JOIN FETCH j.items i LEFT JOIN FETCH i.stockItem LEFT JOIN FETCH j.customer c LEFT JOIN FETCH c.user ORDER BY j.startTime DESC")
     List<JobCard> findAllWithDetails();
     
-    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT j FROM JobCard j LEFT JOIN FETCH j.services LEFT JOIN FETCH j.items LEFT JOIN FETCH j.customer c LEFT JOIN FETCH c.user WHERE j.customer.id = :customerId ORDER BY j.startTime DESC")
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT j FROM JobCard j LEFT JOIN FETCH j.services s LEFT JOIN FETCH s.serviceType LEFT JOIN FETCH j.items i LEFT JOIN FETCH i.stockItem LEFT JOIN FETCH j.customer c LEFT JOIN FETCH c.user WHERE j.customer.id = :customerId ORDER BY j.startTime DESC")
     List<JobCard> findByCustomerIdWithDetails(@org.springframework.data.repository.query.Param("customerId") Long customerId);
     
-    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT j FROM JobCard j LEFT JOIN FETCH j.services LEFT JOIN FETCH j.items LEFT JOIN FETCH j.customer c LEFT JOIN FETCH c.user WHERE j.id = :id")
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT j FROM JobCard j LEFT JOIN FETCH j.services s LEFT JOIN FETCH s.serviceType LEFT JOIN FETCH j.items i LEFT JOIN FETCH i.stockItem LEFT JOIN FETCH j.customer c LEFT JOIN FETCH c.user WHERE j.id = :id")
     java.util.Optional<JobCard> findByIdWithDetails(@org.springframework.data.repository.query.Param("id") Long id);
 
     List<JobCard> findByCustomerId(Long customerId);
