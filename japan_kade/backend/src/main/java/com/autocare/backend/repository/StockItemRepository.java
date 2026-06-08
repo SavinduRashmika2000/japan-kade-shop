@@ -29,4 +29,12 @@ public interface StockItemRepository extends JpaRepository<StockItem, Long> {
                              @Param("quantity") Integer quantity,
                              @Param("unitPrice") java.math.BigDecimal unitPrice,
                              @Param("fifoQuantity") Integer fifoQuantity);
+
+    @Query("SELECT DISTINCT s FROM StockItem s LEFT JOIN FETCH s.category LEFT JOIN FETCH s.supplier " +
+           "WHERE s.lowStockThreshold IS NOT NULL AND s.quantity <= s.lowStockThreshold AND s.quantity > 0")
+    java.util.List<StockItem> findLowStockItems();
+
+    @Query("SELECT DISTINCT s FROM StockItem s LEFT JOIN FETCH s.category LEFT JOIN FETCH s.supplier " +
+           "WHERE s.quantity = 0")
+    java.util.List<StockItem> findOutOfStockItems();
 }
