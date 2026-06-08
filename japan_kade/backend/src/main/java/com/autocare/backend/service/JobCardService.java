@@ -160,7 +160,7 @@ public class JobCardService {
                 restoreStockForItems(entityToSave, oldItems, "Job #" + entityToSave.getId() + " Update (Re-evaluating)");
             }
 
-            entityToSave.setVehicleNumber(jobCard.getVehicleNumber());
+            entityToSave.setVehicleNumber(jobCard.getVehicleNumber() != null && !jobCard.getVehicleNumber().trim().isEmpty() ? jobCard.getVehicleNumber() : "N/A");
             entityToSave.setStartTime(jobCard.getStartTime());
             entityToSave.setEndTime(jobCard.getEndTime());
             entityToSave.setStatus(jobCard.getStatus());
@@ -189,6 +189,9 @@ public class JobCardService {
         } else {
             // CREATE FLOW
             entityToSave = jobCard;
+            if (entityToSave.getVehicleNumber() == null || entityToSave.getVehicleNumber().trim().isEmpty()) {
+                entityToSave.setVehicleNumber("N/A");
+            }
             if (entityToSave.getServices() != null) {
                 entityToSave.getServices().forEach(s -> s.setJobCard(entityToSave));
             }
@@ -382,12 +385,15 @@ public class JobCardService {
         }
         
         job.setStatus(status);
-        JobCard saved = jobCardRepository.save(job);
+        jobCardRepository.save(job);
+        // Re-fetch with full JOIN FETCH so no lazy proxy remains when Jackson serializes the response
+        JobCard saved = jobCardRepository.findByIdWithDetails(job.getId()).orElse(job);
 
         // Only log major milestones to keep the feed clean
         if (status == JobCard.JobStatus.PAID) {
-            String services = (saved.getServices() != null) ? saved.getServices().stream().map(JobService::getServiceName).collect(java.util.stream.Collectors.joining(", ")) : "None";
-            createLog(saved, "JOB_PAID", "Service completed. Total: Rs. " + saved.getTotalAmount() + " | Services: " + services);
+            // Remove all prior logs for this job so only the PAID record appears (mirrors CANCELLED cleanup)
+            jobLogRepository.deleteByJobId(saved.getId());
+            createLog(saved, "JOB_PAID", "Service completed. Total: Rs. " + saved.getTotalAmount());
         } else if (status == JobCard.JobStatus.CANCELLED) {
             createLog(saved, "JOB_CANCELLED", "Job cancelled by " + getCurrentUserFullName() + ". Inventory restored.");
         } else if (oldStatus != status) {
