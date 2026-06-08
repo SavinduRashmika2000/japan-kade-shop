@@ -19,7 +19,7 @@ public class JobService {
     @lombok.EqualsAndHashCode.Exclude
     private JobCard jobCard;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_type_id", nullable = false)
     private ServiceType serviceType;
 
