@@ -6,6 +6,7 @@ import {
   History, Activity, Wrench, Package, CheckCircle2, ChevronDown, ChevronRight, Zap, Sparkles, Layers
 } from 'lucide-react';
 import jobCardService from '../../services/jobCardService';
+import { BRANDING } from '../../config/branding';
 
 // --- Enhanced Stat Capsules ---
 
@@ -194,7 +195,7 @@ const CustomerDashboard = () => {
           </motion.div>
           <div className="flex flex-col">
             <h1 className="font-black text-xl md:text-3xl tracking-tighter leading-none text-slate-900 uppercase">
-              MIND <span className="text-blue-600">SPARE PARTS</span>
+              {BRANDING.name.split(' ')[0]} <span className="text-blue-600">{BRANDING.name.split(' ').slice(1).join(' ')}</span>
             </h1>
             <div className="flex items-center gap-2 mt-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
