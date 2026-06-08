@@ -60,6 +60,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   AreaChart, Area, PieChart, Pie, Cell 
 } from 'recharts';
+import { BRANDING } from '../../config/branding';
 
 const getLocalISOString = (date = new Date()) => {
   const offset = date.getTimezoneOffset();
@@ -74,6 +75,27 @@ const StaffDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ type: '', text: '' });
   const [updateMsg, setUpdateMsg] = useState({ type: '', text: '' });
+
+  // Custom Dialog Modal State (replaces window.confirm/alert)
+  const [dialogState, setDialogState] = useState(null);
+  const dialogResolveRef = useRef(null);
+
+  const showAlert = (message, options = {}) => {
+    return new Promise((resolve) => {
+      dialogResolveRef.current = resolve;
+      setDialogState({
+        type: 'alert',
+        title: options.title || 'Notice',
+        message,
+        variant: options.variant || 'info',
+      });
+    });
+  };
+
+  const handleDialogConfirm = () => {
+    if (dialogResolveRef.current) dialogResolveRef.current(true);
+    setDialogState(null);
+  };
 
   // Data Lists
   const [customerList, setCustomerList] = useState([]);
@@ -195,6 +217,18 @@ const StaffDashboard = () => {
   const deferredCustomerSearch = useDeferredValue(customerSearch);
   const deferredStockSearch = useDeferredValue(stockSearch);
   const deferredServiceSearch = useDeferredValue(serviceSearch);
+
+  // Pagination State
+  const PAGE_SIZE = 20;
+  const [stockPage, setStockPage] = useState(1);
+  const [customerPage, setCustomerPage] = useState(1);
+  const [jobPage, setJobPage] = useState(1);
+
+  // Reset pagination on search or filter updates
+  useEffect(() => { setStockPage(1); }, [stockSearch, categoryFilter]);
+  useEffect(() => { setJobPage(1); }, [deferredJobSearch, jobStatusFilter, jobDateFilter]);
+  useEffect(() => { setCustomerPage(1); }, [customerSearch]);
+
 
   const handleCustomerFormChange = (e) => {
     const { name, value } = e.target;
@@ -350,9 +384,11 @@ const StaffDashboard = () => {
     setLoading(true);
     try {
       const now = getLocalISOString();
+      // Default to walk-in customer if none selected
+      const resolvedCustomerId = addJobData.customerId || '__walkin__';
       const payload = {
         vehicleNumber: addJobData.vehicleNumber || '', 
-        customer: { id: addJobData.customerId },
+        customer: { id: resolvedCustomerId },
         startTime: addJobData.startTime || now, 
         endTime: addJobData.endTime || now,
         services: addJobData.services.map(s => ({ serviceType: { id: s.serviceTypeId }, priceAtTime: s.priceAtTime, serviceName: s.name })),
@@ -363,12 +399,11 @@ const StaffDashboard = () => {
       if (payload.endTime && payload.endTime.length === 16) payload.endTime += ":00";
 
       await jobCardService.createJob(payload);
-      setMsg({ type: 'success', text: 'Bill Created Successfully!' });
+      showAlert('Bill created successfully!', { title: '✅ Bill Created', variant: 'success' });
       setAddJobData(initialJobData);
       setShowAddJobModal(false);
       fetchJobs(); fetchStock();
-      setTimeout(() => setMsg({ type: '', text: '' }), 3000);
-    } catch (err) { setMsg({ type: 'error', text: 'Failed to create bill.' }); }
+    } catch (err) { showAlert('Failed to create bill. Please try again.', { title: '❌ Error', variant: 'danger' }); }
     finally { setLoading(false); }
   };
 
@@ -382,7 +417,6 @@ const StaffDashboard = () => {
       items: job.items?.map(i => ({ stockItemId: i.stockItem?.id, quantity: i.quantity, priceAtTime: i.priceAtTime, name: i.itemName })) || [],
       status: job.status
     });
-    setUpdateMsg({ type: '', text: '' });
     setShowEditJobModal(true);
   };
 
@@ -390,9 +424,10 @@ const StaffDashboard = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      const resolvedCustomerId = editJobData.customerId || '__walkin__';
       const payload = {
         vehicleNumber: editJobData.vehicleNumber, 
-        customer: { id: editJobData.customerId },
+        customer: { id: resolvedCustomerId },
         startTime: editJobData.startTime || null, 
         endTime: editJobData.endTime || null,
         services: editJobData.services.map(s => ({ serviceType: { id: s.serviceTypeId }, priceAtTime: s.priceAtTime, serviceName: s.name })),
@@ -403,10 +438,10 @@ const StaffDashboard = () => {
       if (payload.endTime && payload.endTime.length === 16) payload.endTime += ":00";
 
       await jobCardService.updateJob(editingJobId, payload);
-      setUpdateMsg({ type: 'success', text: 'Job Card Updated!' });
+      showAlert('Bill updated successfully!', { title: '✅ Bill Updated', variant: 'success' });
       fetchJobs(); fetchStock();
-      setTimeout(() => { setShowEditJobModal(false); setUpdateMsg({ type: '', text: '' }); }, 2000);
-    } catch (err) { setUpdateMsg({ type: 'error', text: 'Update failed.' }); }
+      setShowEditJobModal(false);
+    } catch (err) { showAlert('Update failed. Please try again.', { title: '❌ Error', variant: 'danger' }); }
     finally { setLoading(false); }
   };
 
@@ -428,7 +463,7 @@ const StaffDashboard = () => {
       const errorMsg = err.response?.status === 429 
         ? 'Too many requests. Please wait a moment.' 
         : 'Status update failed. Please try again.';
-      setMsg({ type: 'error', text: errorMsg });
+      showAlert(errorMsg, { title: '❌ Status Error', variant: 'danger' });
     }
   };
 
@@ -436,18 +471,17 @@ const StaffDashboard = () => {
   const handleAddCustomer = async (e) => {
     e.preventDefault();
     if (customerFormData.phone.length !== 10) {
-      setMsg({ type: 'error', text: 'Phone number must be exactly 10 digits.' });
+      showAlert('Phone number must be exactly 10 digits.', { title: '⚠️ Validation Error', variant: 'warning' });
       return;
     }
     setLoading(true);
     try {
       await authService.signup(customerFormData);
-      setMsg({ type: 'success', text: 'Customer added successfully!' });
+      showAlert('Customer added successfully!', { title: '✅ Customer Created', variant: 'success' });
       setCustomerFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', address: '', idNo: '' });
       fetchCustomers();
-      setTimeout(() => setMsg({ type: '', text: '' }), 3000);
     } catch (err) {
-      setMsg({ type: 'error', text: err.response?.data?.message || 'Failed to add customer.' });
+      showAlert(err.response?.data?.message || 'Failed to add customer.', { title: '❌ Error', variant: 'danger' });
     } finally {
       setLoading(false);
     }
@@ -463,7 +497,6 @@ const StaffDashboard = () => {
       password: '', 
       enabled: customer.user?.enabled ?? true 
     });
-    setUpdateMsg({ type: '', text: '' });
     setShowEditCustomer(true);
   };
 
@@ -472,10 +505,10 @@ const StaffDashboard = () => {
     setLoading(true);
     try {
       await customerService.updateCustomer(editingCustomerId, editCustomerData);
-      setUpdateMsg({ type: 'success', text: 'Customer details updated!' });
+      showAlert('Customer details updated successfully!', { title: '✅ Customer Updated', variant: 'success' });
       fetchCustomers();
-      setTimeout(() => { setShowEditCustomer(false); setUpdateMsg({ type: '', text: '' }); }, 1500);
-    } catch (err) { setUpdateMsg({ type: 'error', text: 'Update failed.' }); }
+      setShowEditCustomer(false);
+    } catch (err) { showAlert('Update failed. Please try again.', { title: '❌ Error', variant: 'danger' }); }
     finally { setLoading(false); }
   };
 
@@ -503,7 +536,7 @@ const StaffDashboard = () => {
     doc.rect(0, 0, pageW, 45, 'F');
     doc.setFontSize(24);
     doc.setTextColor(255, 255, 255);
-    doc.text('MIND SPARE PARTS', pageW / 2, 18, { align: 'center' });
+    doc.text(BRANDING.name, pageW / 2, 18, { align: 'center' });
     doc.setFontSize(10);
     doc.text(`Bill #${job?.id} | ${new Date().toLocaleDateString()}`, pageW / 2, 28, { align: 'center' });
     
@@ -544,8 +577,88 @@ const StaffDashboard = () => {
     );
   }, [stockList, deferredStockSearch, categoryFilter]);
 
+  const paginatedJobs = useMemo(() => filteredJobs.slice((jobPage - 1) * PAGE_SIZE, jobPage * PAGE_SIZE), [filteredJobs, jobPage]);
+  const paginatedCustomers = useMemo(() => filteredCustomers.slice((customerPage - 1) * PAGE_SIZE, customerPage * PAGE_SIZE), [filteredCustomers, customerPage]);
+  const paginatedStock = useMemo(() => filteredStock.slice((stockPage - 1) * PAGE_SIZE, stockPage * PAGE_SIZE), [filteredStock, stockPage]);
 
-  const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0, duration: 0.15 } } };
+  // Memoize grouped inventory to avoid inline reduce on every render
+  const groupedPaginatedStock = useMemo(() =>
+    Object.entries(
+      paginatedStock.reduce((acc, item) => {
+        const catName = item.category?.name || 'Uncategorized';
+        if (!acc[catName]) acc[catName] = [];
+        acc[catName].push(item);
+        return acc;
+      }, {})
+    ),
+    [paginatedStock]
+  );
+
+  /** Renders a compact pagination bar. */
+  const renderPagination = (total, page, setPage, pageSize = PAGE_SIZE) => {
+    const totalPages = Math.ceil(total / pageSize);
+    if (totalPages <= 1) return null;
+    const start = (page - 1) * pageSize + 1;
+    const end   = Math.min(page * pageSize, total);
+    // Build a compact window of page numbers
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (page <= 4) {
+        for (let i = 1; i <= 5; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (page >= totalPages - 3) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = page - 1; i <= page + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          Showing <span className="text-slate-700 font-black">{start}–{end}</span> of <span className="text-slate-700 font-black">{total}</span> records
+        </p>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-sm font-black"
+          >‹</button>
+          {pages.map((p, i) =>
+            p === '...' ? (
+              <span key={`ellipsis-${i}`} className="w-8 h-8 flex items-center justify-center text-slate-300 text-xs font-bold">…</span>
+            ) : (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`w-8 h-8 rounded-lg text-[11px] font-black transition-all border ${
+                  page === p
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-md'
+                    : 'text-slate-500 border-transparent hover:border-slate-200 hover:bg-white hover:text-slate-900'
+                }`}
+              >{p}</button>
+            )
+          )}
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-sm font-black"
+          >›</button>
+        </div>
+      </div>
+    );
+  };
+
+
+  const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.15 } } };
   const itemVariants = { hidden: { opacity: 0 }, visible: { opacity: 1 } };
 
   const workStats = useMemo(() => {
@@ -576,7 +689,7 @@ const StaffDashboard = () => {
         <div className="p-6 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg"><Package className="w-5 h-5 text-white" /></div>
           <div className="flex flex-col">
-            <span className="font-black text-xl tracking-tighter text-slate-900 leading-none">Mind Spare Parts</span>
+            <span className="font-black text-xl tracking-tighter text-slate-900 leading-none">{BRANDING.name}</span>
             <span className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-600 mt-0.5">Staff Portal</span>
           </div>
         </div>
@@ -617,10 +730,51 @@ const StaffDashboard = () => {
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10 space-y-8 bg-white relative">
+          {/* Custom Dialog Modal */}
           <AnimatePresence>
-            {(msg.text || updateMsg.text) && (
-              <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className={`fixed top-24 left-1/2 -translate-x-1/2 z-[200] min-w-[320px] p-4 rounded-2xl shadow-2xl border flex items-center gap-4 backdrop-blur-xl ${ (msg.type === 'error' || updateMsg.type === 'error') ? 'bg-red-50/90 border-red-100 text-red-600' : 'bg-emerald-50/90 border-emerald-100 text-emerald-600' }`}>
-                {msg.text || updateMsg.text}
+            {dialogState && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[500] flex items-center justify-center p-4"
+              >
+                <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={handleDialogConfirm} />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.92, y: 20 }}
+                  transition={{ type: 'spring', bounce: 0.3, duration: 0.4 }}
+                  className="relative z-10 bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden"
+                >
+                  <div className={`p-6 ${
+                    dialogState.variant === 'success' ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' :
+                    dialogState.variant === 'danger'  ? 'bg-gradient-to-br from-red-500 to-rose-600' :
+                    dialogState.variant === 'warning' ? 'bg-gradient-to-br from-amber-400 to-orange-500' :
+                    'bg-gradient-to-br from-blue-500 to-indigo-600'
+                  } text-white text-center`}>
+                    <div className="text-4xl mb-3">
+                      {dialogState.variant === 'success' ? '✅' :
+                       dialogState.variant === 'danger'  ? '❌' :
+                       dialogState.variant === 'warning' ? '⚠️' : 'ℹ️'}
+                    </div>
+                    <h3 className="text-lg font-black tracking-tight">{dialogState.title}</h3>
+                  </div>
+                  <div className="p-6 text-center">
+                    <p className="text-slate-600 font-semibold text-sm leading-relaxed">{dialogState.message}</p>
+                    <button
+                      onClick={handleDialogConfirm}
+                      className={`mt-6 w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest text-white transition-all shadow-lg ${
+                        dialogState.variant === 'success' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30' :
+                        dialogState.variant === 'danger'  ? 'bg-red-500 hover:bg-red-600 shadow-red-500/30' :
+                        dialogState.variant === 'warning' ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30' :
+                        'bg-blue-500 hover:bg-blue-600 shadow-blue-500/30'
+                      }`}
+                    >
+                      OK
+                    </button>
+                  </div>
+                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -632,7 +786,7 @@ const StaffDashboard = () => {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                   <motion.div variants={itemVariants}>
                     <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter">Shop Feed</h2>
-                    <p className="text-slate-500 mt-2 md:mt-3 font-bold text-sm md:text-lg tracking-tight">Real-time operational pulse for <span className="text-blue-600">Mind Spare Parts</span>.</p>
+                    <p className="text-slate-500 mt-2 md:mt-3 font-bold text-sm md:text-lg tracking-tight">Real-time operational pulse for <span className="text-blue-600">{BRANDING.name}</span>.</p>
                   </motion.div>
                   <motion.div variants={itemVariants} className="flex items-center gap-2 bg-white border border-slate-100 px-4 py-2.5 rounded-xl shadow-sm">
                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -924,12 +1078,12 @@ const StaffDashboard = () => {
                     <button onClick={() => setShowAddJobModal(true)} className="mt-4 text-blue-600 font-black text-sm hover:underline">Create a new bill</button>
                   </div>
                 ) : (
-                  filteredJobs.map(job => (
-                    <motion.div key={job.id} variants={itemVariants} className="bg-white border border-slate-100 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all overflow-hidden group relative">
+                  paginatedJobs.map(job => (
+                    <div key={job.id} className="bg-white border border-slate-100 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group relative">
                       {/* Bill ID Badge */}
                       <div className="absolute top-0 right-0 p-1">
                         <div className="bg-slate-900 text-white text-[8px] font-black px-3 py-1 rounded-bl-xl rounded-tr-xl tracking-[0.2em] uppercase">
-                          SALE-{job.id}
+                           SALE-{job.id}
                         </div>
                       </div>
 
@@ -976,34 +1130,21 @@ const StaffDashboard = () => {
                         </div>
 
                         <div className="bg-slate-50/50 rounded-2xl p-5 mb-6 border border-slate-50">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-3">
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                                <Tag className="w-3 h-3" /> Sales Breakdown
-                              </p>
-                              <div className="flex flex-col gap-2">
-                                {job.items?.map(i => (
-                                  <div key={i.id} className="flex justify-between items-center group/item">
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                                      <span className="text-xs font-black text-slate-700">{i.itemName}</span>
-                                    </div>
-                                    <span className="text-[10px] font-bold text-slate-400 bg-white border border-slate-100 px-1.5 py-0.5 rounded">x{i.quantity}</span>
+                          <div className="space-y-3">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                              <Tag className="w-3 h-3" /> Sales Breakdown
+                            </p>
+                            <div className="flex flex-col gap-2">
+                              {job.items?.map(i => (
+                                <div key={i.id} className="flex justify-between items-center group/item">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                                    <span className="text-xs font-black text-slate-700">{i.itemName}</span>
                                   </div>
-                                ))}
-                                {job.items?.length === 0 && <span className="text-[10px] font-bold text-slate-300 italic">No parts added</span>}
-                              </div>
-                            </div>
-                            <div className="space-y-3">
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                                <Wrench className="w-3 h-3" /> Labor / Services
-                              </p>
-                              <div className="flex flex-wrap gap-2">
-                                {job.services?.map(s => (
-                                  <span key={s.id} className="px-3 py-1 bg-white border border-slate-100 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm">{s.serviceName}</span>
-                                ))}
-                                {job.services?.length === 0 && <span className="text-[10px] font-bold text-slate-300 italic">No services</span>}
-                              </div>
+                                  <span className="text-[10px] font-bold text-slate-400 bg-white border border-slate-100 px-1.5 py-0.5 rounded">x{i.quantity}</span>
+                                </div>
+                              ))}
+                              {job.items?.length === 0 && <span className="text-[10px] font-bold text-slate-300 italic">No parts added</span>}
                             </div>
                           </div>
                         </div>
@@ -1031,9 +1172,12 @@ const StaffDashboard = () => {
                           </div>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   ))
                 )}
+              </div>
+              <div className="mt-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                {renderPagination(filteredJobs.length, jobPage, setJobPage)}
               </div>
             </motion.div>
           )}
@@ -1102,9 +1246,7 @@ const StaffDashboard = () => {
                       <input type="password" name="password" required value={customerFormData.password} onChange={handleCustomerFormChange} className="w-full bg-slate-50 hover:bg-slate-100 focus:bg-slate-100 transition-colors border border-transparent focus:border-blue-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-800 placeholder:text-slate-500 outline-none" placeholder="Create a strong password" />
                     </div>
 
-                    {msg.text && (
-                      <div className={`p-4 rounded-xl text-[13px] font-bold ${msg.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>{msg.text}</div>
-                    )}
+
                     <button type="submit" disabled={loading} className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold py-4 rounded-xl transition-all mt-4 shadow-lg shadow-slate-900/20">
                       {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Create Account'}
                     </button>
@@ -1131,7 +1273,7 @@ const StaffDashboard = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredCustomers.map((customer, index) => {
+                        {paginatedCustomers.map((customer, index) => {
                           const isCustomerEnabled = customer.user?.enabled ?? customer.user?.active ?? customer.user?.isActive ?? true;
                           return (
                             <tr key={customer.id || customer.user?.id || `cust-key-${index}`} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors ${!isCustomerEnabled ? 'opacity-60' : ''}`}>
@@ -1175,6 +1317,9 @@ const StaffDashboard = () => {
                         )}
                       </tbody>
                     </table>
+                  </div>
+                  <div className="mt-6 border-t border-slate-100 pt-4">
+                    {renderPagination(filteredCustomers.length, customerPage, setCustomerPage)}
                   </div>
                 </motion.div>
               </motion.div>
@@ -1231,14 +1376,7 @@ const StaffDashboard = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {Object.entries(
-                            filteredStock.reduce((acc, item) => {
-                              const catName = item.category?.name || 'Uncategorized';
-                              if (!acc[catName]) acc[catName] = [];
-                              acc[catName].push(item);
-                              return acc;
-                            }, {})
-                          ).map(([categoryName, items]) => (
+                          {groupedPaginatedStock.map(([categoryName, items]) => (
                             <React.Fragment key={categoryName}>
                               <tr className="bg-slate-50/50">
                                 <td colSpan="5" className="py-3 px-6">
@@ -1293,7 +1431,7 @@ const StaffDashboard = () => {
                                             <span className="text-[9px] font-bold text-slate-400">{Math.round(healthPercent)}%</span>
                                           </div>
                                           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
-                                            <motion.div initial={{ width: 0 }} animate={{ width: `${healthPercent}%` }} className={`h-full ${barColor} shadow-[0_0_8px_rgba(0,0,0,0.1)]`} />
+                                            <div className={`h-full ${barColor}`} style={{ width: `${healthPercent}%`, transition: 'width 0.7s ease-out', willChange: 'width' }} />
                                           </div>
                                         </div>
                                       </td>
@@ -1358,6 +1496,9 @@ const StaffDashboard = () => {
                         </tbody>
                       </table>
                     </div>
+                    <div className="mt-6 border-t border-slate-100 pt-4">
+                      {renderPagination(filteredStock.length, stockPage, setStockPage)}
+                    </div>
                  </div>
                </motion.div>
              )}
@@ -1380,7 +1521,7 @@ const StaffDashboard = () => {
                    </div>
                    <div className="flex-1 overflow-y-auto p-7">
                       <form onSubmit={handleUpdateCustomer} className="space-y-5">
-                         {updateMsg.text && <div className={`p-4 rounded-xl text-xs font-black uppercase tracking-wider ${updateMsg.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>{updateMsg.text}</div>}
+
                          <div className="grid grid-cols-2 gap-4">
                            <div className="space-y-1.5"><label className="text-[10px] font-black uppercase text-slate-400 ml-1">First Name</label><input required value={editCustomerData.firstName} onChange={e => setEditCustomerData({...editCustomerData, firstName: e.target.value})} className="w-full bg-slate-50 border border-slate-100 p-4 rounded-xl text-sm font-bold outline-none focus:border-indigo-600" /></div>
                            <div className="space-y-1.5"><label className="text-[10px] font-black uppercase text-slate-400 ml-1">Last Name</label><input value={editCustomerData.lastName} onChange={e => setEditCustomerData({...editCustomerData, lastName: e.target.value})} className="w-full bg-slate-50 border border-slate-100 p-4 rounded-xl text-sm font-bold outline-none focus:border-indigo-600" /></div>
@@ -1431,9 +1572,6 @@ const StaffDashboard = () => {
                    <form id="job-card-form" onSubmit={handleAddJob} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                      {/* Left Column: Core Info */}
                      <div className="space-y-6">
-                       {msg.text && (
-                         <div className={`p-4 rounded-xl text-xs font-black uppercase tracking-wider ${msg.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>{msg.text}</div>
-                       )}
                        <section className="space-y-4">
                          <h5 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2">Primary Details</h5>
                          <div className="space-y-4">
@@ -1444,11 +1582,11 @@ const StaffDashboard = () => {
                                   <div className="bg-white border border-blue-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
                                      <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-black text-xs">
-                                          {customerList.find(c => c.id === addJobData.customerId)?.firstName?.[0]}
+                                          {addJobData.customerId === 'WALK_IN' ? 'WI' : customerList.find(c => c.id === addJobData.customerId)?.firstName?.[0]}
                                         </div>
                                         <div>
-                                           <p className="text-sm font-black text-slate-900">{customerList.find(c => c.id === addJobData.customerId)?.firstName} {customerList.find(c => c.id === addJobData.customerId)?.lastName}</p>
-                                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{customerList.find(c => c.id === addJobData.customerId)?.phone}</p>
+                                           <p className="text-sm font-black text-slate-900">{addJobData.customerId === 'WALK_IN' ? 'Walk-in Customer' : `${customerList.find(c => c.id === addJobData.customerId)?.firstName} ${customerList.find(c => c.id === addJobData.customerId)?.lastName}`}</p>
+                                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{addJobData.customerId === 'WALK_IN' ? 'No Details Required' : customerList.find(c => c.id === addJobData.customerId)?.phone}</p>
                                         </div>
                                      </div>
                                      <button type="button" onClick={() => { setAddJobData({...addJobData, customerId: ''}); setCustomerSearchQuery(''); }} className="text-[10px] font-black text-red-500 hover:underline uppercase tracking-widest">Change</button>
@@ -1457,16 +1595,18 @@ const StaffDashboard = () => {
                                   <div className="relative" ref={customerDropdownRef}>
                                      <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm focus-within:border-blue-600 transition-all">
                                        <Search className="w-4 h-4 text-slate-400" />
-                                       <input type="text" placeholder="Search customer by name or phone..." value={customerSearchQuery} 
+                                       <input type="text" placeholder="Search customer or select Walk-in..." value={customerSearchQuery} 
                                          onChange={e => setCustomerSearchQuery(e.target.value)}
                                          onFocus={() => { if(!customerSearchQuery) setCustomerSearchQuery(' '); }}
                                          className="bg-transparent text-xs font-black text-slate-700 outline-none w-full" />
                                        <button type="button" onClick={() => setCustomerSearchQuery(customerSearchQuery.trim() === '' ? ' ' : '')} className="text-slate-400 hover:text-blue-600"><ChevronDown className={`w-4 h-4 transition-transform ${customerSearchQuery ? 'rotate-180' : ''}`} /></button>
                                      </div>
     
-                                     {/* Customer Suggestions */}
                                      {customerSearchQuery !== undefined && (customerSearchQuery.length > 0 || customerSearchQuery === ' ') && (
                                        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-48 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                                         <button type="button" onClick={() => { setAddJobData({...addJobData, customerId: 'WALK_IN'}); setCustomerSearchQuery(""); }} className="w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 transition-colors border-b border-slate-50 mb-1">
+                                            <p className="text-xs font-black text-blue-600 uppercase">Walk-in Customer</p>
+                                         </button>
                                          {customerList
                                            .filter(c => {
                                              const isEnabled = c.user?.enabled ?? c.user?.active ?? c.user?.isActive ?? true;
@@ -1534,7 +1674,6 @@ const StaffDashboard = () => {
                                    <button type="button" onClick={() => setPartSearchQuery(partSearchQuery.trim() === '' ? ' ' : '')} className="text-slate-400 hover:text-emerald-600"><ChevronDown className={`w-4 h-4 transition-transform ${partSearchQuery ? 'rotate-180' : ''}`} /></button>
                                  </div>
 
-                                 {/* Part Suggestions */}
                                  {partSearchQuery !== undefined && (partSearchQuery.length > 0 || partSearchQuery === ' ') && (
                                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-2xl z-[120] max-h-48 overflow-y-auto custom-scrollbar p-1 animate-in fade-in slide-in-from-top-2 duration-200">
                                       {stockList
@@ -1596,7 +1735,7 @@ const StaffDashboard = () => {
                                             <button type="button" onClick={() => {
                                               const stockItem = stockList.find(s => s.id === item.stockItemId);
                                               if (stockItem && item.quantity >= stockItem.quantity) {
-                                                setMsg({ type: 'error', text: `Insufficient stock! Only ${stockItem.quantity} available.` });
+                                                showAlert(`Insufficient stock! Only ${stockItem.quantity} units available.`, { title: '⚠️ Stock Limit', variant: 'warning' });
                                                 return;
                                               }
                                               updateItemFifoPrice(idx, item.quantity + 1, 'add');
@@ -1671,13 +1810,9 @@ const StaffDashboard = () => {
                    <form id="edit-job-card-form" onSubmit={handleEditJob} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                      {/* Left Column: Core Info */}
                      <div className="space-y-6">
-                       {updateMsg.text && (
-                         <div className={`p-4 rounded-xl text-xs font-black uppercase tracking-wider ${updateMsg.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>{updateMsg.text}</div>
-                       )}
                        <section className="space-y-4">
                          <h5 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2">Primary Details</h5>
                          <div className="space-y-4">
-
     
                            <div className="relative">
                              <label className="text-[10px] font-black uppercase text-slate-500 ml-1 mb-1.5 block">Select Customer</label>
@@ -1854,7 +1989,7 @@ const StaffDashboard = () => {
                                           <button type="button" onClick={() => {
                                             const stockItem = stockList.find(s => s.id === item.stockItemId);
                                             if (stockItem && item.quantity >= stockItem.quantity) {
-                                              setMsg({ type: 'error', text: `Insufficient stock! Only ${stockItem.quantity} available.` });
+                                              showAlert(`Insufficient stock! Only ${stockItem.quantity} units available.`, { title: '⚠️ Stock Limit', variant: 'warning' });
                                               return;
                                             }
                                             const newItems = [...editJobData.items];
@@ -1897,6 +2032,71 @@ const StaffDashboard = () => {
            )}
         </AnimatePresence>
       </main>
+
+      {/* ===== CUSTOM DIALOG MODAL ===== */}
+      <AnimatePresence>
+        {dialogState && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{backdropFilter:'blur(8px)', backgroundColor:'rgba(15,23,42,0.55)'}}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 16 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+              className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-slate-100"
+            >
+              {/* Top accent bar */}
+              <div className={`h-1.5 w-full ${
+                dialogState.variant === 'danger' ? 'bg-gradient-to-r from-red-500 to-rose-600' :
+                dialogState.variant === 'warning' ? 'bg-gradient-to-r from-amber-400 to-orange-500' :
+                dialogState.variant === 'success' ? 'bg-gradient-to-r from-emerald-400 to-teal-500' :
+                'bg-gradient-to-r from-blue-500 to-indigo-600'
+              }`} />
+
+              <div className="p-8">
+                {/* Icon + Title */}
+                <div className="flex items-start gap-4 mb-5">
+                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
+                    dialogState.variant === 'danger' ? 'bg-red-50 text-red-500' :
+                    dialogState.variant === 'warning' ? 'bg-amber-50 text-amber-500' :
+                    dialogState.variant === 'success' ? 'bg-emerald-50 text-emerald-500' :
+                    'bg-blue-50 text-blue-500'
+                  }`}>
+                    {dialogState.variant === 'danger' ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+                    ) : dialogState.variant === 'warning' ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+                    ) : dialogState.variant === 'success' ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900 tracking-tight">{dialogState.title}</h3>
+                    <p className="text-sm text-slate-500 font-medium mt-1 leading-relaxed">{dialogState.message}</p>
+                  </div>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={handleDialogConfirm}
+                    className={`flex-1 px-5 py-3 rounded-xl font-black text-sm text-white transition-all uppercase tracking-widest shadow-lg ${
+                      dialogState.variant === 'danger' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/30' :
+                      dialogState.variant === 'warning' ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30' :
+                      dialogState.variant === 'success' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30' :
+                      'bg-blue-600 hover:bg-blue-700 shadow-blue-600/30'
+                    }`}
+                  >
+                    OK
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
