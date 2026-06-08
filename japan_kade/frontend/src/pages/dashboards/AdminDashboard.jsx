@@ -2518,26 +2518,26 @@ const AdminDashboard = () => {
         </div>
       </aside>
 
+      {/* Hamburger - mobile only - placed at root level so fixed positioning is never broken by ancestor transforms */}
+      <button
+        className="md:hidden fixed top-4 left-4 p-2 rounded-xl bg-white border border-slate-200 text-slate-600 z-[80] shadow-lg"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        aria-label="Toggle sidebar"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {sidebarOpen
+            ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}
+        </svg>
+      </button>
+
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-h-screen overflow-hidden bg-white min-w-0">
 
         {/* Header */}
         <header className="h-16 md:h-20 border-b border-slate-100 flex items-center justify-between px-4 md:px-8 bg-white/80 backdrop-blur-md sticky top-0 z-20">
-          {/* Hamburger - mobile only */}
-          <button
-            className="md:hidden fixed top-3.5 left-4 p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 z-20 shadow-md backdrop-blur-sm"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {sidebarOpen
-                ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}
-            </svg>
-          </button>
-
+          <div className="md:hidden w-10" />{/* spacer for hamburger button */}
           <div className="flex-1" />
-
-
         </header>
 
         {/* Content Area */}
