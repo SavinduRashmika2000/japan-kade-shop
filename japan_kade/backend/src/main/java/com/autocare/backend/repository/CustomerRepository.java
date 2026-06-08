@@ -9,6 +9,9 @@ import java.util.Optional;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
+    @org.springframework.data.jpa.repository.Query("select c from Customer c left join fetch c.user")
+    java.util.List<Customer> findAll();
+
     Optional<Customer> findByPhone(String phone);
     boolean existsByIdNo(String idNo);
     Optional<Customer> findByUser(User user);
