@@ -1,20 +1,44 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #3B82F6;
+  --color-primary: #DC2626; /* Japanese Red */
+  --color-secondary: #0F172A; /* Deep Navy */
+  --color-accent: #F59E0B; /* Premium Gold */
+  
   --color-darkBg: #0F172A;
   --color-darkCard: #1E293B;
-  --color-lightBg: #F8FAFC;
-  --color-lightCard: #FFFFFF;
+  --color-lightBg: #FFFFFF;
+  --color-lightCard: #F8FAFC;
+  
+  /* Custom JK Brand Tokens */
+  --color-jk-navy: #0F172A;
+  --color-jk-red: #DC2626;
+  --color-jk-gold: #F59E0B;
+  --color-jk-gray-light: #F1F5F9;
+  --color-jk-gray-medium: #64748B;
+  --color-jk-text-primary: #111827;
+  
+  /* Remap default blue utilities to enforce brand system across entire codebase */
+  --color-blue-50: #FEF2F2;
+  --color-blue-100: #FEE2E2;
+  --color-blue-200: #FECACA;
+  --color-blue-500: #DC2626;
+  --color-blue-600: #DC2626; /* Japanese Red */
+  --color-blue-700: #B91C1C; /* Hover Dark Red */
+  --color-blue-800: #991B1B;
+  --color-blue-900: #0F172A; /* Deep Navy */
+  --color-blue-950: #090D16;
+  
   --font-sans: 'Inter', sans-serif;
+  --font-heading: 'Outfit', sans-serif;
 }
 
 /* Base styles */
 body {
   background-color: var(--color-lightBg);
-  color: #1e293b;
+  color: var(--color-jk-text-primary);
   transition: background-color 0.3s, color 0.3s;
   font-family: var(--font-sans);
 }
@@ -24,19 +48,23 @@ body {
   color: #e2e8f0;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
 /* Glassmorphism card */
 .glass-card {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.05);
   transition: all 0.3s;
 }
 
 .dark .glass-card {
-  background: rgba(30, 41, 59, 0.7);
+  background: rgba(30, 41, 59, 0.85);
   border-color: rgba(51, 65, 85, 0.8);
   box-shadow: none;
 }
@@ -45,37 +73,41 @@ body {
 .btn-primary {
   background-color: var(--color-primary);
   color: white;
-  font-weight: 500;
-  padding: 0.5rem 1.5rem;
+  font-weight: 600;
+  padding: 0.75rem 1.75rem;
   border-radius: 0.5rem;
-  transition: all 0.2s;
-  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px 0 rgba(220, 38, 38, 0.3);
   border: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  gap: 0.5rem;
 }
 
 .btn-primary:hover {
-  background-color: #2563eb;
-  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+  background-color: #B91C1C;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px 0 rgba(220, 38, 38, 0.4);
 }
 
 .btn-outline {
   background: transparent;
-  border: 1px solid #d1d5db;
-  color: #374151;
-  font-weight: 500;
-  padding: 0.5rem 1.5rem;
+  border: 2px solid var(--color-jk-navy);
+  color: var(--color-jk-navy);
+  font-weight: 600;
+  padding: 0.75rem 1.75rem;
   border-radius: 0.5rem;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  gap: 0.5rem;
 }
 
 .btn-outline:hover {
-  background-color: #f3f4f6;
+  background-color: var(--color-jk-navy);
+  color: white;
 }
 
 .dark .btn-outline {
@@ -85,4 +117,18 @@ body {
 
 .dark .btn-outline:hover {
   background-color: #1f2937;
+}
+
+/* Custom premium input fields styling */
+.premium-input {
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  outline: none;
+  background-color: #FFFFFF;
+  transition: all 0.2s ease-in-out;
+}
+.premium-input:focus {
+  border-color: var(--color-jk-navy);
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
 }
