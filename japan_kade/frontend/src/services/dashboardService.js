@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8080/api/dashboard';
+const TIMEOUT = 15000; // 15s default timeout for loading dashboard stats
 
 const getAuthHeader = () => {
   const userStr = localStorage.getItem('user');
@@ -9,12 +10,14 @@ const getAuthHeader = () => {
   return { Authorization: `Bearer ${user.token || user.accessToken}` };
 };
 
+/** Fetch global dashboard statistics (Admin/Staff only) */
 const getStats = () => {
-  return axios.get(`${API_URL}/stats`, { headers: getAuthHeader() });
+  return axios.get(`${API_URL}/stats`, { headers: getAuthHeader(), timeout: TIMEOUT });
 };
 
 const dashboardService = {
-  getStats
+  getStats,
 };
 
 export default dashboardService;
+
