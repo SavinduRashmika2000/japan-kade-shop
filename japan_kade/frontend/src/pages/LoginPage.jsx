@@ -211,7 +211,7 @@ const LoginPage = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-14 pr-12 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
-                    placeholder="••••••••"
+                    placeholder="Enter your password"
                   />
                   <button
                     type="button"
@@ -354,7 +354,7 @@ const LoginPage = () => {
                         type="password" name="newPassword" required
                         value={recoveryForm.newPassword} onChange={handleRecoveryChange}
                         className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-14 pr-6 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
-                        placeholder="••••••••"
+                        placeholder="Enter new password"
                       />
                     </div>
                   </div>
@@ -369,7 +369,7 @@ const LoginPage = () => {
                         type="password" name="confirmPassword" required
                         value={recoveryForm.confirmPassword} onChange={handleRecoveryChange}
                         className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-14 pr-6 text-slate-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all placeholder:text-slate-300"
-                        placeholder="••••••••"
+                        placeholder="Confirm new password"
                       />
                     </div>
                   </div>
