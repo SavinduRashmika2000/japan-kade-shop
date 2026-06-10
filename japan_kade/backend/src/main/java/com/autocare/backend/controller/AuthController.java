@@ -291,6 +291,16 @@ public class AuthController {
                 .orElseThrow(() -> new RuntimeException("Error: User not found."));
 
         // Update User Details
+        if (updateRequest.getUsername() != null && !updateRequest.getUsername().trim().isEmpty()) {
+            String newUsername = updateRequest.getUsername().trim();
+            if (!newUsername.equalsIgnoreCase(user.getUsername())) {
+                if (userRepository.existsByUsername(newUsername)) {
+                    return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
+                }
+                user.setUsername(newUsername);
+            }
+        }
+
         if (updateRequest.getFirstName() != null) {
             String fullName = updateRequest.getFirstName();
             if (updateRequest.getLastName() != null && !updateRequest.getLastName().isEmpty()) {
@@ -400,6 +410,7 @@ public class AuthController {
             map.put("email", user.getEmail());
             map.put("enabled", user.isEnabled());
             map.put("role", role.name());
+            map.put("username", user.getUsername());
             response.add(map);
         }
         

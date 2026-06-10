@@ -775,6 +775,7 @@ const AdminDashboard = () => {
       address: staff.address || '',
       idNo: staff.idNo || '',
       password: '',
+      username: staff.username || '',
       enabled: staff.enabled ?? staff.active ?? staff.isActive ?? true,
       role: staff.role || staff.userRole || 'ROLE_STAFF'
     });
@@ -4376,6 +4377,11 @@ const AdminDashboard = () => {
                       <input type="text" name="lastName" value={editStaffData.lastName} onChange={handleEditStaffChange}
                         className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all" />
                     </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Username</label>
+                    <input type="text" name="username" value={editStaffData.username} onChange={handleEditStaffChange} required
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Email Address</label>
